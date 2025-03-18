@@ -1,0 +1,11 @@
+# Node.js
+backend/node_modules/
+backend/.env
+
+# React.js
+frontend/node_modules/
+frontend/build/
+
+# OS & Logs
+.DS_Store
+*.log
