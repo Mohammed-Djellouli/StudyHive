@@ -1,0 +1,87 @@
+.chat-container {
+    background-color: #1e1f21;
+    border-radius: 11px;
+    width: 385px;
+    height: 351px;
+    position: relative;
+}
+
+.message-input-container{
+    background-color: #000000;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 56px;
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+}
+
+.input-text-field{
+    border-radius: 11px;
+    flex: 0 0 80%;
+    background-color: transparent;
+    border: none;
+    padding: 0 8px;
+    color: white;
+    outline: none;
+}
+
+.send-button{
+    flex: 0 0 20%;
+    border-radius: 11px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding-right: 15px;
+}
+
+.send-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.message-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+}
+
+.message-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.message-list-user {
+    width: 50px;
+    height: 50px;
+    background-color: black;
+    margin-right: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+
+.message-list-message {
+    flex: 0 0 80%;
+    color: white;
+    padding-left: 10px;
+}
+
+.user-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+
+
