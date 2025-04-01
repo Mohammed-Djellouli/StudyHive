@@ -1,0 +1,23 @@
+{
+  "name": "studyhive",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mohammed-Djellouli/StudyHive.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mohammed-Djellouli/StudyHive/issues"
+  },
+  "homepage": "https://github.com/Mohammed-Djellouli/StudyHive#readme",
+  "description": "",
+  "dependencies": {
+    "mongoose": "^8.13.1"
+  }
+}

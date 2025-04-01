@@ -4,7 +4,7 @@ function App() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/") // Fetch data from backend
+    fetch("http://localhost:5050/") // Fetch data from backend
         .then((res) => res.text())
         .then((data) => setMessage(data));
   }, []);
