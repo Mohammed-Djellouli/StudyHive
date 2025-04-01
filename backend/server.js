@@ -7,22 +7,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Connect to MongoDB
+//  Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-    .then(() => console.log("✅ Connected to MongoDB Atlas"))
-    .catch((err) => console.error("❌ MongoDB connection error:", err));
+    .then(() => console.log(" Connected to MongoDB Atlas"))
+    .catch((err) => console.error(" MongoDB connection error:", err));
 
-// ✅ Define a sample User schema
+
 const UserSchema = new mongoose.Schema({
     name: String,
 });
 
 const User = mongoose.model("User", UserSchema);
 
-// ✅ Test routes
+//  Test routes
 app.get("/", (req, res) => {
     res.send("StudyHive Backend with MongoDB");
 });
