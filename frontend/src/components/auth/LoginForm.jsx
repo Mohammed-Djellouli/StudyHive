@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios  from "axios";
+import {FiEye, FiEyeOff} from "react-icons/fi";
 const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -66,7 +67,7 @@ const LoginForm = () => {
                     className="absolute right-3 top-10 text-yellow-400 cursor-pointer"
                     onClick={() => setShowPwd(!showPwd)}
                 >
-          {showPwd ? '🙈' : '👁️'}
+                    {showPwd ? <FiEyeOff size={20} /> : <FiEye size={20} />}
         </span>
             </div>
 

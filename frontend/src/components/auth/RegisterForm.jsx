@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
+import { FiEye, FiEyeOff } from "react-icons/fi"; // eye open/close
 import axios from 'axios';
 
 const RegisterForm = () => {
     const [email, setEmail] = useState('');
+    const [pseudo, setPseudo] = useState('');
     const [password, setPassword] = useState('');
     const [showPwd, setShowPwd] = useState(false);
 
@@ -13,17 +15,17 @@ const RegisterForm = () => {
         try {
             const res = await axios.post('http://localhost:5000/api/auth/register', {
                 email,
-                password
+                pseudo,
+                password,
             });
 
-            console.log(res.data); // Résultat retour backend
+            console.log(res.data);
             alert("Compte créé avec succès !");
         } catch (err) {
-            console.error(err.response.data.message);
-            alert(err.response.data.message);
+            console.error(err.response?.data?.message || err.message);
+            alert(err.response?.data?.message || "Erreur lors de l'inscription");
         }
     };
-
 
     return (
         <form
@@ -45,6 +47,19 @@ const RegisterForm = () => {
                 />
             </div>
 
+            {/* Pseudo */}
+            <div className="mb-4">
+                <label className="block mb-1 text-white">Pseudo</label>
+                <input
+                    type="text"
+                    className="w-full p-3 rounded-md bg-transparent border border-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    placeholder="Ex: BeeMaster23"
+                    value={pseudo}
+                    onChange={(e) => setPseudo(e.target.value)}
+                    required
+                />
+            </div>
+
             {/* Password */}
             <div className="mb-6 relative">
                 <label className="block mb-1 text-white">Password</label>
@@ -60,18 +75,17 @@ const RegisterForm = () => {
                     className="absolute right-3 top-10 text-yellow-400 cursor-pointer"
                     onClick={() => setShowPwd(!showPwd)}
                 >
-          {showPwd ? '🙈' : '👁️'}
+          {showPwd ? <FiEyeOff size={20} /> : <FiEye size={20} />}
         </span>
             </div>
 
             {/* Register button */}
             <button
                 type="submit"
-                className="w-full bg-[#FBBC04] text-black font-semibold py-2 rounded-md mb-4 ">
-
+                className="w-full bg-[#FBBC04] text-black font-semibold py-2 rounded-md mb-4"
+            >
                 Create account
             </button>
-            <br/>
 
             {/* Google button */}
             <button
@@ -80,7 +94,6 @@ const RegisterForm = () => {
                 onClick={() => {
                     window.location.href = "http://localhost:5000/auth/google";
                 }}
-
             >
                 <FcGoogle className="text-xl" />
                 Continue with Google

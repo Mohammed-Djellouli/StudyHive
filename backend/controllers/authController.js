@@ -1,11 +1,11 @@
-const User=require('../models/user');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs')
 const generateToken = require('../utils/generateToken');
 
 
 
 const registerUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, pseudo } = req.body;
 
     try {
         const existingUser = await User.findOne({ email });
@@ -19,6 +19,7 @@ const registerUser = async (req, res) => {
 
         const newUser = await User.create({
             email,
+            pseudo,
             password: hashedPassword
         });
 
