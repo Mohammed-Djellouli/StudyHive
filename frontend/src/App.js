@@ -1,19 +1,10 @@
+import React from "react";
 import { useEffect, useState } from "react";
+import YouTubeModule from "./components/youtube/YouTubeModule";
+
 
 function App() {
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    fetch("http://localhost:5050/") // Fetch data from backend
-        .then((res) => res.text())
-        .then((data) => setMessage(data));
-  }, []);
-
-  return (
-      <div>
-        <h1>{message}</h1>
-      </div>
-  );
+    return <YouTubeModule />;
 }
 
 export default App;
