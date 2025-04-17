@@ -15,7 +15,7 @@ router.get("/google/callback",
             expiresIn: "30d"
         });
 
-        console.log("✅ TOKEN GÉNÉRÉ :", token);
+        console.log("TOKEN GÉNÉRÉ :", token);
 
         res.redirect(`http://localhost:3000/google-auth-success?token=${token}`);
     }

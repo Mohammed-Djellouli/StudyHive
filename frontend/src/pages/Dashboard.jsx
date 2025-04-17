@@ -10,8 +10,8 @@ const Dashboard = () => {
             alert("Erreur: Token non trouvé !");
             navigate("/login");
         } else {
-            console.log("✅ Token trouvé :", token);
-            // Tu peux ici appeler ton backend pour vérifier l'utilisateur si besoin
+            console.log(" Token trouvé :", token);
+
         }
     }, [navigate]);
 

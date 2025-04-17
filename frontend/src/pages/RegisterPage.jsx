@@ -1,7 +1,7 @@
 import React from 'react';
 import RegisterForm from '../components/auth/RegisterForm';
-import logoCenter from '../assets/Big_LOGO_2.png'; // ton image centrale
-import bee from '../assets/bee_without_back_ground.png'; // ton abeille déco
+import logoCenter from '../assets/Big_LOGO_2.png';
+import bee from '../assets/bee_without_back_ground.png';
 
 const RegisterPage = () => {
     return (
@@ -35,7 +35,7 @@ const RegisterPage = () => {
                 className="absolute top-[70%] bottom-[1%] left-[30%] w-120 h-64 "
             />
 
-            {/* Logo Central (au milieu des 2 côtés) */}
+
             <img
                 src={logoCenter}
                 alt="Big Logo"

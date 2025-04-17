@@ -8,11 +8,11 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: false  // 🔥 On le rend facultatif pour Google
+        required: false
     },
     googleId: {
         type: String,
-        required: false  // 🔥 Pour les utilisateurs via Google
+        required: false
     }
 }, { timestamps: true });
 

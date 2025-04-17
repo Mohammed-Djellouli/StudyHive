@@ -5,7 +5,7 @@ const GoogleAuthSuccess = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log("🟡 GoogleAuthSuccess mounted");
+        console.log(" GoogleAuthSuccess mounted");
 
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get("token");
@@ -14,7 +14,7 @@ const GoogleAuthSuccess = () => {
 
         if (token) {
             localStorage.setItem("token", token);
-            alert("Connexion avec Google réussie ✅");
+            alert("Connexion avec Google réussie ");
             navigate("/dashboard");
         } else {
             alert("Erreur: Token non trouvé dans l'URL !");
