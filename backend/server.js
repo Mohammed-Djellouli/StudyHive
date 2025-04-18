@@ -1,29 +1,27 @@
-
-const connectDB = require("./Config/Connexion");
 const dotenv = require("dotenv");
+dotenv.config();
+
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDB = require("./config/connexion");
+const connectDB = require("./Config/connexion");
 const passport = require("passport");
 const cookieSession = require("cookie-session");
 
-dotenv.config();
-require("./config/passport"); // configuration de GoogleStrategy
+require("./Config/passport");
 
 const app = express();
-const {Server} = require("socket.io")
-const http = require("node:http");
+const http = require("http");
+const { Server } = require("socket.io");
 
 // Connexion MongoDB
 connectDB();
 
-//  Middlewares
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
 app.use(cookieSession({
-    maxAge: 24 * 60 * 60 * 1000, // 1 jour
+    maxAge: 24 * 60 * 60 * 1000,
     keys: ["studyhive_session_key"]
 }));
 
@@ -34,39 +32,12 @@ app.use(passport.session());
 const authRoutes = require("./routes/authRoutes");
 const authGoogleRoutes = require("./routes/authGoogle");
 
-app.use("/api/auth", authRoutes);       // Auth classique (register/login)
-app.use("/auth", authGoogleRoutes);     // Google OAuth2
+app.use("/api/auth", authRoutes);
+app.use("/auth", authGoogleRoutes);
 
-// Route de test
-
-
-
+// Route test
 app.get("/", (req, res) => {
-    res.send(" StudyHive Backend fonctionne !");
+    res.send("StudyHive Backend fonctionne !");
 });
 
-// Lancement du serveur
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Serveur lancé sur : http://localhost:${PORT}`);
-
-const server = http.createServer(app);
-const io = new Server(server,{
-    cors: {
-        origin: "http://localhost:3000",
-        methods: ["GET", "POST"],
-    }
-});
-
-io.on("connection", (socket) => {
-    socket.on("send_message", (message) => {
-        io.emit("receive_message", message);
-    })
-
-})
-
-server.listen(5000, () => {
-    console.log("le server sur : http://localhost:5000");
-});
-dotenv.config();
-connectDB();
+// Création

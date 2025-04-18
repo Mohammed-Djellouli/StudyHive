@@ -102,7 +102,7 @@ const RegisterForm = () => {
             {/* Login link */}
             <p className="text-center text-sm text-gray-300">
                 Already Have An Account?{' '}
-                <a href="/login" className="text-yellow-400 font-medium hover:underline">
+                <a href="/LoginPage" className="text-yellow-400 font-medium hover:underline">
                     Log In
                 </a>
             </p>
