@@ -9,6 +9,8 @@ dotenv.config();
 require("./config/passport"); // configuration de GoogleStrategy
 
 const app = express();
+const {Server} = require("socket.io")
+const http = require("node:http");
 
 // Connexion MongoDB
 connectDB();
@@ -33,6 +35,9 @@ app.use("/api/auth", authRoutes);       // Auth classique (register/login)
 app.use("/auth", authGoogleRoutes);     // Google OAuth2
 
 // Route de test
+
+
+
 app.get("/", (req, res) => {
     res.send(" StudyHive Backend fonctionne !");
 });
@@ -41,4 +46,22 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Serveur lancé sur : http://localhost:${PORT}`);
+
+const server = http.createServer(app);
+const io = new Server(server,{
+    cors: {
+        origin: "http://localhost:3000",
+        methods: ["GET", "POST"],
+    }
+});
+
+io.on("connection", (socket) => {
+    socket.on("send_message", (message) => {
+        io.emit("receive_message", message);
+    })
+
+})
+
+server.listen(5000, () => {
+    console.log("le server sur : http://localhost:5000");
 });
