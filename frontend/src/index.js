@@ -1,31 +1,28 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+import App from "./App";
+import CreationHivePage from "./CreationHivePage";
 import reportWebVitals from './reportWebVitals';
 
+// Import du Router
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+    <React.StrictMode>
+        <Router>
+            <Routes>
+                {/* Page d'accueil */}
+                <Route path="/" element={<CreationHivePage />} />
+
+                {/* Page après le bouton "Créer une Ruche" */}
+                <Route path="/app" element={<App />} />
+            </Routes>
+        </Router>
+    </React.StrictMode>
 );
 
-if (window.location.pathname === "/google-auth-success") {
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-
-    if (token) {
-        localStorage.setItem("token", token);
-        window.location.href = "/dashboard";
-    } else {
-        window.location.href = "/login";
-    }
-}
-
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

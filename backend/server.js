@@ -1,3 +1,6 @@
+
+const connectDB = require("./Config/Connexion");
+const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -65,3 +68,5 @@ io.on("connection", (socket) => {
 server.listen(5000, () => {
     console.log("le server sur : http://localhost:5000");
 });
+dotenv.config();
+connectDB();
