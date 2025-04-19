@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from "react";
 import MessageList from "./messageList";
 import MessageInput from "./messageInput";
-import socket from "../socket";
+import socket from "../../socket";
 import "./chat.css";
 
 const ChatBox = () => {

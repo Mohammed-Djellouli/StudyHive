@@ -3,6 +3,8 @@ import Big_Logo_At_Left from "./components/Big_Logo_At_Left/Big_Logo_At_Left";
 import Left_Bar from "./components/Left_bar_Icons_members_In_Room/Left_bar_Icons_members_In_Room";
 import SearchBar from "./components/SeachBar/SeachBar";
 import "./App.css";
+import ChatBox from "./components/Communication/Chat/chatBox";
+import VoiceChat from "./components/Communication/MicChat/VoiceChat";
 
 function HivePage() {
 
@@ -14,6 +16,8 @@ function HivePage() {
              }}>
             <Big_Logo_At_Left />
             <Left_Bar />
+            <ChatBox/>
+            <VoiceChat/>
             <div className="w-full flex justify-center fixed top-0 left-0 pt-2 z-20">
                 <SearchBar />
             </div>
