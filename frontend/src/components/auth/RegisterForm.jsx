@@ -3,11 +3,15 @@ import { FcGoogle } from 'react-icons/fc';
 import { FiEye, FiEyeOff } from "react-icons/fi"; // eye open/close
 import axios from 'axios';
 
+import { Link, useNavigate } from "react-router-dom";
+
 const RegisterForm = () => {
     const [email, setEmail] = useState('');
     const [pseudo, setPseudo] = useState('');
     const [password, setPassword] = useState('');
     const [showPwd, setShowPwd] = useState(false);
+
+    const navigate = useNavigate(); // après les useState
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,11 +25,13 @@ const RegisterForm = () => {
 
             console.log(res.data);
             alert("Compte créé avec succès !");
+            navigate("/"); // redirection après inscription
         } catch (err) {
             console.error(err.response?.data?.message || err.message);
             alert(err.response?.data?.message || "Erreur lors de l'inscription");
         }
     };
+
 
     return (
         <form
@@ -102,9 +108,9 @@ const RegisterForm = () => {
             {/* Login link */}
             <p className="text-center text-sm text-gray-300">
                 Already Have An Account?{' '}
-                <a href="/LoginPage" className="text-yellow-400 font-medium hover:underline">
-                    Log In
-                </a>
+                <Link to="/LoginPage" className="text-yellow-400 font-medium hover:underline">
+                Log In
+                </Link>
             </p>
         </form>
     );

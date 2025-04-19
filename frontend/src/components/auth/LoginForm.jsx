@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import axios  from "axios";
-import {FiEye, FiEyeOff} from "react-icons/fi";
+import axios from "axios";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useNavigate, Link } from "react-router-dom";
+
 const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPwd, setShowPwd] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -15,13 +18,11 @@ const LoginForm = () => {
                 password
             });
 
-            // Vérifie bien la structure de la réponse
             if (response && response.data) {
-                console.log(response.data); // Tu verras { message: "...", token: "..." }
+                console.log(response.data);
                 alert(response.data.message);
-
-                // Stocker le token
                 localStorage.setItem('token', response.data.token);
+                navigate("/"); // Redirection vers la page d'accueil après connexion
             }
 
         } catch (error) {
@@ -30,10 +31,8 @@ const LoginForm = () => {
         }
     };
 
-
-
     return (
-        <form className="bg-gray-900 p-8 rounded-xl shadow-lg w-full max-w-md text-white">
+        <form onSubmit={handleSubmit} className="bg-gray-900 p-8 rounded-xl shadow-lg w-full max-w-md text-white">
             <h2 className="text-2xl font-semibold mb-6">Connexion</h2>
 
             <div className="mb-4">
@@ -51,9 +50,13 @@ const LoginForm = () => {
             <div className="mb-6 relative">
                 <div className="flex justify-between mb-1">
                     <label>Mot De Passe</label>
-                    <a href="#" className="text-sm text-gray-400 hover:text-yellow-400">
+                    <button
+                        type="button"
+                        className="text-sm text-gray-400 hover:text-yellow-400"
+                        onClick={() => alert("Fonctionnalité à venir")}
+                    >
                         Oublié ?
-                    </a>
+                    </button>
                 </div>
                 <input
                     type={showPwd ? 'text' : 'password'}
@@ -68,12 +71,11 @@ const LoginForm = () => {
                     onClick={() => setShowPwd(!showPwd)}
                 >
                     {showPwd ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-        </span>
+                </span>
             </div>
 
             <button
                 type="submit"
-                onClick={handleSubmit}
                 className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-md mb-4 hover:bg-yellow-300"
             >
                 se connecter
@@ -81,9 +83,9 @@ const LoginForm = () => {
 
             <p className="text-center text-sm text-gray-400">
                 Vous N'avez Pas Un Compte ?{' '}
-                <a href="/RegisterPage" className="text-yellow-400 hover:underline">
+                <Link to="/RegisterPage" className="text-yellow-400 hover:underline">
                     Inscription
-                </a>
+                </Link>
             </p>
         </form>
     );
