@@ -21,7 +21,11 @@ const LoginForm = () => {
             if (response && response.data) {
                 console.log(response.data);
                 alert(response.data.message);
+
                 localStorage.setItem('token', response.data.token);
+                localStorage.setItem("userId", response.data.user._id);
+                localStorage.setItem("userPseudo", response.data.user.pseudo);
+
                 navigate("/"); // Redirection vers la page d'accueil après connexion
             }
 

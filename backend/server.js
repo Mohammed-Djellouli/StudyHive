@@ -12,13 +12,16 @@ require("./Config/passport");
 const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
-
+const hiveRoutes = require("./routes/hiveRoutes");
 // Connexion MongoDB
 connectDB();
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+//roomCreation
+app.use("/api/hive", hiveRoutes);
 
 app.use(cookieSession({
     maxAge: 24 * 60 * 60 * 1000,

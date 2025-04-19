@@ -34,10 +34,11 @@ const RoomSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
-    iSQueenBeeMode :{
-      type : Boolean,
-      default: false,
+    isQueenBeeMode: {
+        type: Boolean,
+        default: false,
     }
+
 });
 
 const Room = mongoose.model("Room", RoomSchema);

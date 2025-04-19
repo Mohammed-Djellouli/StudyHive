@@ -54,6 +54,11 @@ const loginUser = async (req, res) => {
         res.status(200).json({
             message: 'Connexion réussie',
             token: generateToken(user._id),
+            user: {
+                _id: user._id,
+                pseudo: user.pseudo,
+                email: user.email,
+            }
         });
 
     } catch (err) {

@@ -1,12 +1,54 @@
 import React from "react";
 import { useNavigate} from "react-router-dom";
-import  { useState } from "react";
+import  { useState, useEffect } from "react";
 
 
 
 function PhraseAccrocheAvecButtonCreationHive() {
+    //const [inviteLink, setInviteLink] = useState("");
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
+    const [userId, setUserId] = useState(null);
+
+    //const userId = "68012ef6e2497c62577d46d8" //un id temp pour tester si çela vas marcher ou pas
+
+    useEffect(() => {
+        const id = localStorage.getItem("userId");
+        setUserId(id);
+    }, []);
+
+    const handleHiveCreation =  async(mode) => {
+        if (!userId) {
+            alert("Veuillez vous connecter pour créer une ruche.");
+            return;
+        }
+        try{
+            const response = await fetch("http://localhost:5000/api/hive/create",{
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    mode: mode,
+                })
+            });
+
+            const data = await response.json();
+            if(response.ok){
+
+                //const generatedLink = `http://localhost:3000/join/${data.room.idRoom}`;
+                //setInviteLink(generatedLink);
+                navigate(`/hive/${data.room.idRoom}`, { state: { ownerPseudo: data.ownerPseudo , isQueenBeeMode: data.room.isQueenBeeMode } });
+            }
+            else{
+                alert("Error in front " + data.message);
+            }
+        }
+        catch(error){
+            console.error("Erreur creation hive",error);
+        }
+    };
 
     return (
         <div className="flex flex-col items-center space-y-4 mt-20">
@@ -42,12 +84,15 @@ function PhraseAccrocheAvecButtonCreationHive() {
                     </h2>
                     <div className="flex justify-between gap-4">
                         <button className=" w-1/2 bg-[#FFCE1C] text-black font-bold py-2 rounded-lg hover:opacity-90 transition"
-                                onClick={() => {navigate("/app"); /*if we wants later to add the role juste we put /app?role=worker*/
-                                setShowModal(false);
+
+                                onClick={() => {
+                                    handleHiveCreation("worker");
+                                    setShowModal(false);
                         }}
                         > Worker Bee Mode</button>
                         <button className=" w-1/2 bg-[#FFCE1C] text-black font-bold py-2 rounded-lg hover:opacity-90 transition"
-                                onClick={() => {navigate("/app");
+                                onClick={() => {
+                                    handleHiveCreation("queen");
                                     setShowModal(false);
                                 }}
                         > Queen Bee Mode</button>
@@ -59,7 +104,28 @@ function PhraseAccrocheAvecButtonCreationHive() {
                         > Fermer</button>
                     </div>
                 </div>
+                {/*the code below this div is not working until we put our website on working then we cant do that */}
+                {/*
+                {inviteLink && (
+                    <div className="text-center text-sm mt-4">
+                        <p className="mb-2 text-white">Lien d'invitation à partager :</p>
+                        <div className="bg-gray-800 text-yellow-300 px-3 py-2 rounded break-all">
+                            {inviteLink}
+                        </div>
 
+                        <button
+                            onClick={() => navigate(`/hive/${inviteLink.split("/").pop()}`, {
+                                state: {
+                                    ownerPseudo: localStorage.getItem("userPseudo"),
+                                }
+                            })}
+                            className="mt-4 text-sm text-amber-500 underline hover:text-amber-300"
+                        >
+                            Aller dans ma ruche →
+                        </button>
+                    </div>
+                )}
+                */}
             </div>
             )}
         </div>

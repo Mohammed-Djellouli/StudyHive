@@ -16,7 +16,7 @@ root.render(
         <Router>
             <Routes>
                 <Route path="/" element={<App />} />
-                <Route path="/app" element={<HivePage />} />
+                <Route path="/hive/:idRoom" element={<HivePage />} />
                 <Route path="/LoginPage" element={<LoginPage />} />
                 <Route path="/RegisterPage" element={<RegisterPage />} />
                 <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />

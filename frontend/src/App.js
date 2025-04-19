@@ -5,6 +5,7 @@ import ButtonConnexInscForCreationHivePage from "./components/ButtonConnexInscrF
 import PhraseAccrocheAvecButtonCreationHive from "./components/PhraseAccrocheAvecButtonDeCreationHive/PhraseAccrocheAvecButtonCreationHive";
 import TwoTextExplain from "./components/Text_Bars_Explain_Modes/Text_Bars_Worker_And_Queen_Bee_Mode"
 
+
 import "./App.css";
 
 
@@ -21,4 +22,4 @@ function App(){
         </body>
     );
 }
-export default App;
+export default App;
