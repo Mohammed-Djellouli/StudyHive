@@ -12,7 +12,6 @@ function ButtonConnexInscrForCreationHivePage() {
 
         </div>
 
-
     );
 }
 export default ButtonConnexInscrForCreationHivePage;

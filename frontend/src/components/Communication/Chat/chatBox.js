@@ -26,7 +26,7 @@ const ChatBox = () => {
     };
 
     return (
-        <div className="chat-container">
+        <div className="w-96 h-[351px] rounded-xl bg-[#1e1f21] flex flex-col overflow-hidden">
             <MessageList messages={messages} />
             <MessageInput onSend={handleSendMessage} />
         </div>
