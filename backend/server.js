@@ -3,11 +3,11 @@ dotenv.config();
 
 const express = require("express");
 const cors = require("cors");
-const connectDB = require("./Config/connexion");
+const connectDB = require("./config/connexion");
 const passport = require("passport");
 const cookieSession = require("cookie-session");
 
-require("./Config/passport");
+require("./config/passport");
 
 const app = express();
 const http = require("http");
