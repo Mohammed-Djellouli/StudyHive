@@ -1,5 +1,5 @@
 import React from 'react';
-import RegisterForm from '../components/auth/RegisterForm';
+import RegisterForm from './RegisterForm';
 /*import logoCenter from '/assets/Big_LOGO_2.png';*/
 /*import bee from '../assets/bee_without_back_ground.png';*/
 

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {useParams} from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import Big_Logo_At_Left from "./components/hiveHeader/Big_Logo_At_Left";
-import Left_bar_Icons_members_In_Room from "./components/hiveBody/Left_bar_Icons_members_In_Room";
-import SearchBar from "./components/hiveHeader/SeachBar";
-import LeftBarTools from "./components/hiveBody/LeftBarTools";
-import HiveTimerBanner from "./components/hiveHandle/HiveTimerBanner";
+import Big_Logo_At_Left from "./components/hivePage/hiveHeader/Big_Logo_At_Left";
+import Left_bar_Icons_members_In_Room from "./components/hivePage/hiveBody/Left_bar_Icons_members_In_Room";
+import SearchBar from "./components/hivePage/hiveHeader/SeachBar";
+import LeftBarTools from "./components/hivePage/hiveBody/LeftBarTools";
+import HiveTimerBanner from "./components/hivePage/hiveHandle/HiveTimerBanner";
 import ChatBox from "./components/Communication/Chat/chatBox";
 import VoiceChat from "./components/Communication/MicChat/VoiceChat";
 
@@ -16,7 +16,8 @@ function HivePage() {
     const [ownerPseudo, setOwnerPseudo] = useState(null);
     const [isQueenBeeMode, setIsQueenBeeMode] = useState(false);
     const [timerEndsAt,  setTimerEndsAt]= useState(null);
-
+    const [ownerId , setOwnerId] = useState(null);
+    const [users, setUsers] = useState([]);
     useEffect(() => {
         fetch(`http://localhost:5000/api/hive/${idRoom}`)
             .then(res => res.json())
@@ -25,6 +26,8 @@ function HivePage() {
                 setOwnerPseudo(data.ownerPseudo);
                 setIsQueenBeeMode(data.isQueenBeeMode);
                 setTimerEndsAt(data.timerEndsAt);
+                setUsers(data.users );
+                setOwnerId(data.idOwner);
             });
     }, [idRoom]);
     const location = useLocation();
@@ -38,7 +41,7 @@ function HivePage() {
                  backgroundSize: "270%",
              }}>
             <Big_Logo_At_Left />
-            <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} />
+            <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} users={users.filter((user)=> user._id !== ownerId)} />
             <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
                 <ChatBox/>
             </div>

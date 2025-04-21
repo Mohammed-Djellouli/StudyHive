@@ -105,7 +105,7 @@ const RegisterForm = () => {
                 Continue with Google
             </button>
 
-            {/* Login link */}
+            {/* login link */}
             <p className="text-center text-sm text-gray-300">
                 Already Have An Account?{' '}
                 <Link to="/LoginPage" className="text-yellow-400 font-medium hover:underline">

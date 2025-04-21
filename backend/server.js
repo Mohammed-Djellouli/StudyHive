@@ -88,6 +88,9 @@ app.get("/", (req, res) => {
 });
 
 
+//Permissions Routes
+const permissionRoutes = require("./routes/permissionRoutes");
+app.use("/api/permission", permissionRoutes);
 
 
 // Création

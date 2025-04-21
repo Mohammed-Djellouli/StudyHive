@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function LeftBarTools(){
+function LeftBarTools({ ownerPseudo, isQueenBeeMode }){
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
 
@@ -36,6 +36,9 @@ function LeftBarTools(){
             <div className="bg-black/60 rounded-full w-[40px] h-[40px] text-white text-sm font-bold flex items-center justify-center">
                 <button >BRB</button>
             </div>
+
+
+
         </div>
     );
 }

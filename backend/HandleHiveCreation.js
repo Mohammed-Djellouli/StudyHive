@@ -31,6 +31,27 @@ const HandleHiveCreation = async (req, res) => {
 
         await newHive.save();
 
+
+        //On initialise ici les permission apres la creation du Hive
+        const Permission = require("./models/Permission");
+        const newPermission = new Permission({
+            idRoom: newHive._id,
+            idOwner: user._id,
+            users: newHive.users.map(uid =>({
+                userId: uid,
+                micEnabled: true,
+                screenShareEnabled: true,
+                canChangeVideo:true,
+            }))
+        });
+
+        await newPermission.save();
+
+
+
+
+
+
         res.status(201).json({
             message: "User Created Successfully",
             room: newHive,

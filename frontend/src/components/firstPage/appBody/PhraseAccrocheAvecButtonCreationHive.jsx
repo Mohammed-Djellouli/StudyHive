@@ -9,12 +9,22 @@ function PhraseAccrocheAvecButtonCreationHive() {
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
     const [userId, setUserId] = useState(null);
-
+    const [existingRoom, setExistingRoom] = useState(null);
     //const userId = "68012ef6e2497c62577d46d8" //un id temp pour tester si çela vas marcher ou pas
 
     useEffect(() => {
         const id = localStorage.getItem("userId");
         setUserId(id);
+
+        if(id) {
+            fetch(`http://localhost:5000/api/hive/user-room/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.room){
+                        setExistingRoom(data.room);
+                    }
+                });
+        }
     }, []);
 
     const handleHiveCreation =  async(mode) => {
