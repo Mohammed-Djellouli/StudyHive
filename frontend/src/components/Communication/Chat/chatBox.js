@@ -6,9 +6,23 @@ import "./chat.css";
 
 const ChatBox = () => {
     const [messages, setMessages] = useState([]);
+    const[userId, setUserId] = useState(null);
+    const[socketId, setSocketId] = useState("");
+
+    useEffect(() => {
+
+        //getting the user's ID from localStroage and setting the ID
+        const storedId=localStorage.getItem("userId");
+        setUserId(storedId);
+    }, []);
 
 
     useEffect(() => {
+
+        //setting the socketId while connected
+        socket.on("connect",()=>{
+            setSocketId(socket.id);
+        })
 
         socket.on("receive_message", (message) => {
             //console.log("message is:", message);
@@ -16,18 +30,22 @@ const ChatBox = () => {
         });
 
         return () => {
+            socket.off("connect");
             socket.off("receive_message");
         };
     }, []);
 
 
     const handleSendMessage = (newMessage) => {
-        socket.emit("send_message", newMessage);
+        socket.emit("send_message", {
+            ...newMessage,
+            user: userId || socketId,// either using the user's ID or his socketID
+        });
     };
 
     return (
         <div className="w-96 h-[351px] rounded-xl bg-[#1e1f21] flex flex-col overflow-hidden">
-            <MessageList messages={messages} />
+            <MessageList messages={messages} selfId ={userId || socketId} />
             <MessageInput onSend={handleSendMessage} />
         </div>
     );

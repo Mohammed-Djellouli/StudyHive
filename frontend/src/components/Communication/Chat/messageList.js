@@ -1,7 +1,7 @@
 import React from "react";
 import {useEffect,useRef} from "react";
 
-const MessageList = ({ messages }) => {
+const MessageList = ({ messages,selfId }) => {
     const bottomRef = useRef(null);
 
     useEffect(() => {
@@ -10,7 +10,7 @@ const MessageList = ({ messages }) => {
     return (
         <div className="message-list-container flex flex-col gap-3 p-5 overflow-y-scroll h-[calc(100%-56px)]">
             {messages.map((msg, index) => {
-                const isMe = msg.user === "Moi"; //Moi is the username
+                const isMe = msg.user === selfId;
                 return (
                     <div
                         key={index}
