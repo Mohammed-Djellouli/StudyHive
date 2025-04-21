@@ -15,7 +15,7 @@ function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
                 setTimeLeft(0);
                 setShowModal(true);
                 // supprimer la room
-                fetch(`http://localhost:5000/api/hive/delete/${roomId}`, { method: "DELETE" });
+                fetch(`http://localhost:5001/api/hive/delete/${roomId}`, { method: "DELETE" });
             } else {
                 setTimeLeft(diff);
             }
