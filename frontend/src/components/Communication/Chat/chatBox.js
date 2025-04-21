@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from "react";
 import MessageList from "./messageList";
 import MessageInput from "./messageInput";
-import socket from "../socket";
+import socket from "../../socket";
 import "./chat.css";
 
 const ChatBox = () => {
@@ -26,7 +26,7 @@ const ChatBox = () => {
     };
 
     return (
-        <div className="chat-container">
+        <div className="w-96 h-[351px] rounded-xl bg-[#1e1f21] flex flex-col overflow-hidden">
             <MessageList messages={messages} />
             <MessageInput onSend={handleSendMessage} />
         </div>

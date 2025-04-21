@@ -12,18 +12,18 @@ const MessageInput = ({ onSend }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="message-input-container">
+        <form onSubmit={handleSubmit} className="flex h-14 bg-black">
             <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="message"
-                className="input-text-field"
+                className="flex-grow bg-transparent text-white px-2 outline-none"
             />
             <button type="submit"
-                    className="send-button"
+                    className="w-14 flex items-center justify-center px-3"
             >
-                <img src="/assets/send-icon.png" alt="Send" className="send-icon" />
+                <img src="/assets/send-icon.png" alt="Send" className="w-5 h-5" />
             </button>
         </form>
     );

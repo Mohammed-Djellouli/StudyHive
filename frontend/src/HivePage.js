@@ -6,6 +6,9 @@ import Left_bar_Icons_members_In_Room from "./components/hiveBody/Left_bar_Icons
 import SearchBar from "./components/hiveHeader/SeachBar";
 import LeftBarTools from "./components/hiveBody/LeftBarTools";
 import HiveTimerBanner from "./components/hiveHandle/HiveTimerBanner";
+import ChatBox from "./components/Communication/Chat/chatBox";
+import VoiceChat from "./components/Communication/MicChat/VoiceChat";
+
 import "./App.css";
 
 function HivePage() {
@@ -24,7 +27,6 @@ function HivePage() {
                 setTimerEndsAt(data.timerEndsAt);
             });
     }, [idRoom]);
-
     const location = useLocation();
 
 
@@ -37,15 +39,20 @@ function HivePage() {
              }}>
             <Big_Logo_At_Left />
             <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} />
+            <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
+                <ChatBox/>
+            </div>
+            <div className="fixed bottom-3 right-80">
+                <VoiceChat/>
+            </div>
             <div className="w-full flex justify-center fixed top-0 left-0 pt-2 z-20">
                 <SearchBar />
             </div>
             <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom} />
             <LeftBarTools/>
-
         </div>
     );
 }
 
 
-export default HivePage;
+export default HivePage;
