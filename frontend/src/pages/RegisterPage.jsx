@@ -1,7 +1,7 @@
 import React from 'react';
 import RegisterForm from '../components/auth/RegisterForm';
-import logoCenter from '../assets/Big_LOGO_2.png';
-import bee from '../assets/bee_without_back_ground.png';
+/*import logoCenter from '/Assets/Big_LOGO_2.png';*/
+/*import bee from '../assets/bee_without_back_ground.png';*/
 
 const RegisterPage = () => {
     return (
@@ -30,14 +30,14 @@ const RegisterPage = () => {
 
             {/* Abeille */}
             <img
-                src={bee}
+                src="/Assets/bee_without_back_ground.png"
                 alt="Bee"
                 className="absolute top-[70%] bottom-[1%] left-[30%] w-120 h-64 "
             />
 
 
             <img
-                src={logoCenter}
+                src="/Assets/Big_LOGO_2.png"
                 alt="Big Logo"
                 className="absolute top-[10%] left-[45.2%] transform -translate-x-1/2 -translate-y-1/2 w-90 z-10"
             />

@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import {useParams} from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import Big_Logo_At_Left from "./components/Big_Logo_At_Left/Big_Logo_At_Left";
-import Left_bar_Icons_members_In_Room from "./components/Left_bar_Icons_members_In_Room/Left_bar_Icons_members_In_Room";
-import SearchBar from "./components/SeachBar/SeachBar";
-import LeftBarTools from "./components/Left_Bar_Tools/LeftBarTools";
+import Big_Logo_At_Left from "./components/hiveHeader/Big_Logo_At_Left";
+import Left_bar_Icons_members_In_Room from "./components/hiveBody/Left_bar_Icons_members_In_Room";
+import SearchBar from "./components/hiveHeader/SeachBar";
+import LeftBarTools from "./components/hiveBody/LeftBarTools";
+import HiveTimerBanner from "./components/hiveHandle/HiveTimerBanner";
 import "./App.css";
 
 function HivePage() {
     const { idRoom } = useParams();
     const [ownerPseudo, setOwnerPseudo] = useState(null);
     const [isQueenBeeMode, setIsQueenBeeMode] = useState(false);
+    const [timerEndsAt,  setTimerEndsAt]= useState(null);
 
     useEffect(() => {
         fetch(`http://localhost:5000/api/hive/${idRoom}`)
@@ -19,6 +21,7 @@ function HivePage() {
                 console.log("ROOM :", data);
                 setOwnerPseudo(data.ownerPseudo);
                 setIsQueenBeeMode(data.isQueenBeeMode);
+                setTimerEndsAt(data.timerEndsAt);
             });
     }, [idRoom]);
 
@@ -37,6 +40,7 @@ function HivePage() {
             <div className="w-full flex justify-center fixed top-0 left-0 pt-2 z-20">
                 <SearchBar />
             </div>
+            <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom} />
             <LeftBarTools/>
 
         </div>
