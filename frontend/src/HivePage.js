@@ -13,7 +13,8 @@ import "./App.css";
 
 function HivePage() {
     const { idRoom } = useParams();
-    const [ownerPseudo, setOwnerPseudo] = useState(null);
+    const location = useLocation();
+    const [ownerPseudo, setOwnerPseudo] = useState(location.state?.ownerPseudo || null);
     const [isQueenBeeMode, setIsQueenBeeMode] = useState(false);
     const [timerEndsAt,  setTimerEndsAt]= useState(null);
 
@@ -22,12 +23,14 @@ function HivePage() {
             .then(res => res.json())
             .then(data => {
                 console.log("ROOM :", data);
-                setOwnerPseudo(data.ownerPseudo);
                 setIsQueenBeeMode(data.isQueenBeeMode);
                 setTimerEndsAt(data.timerEndsAt);
+
+                if (!location.state?.ownerPseudo && data.ownerPseudo) {
+                    setOwnerPseudo(data.ownerPseudo);
+                }
             });
-    }, [idRoom]);
-    const location = useLocation();
+    }, [idRoom,location.state]);
 
 
     console.log("State reçu dans HivePage :", ownerPseudo, isQueenBeeMode);
