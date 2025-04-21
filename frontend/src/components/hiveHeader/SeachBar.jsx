@@ -8,7 +8,7 @@ function SearchBar() {
                 {/* SearchBar */}
                 <div className="flex items-center w-full bg-[#1a1a1a] rounded-[8px] p-[6px] gap-2">
 
-                    <img src="/Assets/youtube-icon.png" alt="Youtube" className="w-[40px] h-[40px]" />
+                    <img src="/assets/youtube-icon.png" alt="Youtube" className="w-[40px] h-[40px]" />
 
                     <input
                         type="text"
@@ -17,7 +17,7 @@ function SearchBar() {
                     />
 
                     <button className="bg-[#0f0f0f] p-2 rounded-[8px]">
-                        <img src="/Assets/Search-icon.png" alt="Search" className="w-[24px] h-[24px]" />
+                        <img src="/assets/Search-icon.png" alt="Search" className="w-[24px] h-[24px]" />
                     </button>
 
                 </div>

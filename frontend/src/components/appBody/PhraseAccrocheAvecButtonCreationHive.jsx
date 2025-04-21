@@ -65,12 +65,12 @@ function PhraseAccrocheAvecButtonCreationHive() {
 
                 {/* Image tache miel */}
                 <img
-                    src="/Assets/HoneyStane.png"
+                    src="/assets/HoneyStane.png"
                     alt="Honey stain"
                     className="absolute -bottom-20 -right-16 w-[200px]"
                 />
-                <img src="/Assets/SoloBee2.png" className="absolute -left-72 w-[100px] transfomr rotate-[-290deg]" />
-                <img src="/Assets/SoloBee2.png" className="absolute -right-72 -top-48 w-[100px] transform rotate-[-120deg]"/>
+                <img src="/assets/SoloBee2.png" className="absolute -left-72 w-[100px] transfomr rotate-[-290deg]" />
+                <img src="/assets/SoloBee2.png" className="absolute -right-72 -top-48 w-[100px] transform rotate-[-120deg]"/>
             </div>
 
             {/* Block du Modal */}

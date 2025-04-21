@@ -11,13 +11,13 @@ function LeftBarTools(){
         <div className="fixed top-[60px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
             {/* Share Screen */}
             <button className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
-                <img src="/Assets/share-screen.png" alt="Share Screen" className="w-[24px] h-[24px]" />
+                <img src="/assets/share-screen.png" alt="Share Screen" className="w-[24px] h-[24px]" />
             </button>
 
             {/* Toggle Mic */}
             <button onClick={toggleMic} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
                 <img
-                    src={micOn ? "/Assets/open-microphone.png" : "/Assets/mute-microphone.png"}
+                    src={micOn ? "/assets/open-microphone.png" : "/assets/mute-microphone.png"}
                     alt="Mic"
                     className="w-[24px] h-[24px]"
                 />
@@ -26,7 +26,7 @@ function LeftBarTools(){
             {/* Toggle Raise Hand */}
             <button onClick={toggleHand} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
                 <img
-                    src={handRaised ? "/Assets/RisedHand-icon-after.png" : "/Assets/RiseHand-icon-before.png"}
+                    src={handRaised ? "/assets/RisedHand-icon-after.png" : "/assets/RiseHand-icon-before.png"}
                     alt="Raise Hand"
                     className="w-[24px] h-[24px]"
                 />

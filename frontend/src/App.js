@@ -12,7 +12,7 @@ import "./App.css";
 function App(){
     return (
         <body className="min-h-screen w-full bg-[#1D1F27]  bg-center bg-cover bg-no-repeat"
-              style={{ backgroundImage: "url('/Assets/bg.png')",
+              style={{ backgroundImage: "url('/assets/bg.png')",
                   backgroundSize: "270%",
               }}>
         <LogoAtLeftCreationHive />

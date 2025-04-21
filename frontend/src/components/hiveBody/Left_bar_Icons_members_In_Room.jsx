@@ -9,7 +9,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode }) {
                 {ownerPseudo && (
                     <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center">
                         <img
-                            src={isQueenBeeMode ? "/Assets/queen-bee.png" : "/Assets/SoloBee2.png"}
+                            src={isQueenBeeMode ? "/assets/queen-bee.png" : "/assets/SoloBee2.png"}
                             alt={isQueenBeeMode ? "Queen Bee" : "Bee"}
                             className="w-[28px] h-[28px]"
                         />
@@ -20,15 +20,15 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode }) {
                 )}
 
                 {/* Bees */}
-                <li className=" relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/Assets/SoloBee2.png" alt="Bee" /></li>
-                <li className=" relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/Assets/SoloBee2.png" alt="Bee" /></li>
-                <li className=" relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/Assets/SoloBee2.png" alt="Bee" /></li>
-                <li className=" relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/Assets/SoloBee2.png" alt="Bee" /></li>
-                <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/Assets/SoloBee2.png" alt="Bee" /></li>
+                <li className=" relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/assets/SoloBee2.png" alt="Bee" /></li>
+                <li className=" relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/assets/SoloBee2.png" alt="Bee" /></li>
+                <li className=" relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/assets/SoloBee2.png" alt="Bee" /></li>
+                <li className=" relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/assets/SoloBee2.png" alt="Bee" /></li>
+                <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center"><img src="/assets/SoloBee2.png" alt="Bee" /></li>
 
                 {/* Three dots */}
                 <li>
-                    <img className="bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center" src="/Assets/Trois_Point_icon.png" alt="Trois_Point" />
+                    <img className="bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center" src="/assets/Trois_Point_icon.png" alt="Trois_Point" />
                 </li>
             </ul>
         </div>
