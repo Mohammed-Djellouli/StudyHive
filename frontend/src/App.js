@@ -19,6 +19,7 @@ function App(){
         <ButtonConnexInscForCreationHivePage />
         <PhraseAccrocheAvecButtonCreationHive />
         <TwoTextExplain/>
+        <TwoTextExplain/>
         </body>
     );
 }
