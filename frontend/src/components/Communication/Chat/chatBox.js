@@ -16,6 +16,9 @@ const ChatBox = () => {
         setUserId(storedId);
     }, []);
 
+    useEffect(()=>{
+        socket.emit("join_chat",roomId);
+    },[roomId]);
 
     useEffect(() => {
 
@@ -38,8 +41,9 @@ const ChatBox = () => {
 
     const handleSendMessage = (newMessage) => {
         socket.emit("send_message", {
-            ...newMessage,
+            message : newMessage,
             user: userId || socketId,// either using the user's ID or his socketID
+            roomId: roomId,
         });
     };
 

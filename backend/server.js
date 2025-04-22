@@ -47,8 +47,12 @@ const io = new Server(server,{
 });
 
 io.on("connection", (socket) => {
-    socket.on("send_message", (message) => {
-        io.emit("receive_message",message);
+    socket.on("send_message", ({roomId,message}) => {
+        io.to(roomId).emit("receive_message", message);
+    })
+
+    socket.on("join_chat", (roomId) => {
+        socket.join(roomId);
     })
 
     //when user enteres the hive (vocal)
@@ -58,6 +62,8 @@ io.on("connection", (socket) => {
         const otherUsers = Array.from(io.sockets.adapter.rooms.get(roomId) || []).filter(id => id !== socket.id);
         socket.emit("all_users", otherUsers); // sending the list of users already connected in the hive
     });
+
+
 
     //sending webRTC signal to a specific user
     socket.on("sending_signal", ({targetId,signal}) => {
