@@ -58,10 +58,6 @@ function HivePage() {
                 <WhiteBoard />
             </div>
 
-
-            <div className="fixed bottom-3 right-80">
-                <VoiceChat/>
-            </div>
             <div className="w-full flex justify-center fixed top-0 left-0 pt-2 z-20">
                 <SearchBar />
             </div>

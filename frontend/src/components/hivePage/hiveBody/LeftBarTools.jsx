@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import VoiceChat from "../Communication/MicChat/VoiceChat";
+import VoiceChat from "../../Communication/MicChat/VoiceChat";
 
 function LeftBarTools(){
     const [handRaised, setHandRaised] = useState(false);
