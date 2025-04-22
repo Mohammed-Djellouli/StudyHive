@@ -30,7 +30,7 @@ const LoginForm = () => {
             }
 
         } catch (error) {
-            console.error("Erreur Login :", error);
+            console.error("Erreur login :", error);
             alert(error.response?.data?.message || "Erreur serveur");
         }
     };

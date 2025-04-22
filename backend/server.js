@@ -53,6 +53,19 @@ io.on("connection", (socket) => {
         }
     })
 
+    socket.on("draw", (data) => {
+        socket.broadcast.emit("draw", data);
+    });
+
+    socket.on("changeBrushSize", (size) => {
+        socket.broadcast.emit("changeBrushSize", size);
+    });
+
+    socket.on("clear", () => {
+        socket.broadcast.emit("clear");
+    });
+
+
     //when user enteres the hive (vocal)
     socket.on("join_voice", (roomId) => {
         socket.join(roomId);
@@ -90,6 +103,9 @@ app.get("/", (req, res) => {
 });
 
 
+//Permissions Routes
+const permissionRoutes = require("./routes/permissionRoutes");
+app.use("/api/permission", permissionRoutes);
 
 
 // Création

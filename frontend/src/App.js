@@ -1,9 +1,9 @@
 import React  from "react";
 
-import LogoAtLeftCreationHive from "./components/appHeader/LogoAtLeftCreationHive";
-import ButtonConnexInscForCreationHivePage from "./components/appHeader/ButtonConnexInscForCreationHivePage";
-import PhraseAccrocheAvecButtonCreationHive from "./components/appBody/PhraseAccrocheAvecButtonCreationHive";
-import TwoTextExplain from "./components/appFooter/Text_Bars_Worker_And_Queen_Bee_Mode"
+import LogoAtLeftCreationHive from "./components/firstPage/appHeader/LogoAtLeftCreationHive";
+import ButtonConnexInscForCreationHivePage from "./components/firstPage/appHeader/ButtonConnexInscForCreationHivePage";
+import PhraseAccrocheAvecButtonCreationHive from "./components/firstPage/appBody/PhraseAccrocheAvecButtonCreationHive";
+import TwoTextExplain from "./components/firstPage/appFooter/Text_Bars_Worker_And_Queen_Bee_Mode"
 
 
 import "./App.css";
