@@ -51,6 +51,19 @@ io.on("connection", (socket) => {
         io.emit("receive_message",message);
     })
 
+    socket.on("draw", (data) => {
+        socket.broadcast.emit("draw", data);
+    });
+
+    socket.on("changeBrushSize", (size) => {
+        socket.broadcast.emit("changeBrushSize", size);
+    });
+
+    socket.on("clear", () => {
+        socket.broadcast.emit("clear");
+    });
+
+
     //when user enteres the hive (vocal)
     socket.on("join_voice", (roomId) => {
         socket.join(roomId);
