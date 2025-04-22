@@ -28,12 +28,17 @@ const io = new Server(server, {
         origin: "http://localhost:3000",
         methods: ["GET", "POST"],
         credentials: true
-    }
+    },
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    transports: ['websocket', 'polling'],
+    allowEIO3: true
 });
 
 // Video sync state management
 const roomState = {};
 const roomUsers = {};
+const rooms = {}; // For WebRTC connections
 
 io.on("connection", (socket) => {
     console.log("✅ Client connecté:", socket.id);
@@ -51,12 +56,40 @@ io.on("connection", (socket) => {
             userName: userName || "Anonyme"
         });
 
+        if (!rooms[roomId]) {
+            rooms[roomId] = [];
+        }
+        rooms[roomId].push(socket.id);
+
+        const otherUsers = rooms[roomId].filter(id => id !== socket.id);
+        socket.emit("all users", otherUsers);
+
+        otherUsers.forEach(id => {
+            socket.to(id).emit("user joined", socket.id);
+        });
+
         if (roomState[roomId]) {
             socket.emit("syncVideo", roomState[roomId]);
         }
 
         io.to(roomId).emit("updateUserList", roomUsers[roomId]);
         console.log(`🟢 ${userName || "Utilisateur"} a rejoint la ruche ${roomId}`);
+    });
+
+    // WebRTC signaling events
+    socket.on("offer", (payload) => {
+        io.to(payload.target).emit("offer", payload);
+    });
+
+    socket.on("answer", (payload) => {
+        io.to(payload.target).emit("answer", payload);
+    });
+
+    socket.on("ice-candidate", (payload) => {
+        io.to(payload.target).emit("ice-candidate", {
+            caller: socket.id,
+            candidate: payload.candidate,
+        });
     });
 
     socket.on("join_voice", (roomId) => {
@@ -93,17 +126,16 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        for (const roomId in roomUsers) {
-            roomUsers[roomId] = roomUsers[roomId].filter(user => user.socketId !== socket.id);
-            io.to(roomId).emit("updateUserList", roomUsers[roomId]);
-
-            if (roomUsers[roomId].length === 0) {
-                delete roomUsers[roomId];
-                delete roomState[roomId];
-                console.log(`🧹 Ruche ${roomId} supprimée (vide)`);
+        console.log("❌ Client déconnecté:", socket.id);
+        for (const room in rooms) {
+            rooms[room] = rooms[room].filter(id => id !== socket.id);
+            if (rooms[room].length === 0) {
+                delete rooms[room];
             }
         }
-        console.log("❌ Client déconnecté:", socket.id);
+        for (const roomId in roomUsers) {
+            roomUsers[roomId] = roomUsers[roomId].filter(user => user.socketId !== socket.id);
+        }
         io.emit("user_disconnected", socket.id);
     });
 });
