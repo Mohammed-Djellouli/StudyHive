@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from "react";
-import {useParams} from "react-router-dom";
+import {useParams} from 'react-router-dom';
 import MessageList from "./messageList";
 import MessageInput from "./messageInput";
 import socket from "../../socket";
@@ -9,7 +9,7 @@ const ChatBox = () => {
     const [messages, setMessages] = useState([]);
     const[userId, setUserId] = useState(null);
     const[socketId, setSocketId] = useState("");
-    const {idRoom: roomId} = useParams();
+    const {idRoom:roomId} = useParams();
 
     useEffect(() => {
 
@@ -18,7 +18,7 @@ const ChatBox = () => {
         setUserId(storedId);
     }, []);
 
-    useEffect(()=>{
+    useEffect(() =>{
         socket.emit("join_chat",roomId);
     },[roomId]);
 
@@ -43,9 +43,11 @@ const ChatBox = () => {
 
     const handleSendMessage = (newMessage) => {
         socket.emit("send_message", {
-            ...newMessage,
-            user: userId || socketId,// either using the user's ID or his socketID
-            roomId: roomId,
+            roomId,
+            message: {
+                ...newMessage,
+                user: userId || socketId
+            }
         });
     };
 
