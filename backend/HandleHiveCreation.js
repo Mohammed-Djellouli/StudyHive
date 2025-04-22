@@ -1,4 +1,4 @@
-const Hive = require("./models/Hive");
+const Hive = require("./models/hive");
 const User = require("./models/User");
 const {Socket} = require("socket.io");
 
