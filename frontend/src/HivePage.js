@@ -8,6 +8,8 @@ import LeftBarTools from "./components/hivePage/hiveBody/LeftBarTools";
 import HiveTimerBanner from "./components/hivePage/hiveHandle/HiveTimerBanner";
 import ChatBox from "./components/Communication/Chat/chatBox";
 import VoiceChat from "./components/Communication/MicChat/VoiceChat";
+import BlocNote from "./components/hivePage/hiveBody/BlocNote";
+
 
 import "./App.css";
 
@@ -43,6 +45,7 @@ function HivePage() {
             <Big_Logo_At_Left />
             <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} users={users.filter((user)=> user._id !== ownerId)} />
             <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
+                <BlocNote/>
                 <ChatBox/>
             </div>
             <div className="fixed bottom-3 right-80">
@@ -51,6 +54,7 @@ function HivePage() {
             <div className="w-full flex justify-center fixed top-0 left-0 pt-2 z-20">
                 <SearchBar />
             </div>
+
             <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom} />
             <LeftBarTools/>
         </div>
