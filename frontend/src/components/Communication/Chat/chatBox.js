@@ -1,4 +1,5 @@
 import React, { useState,useEffect } from "react";
+import {useParams} from "react-router-dom";
 import MessageList from "./messageList";
 import MessageInput from "./messageInput";
 import socket from "../../socket";
@@ -8,6 +9,7 @@ const ChatBox = () => {
     const [messages, setMessages] = useState([]);
     const[userId, setUserId] = useState(null);
     const[socketId, setSocketId] = useState("");
+    const {idRoom: roomId} = useParams();
 
     useEffect(() => {
 
