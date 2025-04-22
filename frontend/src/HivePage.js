@@ -9,6 +9,8 @@ import HiveTimerBanner from "./components/hivePage/hiveHandle/HiveTimerBanner";
 import ChatBox from "./components/Communication/Chat/chatBox";
 import VoiceChat from "./components/Communication/MicChat/VoiceChat";
 import BlocNote from "./components/hivePage/hiveBody/BlocNote";
+import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
+
 
 
 import "./App.css";
@@ -48,6 +50,12 @@ function HivePage() {
                 <BlocNote/>
                 <ChatBox/>
             </div>
+            {/* Whiteboard Placement */}
+            <div className="fixed top-[100px] left-[100px] z-20">
+                <WhiteBoard />
+            </div>
+
+
             <div className="fixed bottom-3 right-80">
                 <VoiceChat/>
             </div>
