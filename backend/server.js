@@ -41,7 +41,7 @@ const roomUsers = {};
 const rooms = {}; // For WebRTC connections
 
 io.on("connection", (socket) => {
-    console.log("✅ Client connecté:", socket.id);
+    console.log("Client connecté:", socket.id);
 
     socket.on("send_message", (message) => {
         io.emit("receive_message", message);
@@ -126,7 +126,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log("❌ Client déconnecté:", socket.id);
+        console.log(" Client déconnecté:", socket.id);
         for (const room in rooms) {
             rooms[room] = rooms[room].filter(id => id !== socket.id);
             if (rooms[room].length === 0) {
@@ -170,5 +170,5 @@ connectDB();
 // Server start
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
-    console.log(`🚀 Serveur lancé sur : http://localhost:${PORT}`);
+    console.log(` Serveur lancé sur : http://localhost:${PORT}`);
 });
