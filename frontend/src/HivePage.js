@@ -19,7 +19,7 @@ function HivePage() {
     const [timerEndsAt,  setTimerEndsAt]= useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:5000/api/hive/${idRoom}`)
+        fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`)
             .then(res => res.json())
             .then(data => {
                 console.log("ROOM :", data);

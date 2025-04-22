@@ -20,7 +20,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
     const handleHiveCreation =  async(mode) => {
         try{
             const socketId = socket.id;
-            const response = await fetch("http://localhost:5000/api/hive/create",{
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/create`,{
                 method: "POST",
                 headers: {
                     "content-type": "application/json",
