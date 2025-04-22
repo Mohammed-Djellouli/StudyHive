@@ -10,6 +10,7 @@ import VideoList from "./components/videoPlayer/VideoList";
 import HiveTimerBanner from "./components/hivePage/hiveHandle/HiveTimerBanner";
 import ChatBox from "./components/Communication/Chat/chatBox";
 import VoiceChat from "./components/Communication/MicChat/VoiceChat";
+import useVideoPlayer from './hooks/useVideoPlayer';
 
 import "./App.css";
 
@@ -20,10 +21,19 @@ function HivePage() {
     const [timerEndsAt, setTimerEndsAt] = useState(null);
     const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
-    const [videos, setVideos] = useState([]);
-    const [videoId, setVideoId] = useState(null);
-    const [needsManualPlay, setNeedsManualPlay] = useState(false);
-    const playerRef = useRef();
+    const {
+        videos,
+        videoId,
+        needsManualPlay,
+        playerRef,
+        playerOpts,
+        handleSearch,
+        handleVideoSelect,
+        onPlayerReady,
+        onPlayerStateChange,
+        handleSeek,
+        handleManualPlay
+    } = useVideoPlayer(idRoom);
 
     useEffect(() => {
         window.onerror = function (message, source, lineno, colno, error) {
@@ -45,127 +55,10 @@ function HivePage() {
 
         socket.emit("joinRoom", { roomId: idRoom, userName: localStorage.getItem("userPseudo") || "Anonymous" });
 
-        socket.on("syncVideo", ({ videoId, time, isPlaying, lastUpdate }) => {
-            setVideoId(videoId);
-
-            const interval = setInterval(() => {
-                const player = playerRef.current;
-                if (player && typeof player.getPlayerState === "function") {
-                    const now = Date.now();
-                    const elapsed = (now - lastUpdate) / 1000;
-                    const adjustedTime = isPlaying ? time + elapsed : time;
-
-                    const currentTime = player.getCurrentTime();
-                    const playerState = player.getPlayerState();
-
-                    if (Math.abs(currentTime - adjustedTime) > 0.5) {
-                        player.seekTo(adjustedTime, true);
-                    }
-
-                    if (isPlaying && playerState !== 1) {
-                        const result = player.playVideo();
-                        if (result instanceof Promise) {
-                            result.catch(() => setNeedsManualPlay(true));
-                        }
-                    } else if (!isPlaying && playerState === 1) {
-                        player.pauseVideo();
-                    }
-
-                    clearInterval(interval);
-                }
-            }, 300);
-        });
-
         return () => {
             socket.off("syncVideo");
         };
     }, [idRoom]);
-
-    const handleSearch = async (searchTerm) => {
-        const apiKey = process.env.REACT_APP_YOUTUBE_API_KEY;
-        console.log('Search term:', searchTerm);
-        console.log('API Key:', apiKey);
-
-        try {
-            console.log('Making API request...');
-            const res = await fetch(
-                `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${encodeURIComponent(searchTerm)}&key=${apiKey}&type=video`
-            );
-            const data = await res.json();
-            console.log('API Response:', data);
-            
-            if (data.error) {
-                console.error('YouTube API Error:', data.error);
-                return;
-            }
-            
-            setVideos(data.items || []);
-            setVideoId(null);
-        } catch (error) {
-            console.error("Error fetching videos:", error);
-        }
-    };
-
-    const handleVideoSelect = (video) => {
-        const newVideoId = video?.id?.videoId;
-        if (!newVideoId) return;
-
-        const currentTime = playerRef.current?.getCurrentTime?.() || 0;
-
-        socket.emit("videoChanged", {
-            roomId: idRoom,
-            videoId: newVideoId,
-            time: currentTime,
-        });
-
-        setVideoId(newVideoId);
-    };
-
-    const onPlayerReady = (event) => {
-        playerRef.current = event.target;
-    };
-
-    const onPlayerStateChange = (event) => {
-        const state = event.data;
-        const currentTime = event.target.getCurrentTime();
-        const isPlaying = state === 1;
-
-        if (state === 1 || state === 2) {
-            socket.emit("syncVideo", {
-                roomId: idRoom,
-                videoId,
-                time: currentTime,
-                isPlaying,
-                lastUpdate: Date.now(),
-            });
-        }
-    };
-
-    const handleSeek = () => {
-        if (!playerRef.current) return;
-
-        const currentTime = playerRef.current.getCurrentTime();
-        const isPlaying = playerRef.current.getPlayerState() === 1;
-
-        socket.emit("syncVideo", {
-            roomId: idRoom,
-            videoId,
-            time: currentTime,
-            isPlaying,
-            lastUpdate: Date.now(),
-        });
-    };
-
-    const handleManualPlay = () => {
-        playerRef.current?.playVideo();
-        setNeedsManualPlay(false);
-    };
-
-    const opts = {
-        width: "90%",
-        height: "90%",
-        playerVars: { autoplay: 1 }
-    };
 
     const location = useLocation();
 
@@ -178,20 +71,24 @@ function HivePage() {
             
             <SearchBar onSearch={handleSearch} />
 
-            <div className="absolute left-[80px] top-[140px] w-[850px] h-[480px] overflow-y-auto rounded-lg bg-[#1a1a1a] p-4 z-10">
+            <div className="absolute left-[150px] top-[100px] w-[850px] h-[480px] overflow-y-auto rounded-lg bg-[#1a1a1a] p-4 z-10">
                 {videoId ? (
-                    <div onMouseUp={handleSeek} className="w-[913px] h-[516px] bg-black/40 shadow-lg rounded-lg overflow-hidden">
+                    <div className="w-[913px] h-[516px] bg-black/40 shadow-lg rounded-lg overflow-hidden" onMouseUp={handleSeek}>
                         <YouTube
                             videoId={videoId}
-                            opts={opts}
+                            opts={playerOpts}
                             onReady={onPlayerReady}
                             onStateChange={onPlayerStateChange}
+                            onSeek={handleSeek}
                             className="w-full h-full"
                         />
                         {needsManualPlay && (
                             <div className="mt-4 text-center">
-                                <button className="px-4 py-2 bg-yellow-400 text-black font-bold rounded shadow-md" onClick={handleManualPlay}>
-                                    ▶️ Lancer la lecture
+                                <button 
+                                    className="px-4 py-2 bg-yellow-400 text-black font-bold rounded shadow-md" 
+                                    onClick={handleManualPlay}
+                                >
+                                    Lancer la lecture
                                 </button>
                             </div>
                         )}
