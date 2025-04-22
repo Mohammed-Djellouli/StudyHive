@@ -43,7 +43,7 @@ const ChatBox = () => {
 
     const handleSendMessage = (newMessage) => {
         socket.emit("send_message", {
-            message : newMessage,
+            ...newMessage,
             user: userId || socketId,// either using the user's ID or his socketID
             roomId: roomId,
         });

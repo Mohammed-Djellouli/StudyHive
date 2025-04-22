@@ -6,7 +6,7 @@ const MessageInput = ({ onSend }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (input.trim()) {
-            onSend({ user: "Moi", text: input });
+            onSend({ text: input });
             setInput("");
         }
     };
