@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
+import VoiceChat from "../Communication/MicChat/VoiceChat";
 
 function LeftBarTools(){
-    const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
-
-    const toggleMic = () => setMicOn(prev => !prev);
     const toggleHand = () => setHandRaised(prev => !prev);
 
     return (
@@ -15,13 +13,7 @@ function LeftBarTools(){
             </button>
 
             {/* Toggle Mic */}
-            <button onClick={toggleMic} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
-                <img
-                    src={micOn ? "/assets/open-microphone.png" : "/assets/mute-microphone.png"}
-                    alt="Mic"
-                    className="w-[24px] h-[24px]"
-                />
-            </button>
+            <VoiceChat/>
 
             {/* Toggle Raise Hand */}
             <button onClick={toggleHand} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">

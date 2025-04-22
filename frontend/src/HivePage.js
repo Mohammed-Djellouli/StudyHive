@@ -45,9 +45,6 @@ function HivePage() {
             <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
                 <ChatBox/>
             </div>
-            <div className="fixed bottom-3 right-80">
-                <VoiceChat/>
-            </div>
             <div className="w-full flex justify-center fixed top-0 left-0 pt-2 z-20">
                 <SearchBar />
             </div>

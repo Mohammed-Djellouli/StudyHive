@@ -10,6 +10,7 @@ const VoiceChat = () =>{
     const {idRoom} = useParams();
     const [roomId] = useState(idRoom);
     const [muted, setMuted] = useState(false);
+    const [micOn, setMicOn] = useState(true);
     //stun to help peer find the best route to connect
     //turn used when stun fails (fairewalls problems...)
     const peerConfig ={
@@ -189,13 +190,17 @@ const VoiceChat = () =>{
         setMuted(prev => !prev);
     };
 
+    const toggleMic = () => setMicOn(prev => !prev);
+
 
     return (
-        <div>
-            <button onClick={toggleMute}>
-                {muted ? "Unmute" : "Mute"}
-            </button>
-        </div>
+        <button onClick={()=>{toggleMic();toggleMute()}} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
+            <img
+                src={micOn ? "/assets/open-microphone.png" : "/assets/mute-microphone.png"}
+                alt="Mic"
+                className="w-[24px] h-[24px] "
+            />
+        </button>
     );
 
 };
