@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import {useParams} from "react-router-dom";
 import Peer from "simple-peer/simplepeer.min.js";
 import socket from "../../socket";
 import getAudioStream from "./getAudio";
@@ -6,9 +7,9 @@ import getAudioStream from "./getAudio";
 const VoiceChat = () =>{
     const peersRef = useRef({});
     const [stream,setStream] = useState(null);
-    const [roomId] = useState("study-hive-room");
+    const {idRoom} = useParams();
+    const [roomId] = useState(idRoom);
     const [muted, setMuted] = useState(false);
-
     //stun to help peer find the best route to connect
     //turn used when stun fails (fairewalls problems...)
     const peerConfig ={
@@ -175,7 +176,7 @@ const VoiceChat = () =>{
         audio.srcObject = stream;
         audio.autoplay = true;
         audio.muted = false;
-        audio.controls = true;
+        audio.controls = false;
         audio.setAttribute("playsinline", "true");
         document.body.appendChild(audio);
     };
