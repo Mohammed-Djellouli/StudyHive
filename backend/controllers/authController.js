@@ -26,6 +26,7 @@ const registerUser = async (req, res) => {
         res.status(201).json({ message: 'Utilisateur créé' });
 
     } catch (error) {
+        console.error("Erreur serveur :",err);
         res.status(500).json({ message: 'Erreur serveur' });
     }
 };
