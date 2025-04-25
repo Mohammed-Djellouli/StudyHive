@@ -5,7 +5,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users }) 
     return (
         <div className="fixed bottom-[11px] left-0 w-[50px] h-[55%] p-[2px] flex flex-col justify-end bg-[#ffffff08] rounded-[10px] z-10">
             <ul className="flex flex-col items-center justify-start overflow-y-auto h-full max-h-[90%] scrollbar-thin scrollbar-thumb-yellow-500" />
-            <ul className="flex flex-col items-center justify-between h-full m-0 p-0 list-none">
+            <ul className="flex flex-col items-center h-full m-0 p-0 list-none">
 
                 {ownerPseudo && (
                     <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center">

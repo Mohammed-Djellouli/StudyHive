@@ -18,6 +18,13 @@ const HandleHiveCreation = async (req, res) => {
         //console.log("Utilisateur trouvé :", user);
         const isQueen = mode.toLowerCase() === "queen";
 
+        const controlsDefault = {
+            micControl: !isQueen,
+            screenShareControl: !isQueen,
+            videoControl: !isQueen
+        };
+
+
         // if user is connected to his account
         if (userId) {
             user = await User.findById(userId);
@@ -29,9 +36,24 @@ const HandleHiveCreation = async (req, res) => {
                 timerEndsAt: new Date(Date.now() + 2 * 60 * 60 * 1000), //The limit time for the hive is two hours
                 isQueenBeeMode: isQueen,
                 idOwner: user._id,
-                users: [user._id],
+                users: [{
+                    userId: user._id,
+                    pseudo: user.pseudo,
+                    ...controlsDefault
+                }],
             });
 
+            newHive.users = newHive.users.map(user => {
+                if (user.userId.toString() === newHive.idOwner._id.toString()) {
+                    return {
+                        ...user,
+                        micControl: true,
+                        screenShareControl: true,
+                        videoControl: true
+                    };
+                }
+                return user;
+            });
             await newHive.save();
 
             res.status(201).json({
@@ -56,7 +78,22 @@ const HandleHiveCreation = async (req, res) => {
             timerEndsAt: new Date(Date.now() + 2 * 60 * 60 * 1000), //The limit time for the hive is two hours
             isQueenBeeMode: isQueen,
             idOwner: socketId,
-            users: [socketId],
+            users: [{
+                userId: user._id,
+                pseudo: user.pseudo,
+                ...controlsDefault
+            }],
+        });
+        newHive.users = newHive.users.map(user => {
+            if (user.userId.toString() === newHive.idOwner._id.toString()) {
+                return {
+                    ...user,
+                    micControl: true,
+                    screenShareControl: true,
+                    videoControl: true
+                };
+            }
+            return user;
         });
 
         await newHive.save();

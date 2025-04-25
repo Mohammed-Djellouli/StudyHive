@@ -35,12 +35,13 @@ function HivePage() {
                     setOwnerPseudo(data.ownerPseudo);
                 }
                 setUsers(data.users );
-                setOwnerId(data.idOwner);
+                setOwnerId(data.idOwner._id);
             });
     }, [idRoom,location.state]);
 
 
     console.log("State reçu dans HivePage :", ownerPseudo, isQueenBeeMode);
+
     return (
 
         <div className=" bg-center bg-cover bg-fixed bg-no-repeat min-h-screen text-white bg-[#1a1a1a] "
@@ -48,7 +49,7 @@ function HivePage() {
                  backgroundSize: "270%",
              }}>
             <Big_Logo_At_Left />
-            <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} users={users.filter((user)=> user._id !== ownerId)} />
+            <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} users={users.filter((user)=> user._id === ownerId)} />
             <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
                 <BlocNote/>
                 <ChatBox/>

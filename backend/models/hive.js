@@ -1,8 +1,8 @@
+//this is hive.js
 const mongoose = require("mongoose");
 
-
 const RoomSchema = new mongoose.Schema({
-    idRoom:{
+    idRoom: {
         type: Number,
         required: true,
         unique: true
@@ -12,8 +12,44 @@ const RoomSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+
+    timerEndsAt: {
+        type: Date,
+        default: new Date(Date.now() + 2 * 60 * 60 * 1000)
+    },
+
+    idOwner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+
+    isQueenBeeMode: {
+        type: Boolean,
+        default: false,
+    },
+
     users: [{
-        type:String,
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+        pseudo: {
+            type: String,
+            required: true
+        },
+        micControl: {
+            type: Boolean,
+            default: true
+        },
+        screenShareControl: {
+            type: Boolean,
+            default: true
+        },
+        videoControl: {
+            type: Boolean,
+            default: true
+        }
     }],
 
     videos: [{
@@ -23,21 +59,8 @@ const RoomSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
         }
-    }],
-    timerEndsAt:{
-        type: Date,
-        default: new Date(Date.now()+2*60*60*1000)
-    },
-    idOwner :{
-        type : String,
-        required: true
-    },
-    isQueenBeeMode: {
-        type: Boolean,
-        default: false,
-    }
-
+    }]
 });
 
-const Room = mongoose.model("Room", RoomSchema);
+const Room = mongoose.models.Room || mongoose.model("Room", RoomSchema);
 module.exports = Room;
