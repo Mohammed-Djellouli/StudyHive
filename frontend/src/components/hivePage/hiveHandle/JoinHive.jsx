@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import socket from "../../socket"; // importe bien socket
+import socket from "../../socket";
 
 function JoinHive() {
     const { idRoom } = useParams();
@@ -8,14 +8,16 @@ function JoinHive() {
 
     useEffect(() => {
         console.log(" JoinHive useEffect triggered");
-        const userId = localStorage.getItem("userId");
-        const userPseudo = localStorage.getItem("userPseudo");
+        let userId = localStorage.getItem("userId");
+        let userPseudo = localStorage.getItem("userPseudo");
 
-        if (!userId) {
-            console.log(" No userId in localStorage, redirect to login");
-            alert("Vous devez être connecté pour rejoindre une ruche.");
-            navigate("/LoginPage");
-            return;
+        if (!userId ||!userPseudo) {
+            console.log(" No userId in localStorage, Creating Account");
+            userId = socket.id;
+            userPseudo = `Bee-${Math.floor(1000 + Math.random() * 9000)}`;
+            localStorage.setItem("userId", userId);
+            localStorage.setItem("userPseudo", userPseudo);
+
         }
 
         console.log(" userId found:", userId);
@@ -31,27 +33,32 @@ function JoinHive() {
                 return res.json();
             })
             .then((data) => {
-                console.log("Server data:", data);
+                console.log(" Server data:", data);
 
                 if (data.message === "User joined successfully" || data.userPseudo) {
                     console.log(" Join successful, navigating to Hive page");
-                    // Emit socket event
-                    socket.emit("join_hive_room", {
-                        roomId: idRoom,
-                        user: {
-                            userId,
-                            pseudo: userPseudo,
-                            _id: userId,
-                            socketId: socket.id
-                        }
+
+                    // socket ready = safe to emit
+                    socket.on("connect", () => {
+                        socket.emit("join_hive_room", {
+                            roomId: idRoom,
+                            user: {
+                                userId,
+                                pseudo: userPseudo,
+                                _id: userId,
+                                socketId: socket.id,
+                            },
+                        });
                     });
 
-                    navigate(`/hive/${idRoom}`);
+                    navigate(`/hive/${idRoom}`, {
+                    });
                 } else {
-                    console.log(" Join failed:", data);
+                    console.error(" Join failed:", data);
                     alert("Erreur lors de la connexion à la ruche");
                 }
             })
+
             .catch((error) => {
                 console.error(" Fetch error:", error);
                 alert("Erreur réseau pour rejoindre la ruche");
