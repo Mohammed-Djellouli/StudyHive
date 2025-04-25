@@ -37,27 +37,53 @@ router.post("/join", async (req, res) => {
         const room = await Hive.findOne({ idRoom });
         if (!room) return res.status(404).json({ message: "Room not found" });
 
-        if (room.idOwner.toString() === userId) {
+        const ownerIdString = room.idOwner?.toString?.() || room.ownerSocketId;
+
+        if (ownerIdString === userId) {
             return res.status(400).json({ message: "Owner is already part of the room" });
         }
 
-        const alreadyInRoom = room.users.some(u => u.userId.toString() === userId);
-        if (!alreadyInRoom) {
-            const user = await User.findById(userId);
-            if (!user) return res.status(404).json({ message: "User not found" });
+// Vérifie proprement sans casser
+        const alreadyInRoom = room.users.some(u => {
+            if (!u.userId) return false;
+            return u.userId.toString() === userId;
+        });
 
-            room.users.push({
-                userId: user._id,
-                pseudo: user.pseudo,
-                micControl: true,
-                screenShareControl: true,
-                videoControl: true
-            });
+        if (!alreadyInRoom) {
+            let user = null;
+            try {
+                user = await User.findById(userId);
+            } catch (e) {
+                user = null; // Ignore si ce n'est pas un vrai ID
+            }
+
+            const controlsDefault = {
+                micControl: !room.isQueenBeeMode,
+                screenShareControl: !room.isQueenBeeMode,
+                videoControl: !room.isQueenBeeMode,
+            };
+
+            if (user) {
+                // Compte utilisateur existant
+                room.users.push({
+                    userId: user._id,
+                    pseudo: user.pseudo,
+                    ...controlsDefault
+                });
+            } else {
+                // Guest utilisateur
+                room.users.push({
+                    userId: userId,
+                    pseudo: `Bee-${Math.floor(1000 + Math.random() * 9000)}`,
+                    ...controlsDefault
+                });
+            }
 
             await room.save();
         }
 
         res.status(200).json({ message: "User joined successfully" });
+
 
     } catch (err) {
         console.error("Erreur ajout utilisateur :", err);

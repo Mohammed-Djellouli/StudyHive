@@ -19,9 +19,14 @@ const RoomSchema = new mongoose.Schema({
     },
 
     idOwner: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.Mixed,
         ref: "User",
-        required: true
+        required: false
+    },
+
+    ownerSocketId: {
+        type:String,
+        required: false
     },
 
     isQueenBeeMode: {

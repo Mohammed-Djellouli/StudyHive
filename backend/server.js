@@ -47,6 +47,16 @@ const io = new Server(server,{
 });
 
 io.on("connection", (socket) => {
+
+    // Quand un utilisateur rejoint une Hive
+    socket.on("join_hive_room", ({ roomId, user }) => {
+        socket.join(roomId);
+        io.to(roomId).emit("user_joined", user);
+        console.log(`${user.pseudo} joined room ${roomId}`);
+    });
+
+
+
     socket.on("send_message", ({roomId,message}) => {
         if(roomId && message){
             io.to(roomId).emit("receive_message",message);
@@ -91,10 +101,13 @@ io.on("connection", (socket) => {
     });
 
     //dissconect
-    socket.on("disconnect", () => {
-        console.log(`${socket.id} disconnected`);
-        io.emit("user_disconnected", socket.id);
-    })
+    socket.on("disconnecting", () => {
+        const rooms = Array.from(socket.rooms).filter(r => r !== socket.id);
+        rooms.forEach(roomId => {
+            io.to(roomId).emit("user_left", socket.id);
+            console.log(`A user left room ${roomId}`);
+        });
+    });
 })
 
 // Route test

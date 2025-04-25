@@ -35,7 +35,7 @@ function HivePage() {
                     setOwnerPseudo(data.ownerPseudo);
                 }
                 setUsers(data.users );
-                setOwnerId(data.idOwner._id);
+                setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
             });
     }, [idRoom,location.state]);
 
@@ -49,13 +49,13 @@ function HivePage() {
                  backgroundSize: "270%",
              }}>
             <Big_Logo_At_Left />
-            <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} users={users.filter((user)=> user._id === ownerId)} />
+            <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} users={users.filter((user)=> user._id !== ownerId)} />
             <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
                 <BlocNote/>
                 <ChatBox/>
             </div>
             {/* Whiteboard Placement */}
-            <div className="fixed top-[100px] left-[100px] z-20">
+            <div className="fixed top-[100px] left-[200px] z-20">
                 <WhiteBoard />
             </div>
 
