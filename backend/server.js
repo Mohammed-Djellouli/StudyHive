@@ -73,7 +73,7 @@ io.on("connection", (socket) => {
         }
 
         io.to(roomId).emit("updateUserList", roomUsers[roomId]);
-        console.log(`🟢 ${userName || "Utilisateur"} a rejoint la ruche ${roomId}`);
+        console.log(` ${userName || "Utilisateur"} a rejoint la ruche ${roomId}`);
     });
 
     // WebRTC signaling events

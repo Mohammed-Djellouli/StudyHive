@@ -23,6 +23,7 @@ function HivePage() {
     const [timerEndsAt, setTimerEndsAt] = useState(null);
     const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
+    const [reconnecting, setReconnecting] = useState(false);
 
     const {
         isSharing,
@@ -30,7 +31,8 @@ function HivePage() {
         isInitiator,
         videoRef,
         startSharing,
-        stopSharing
+        stopSharing,
+        connectionState
     } = useWebRTC(idRoom);
 
     const {
@@ -68,7 +70,38 @@ function HivePage() {
         socket.emit("joinRoom", { roomId: idRoom, userName: localStorage.getItem("userPseudo") || "Anonymous" });
     }, [idRoom]);
 
+    // Handle manual reconnection
+    const handleReconnect = () => {
+        setReconnecting(true);
+        
+        // Disconnect and reconnect socket
+        socket.disconnect();
+        
+        setTimeout(() => {
+            socket.connect();
+            socket.emit("joinRoom", { 
+                roomId: idRoom, 
+                userName: localStorage.getItem("userPseudo") || "Anonymous" 
+            });
+            
+            setTimeout(() => {
+                setReconnecting(false);
+                
+                // Restart sharing if needed
+                if (isSharing) {
+                    stopSharing();
+                    setTimeout(() => {
+                        startSharing();
+                    }, 1000);
+                }
+            }, 2000);
+        }, 1000);
+    };
+
     const location = useLocation();
+    const isConnectionProblem = connectionState === 'disconnected' || 
+                                connectionState === 'failed' || 
+                                connectionState === 'closed';
 
     console.log("State reçu dans HivePage :", ownerPseudo, isQueenBeeMode);
     return (
@@ -81,12 +114,24 @@ function HivePage() {
 
             <div className="absolute left-[150px] top-[100px] w-[850px] h-[480px] overflow-y-auto rounded-lg bg-[#1a1a1a] p-4 z-10">
                 {isSharing || remoteStream ? (
-                    <ScreenShareComponent
-                        videoRef={videoRef}
-                        isSharing={isSharing}
-                        remoteStream={remoteStream}
-                        onStopSharing={stopSharing}
-                    />
+                    <div className="relative w-full h-full">
+                        <ScreenShareComponent
+                            videoRef={videoRef}
+                            isSharing={isSharing}
+                            remoteStream={remoteStream}
+                            onStopSharing={stopSharing}
+                        />
+                        
+                        {/* Only show reconnect overlay when actually reconnecting */}
+                        {reconnecting && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                                <div className="text-white text-center">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+                                    <p>Reconnexion en cours...</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 ) : videoId ? (
                     <div className="w-[913px] h-[516px] bg-black/40 shadow-lg rounded-lg overflow-hidden" onMouseUp={handleSeek}>
                         <YouTube
