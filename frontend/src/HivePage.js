@@ -89,10 +89,6 @@ function HivePage() {
                     <BlocNote/>
                     <ChatBox/>
                 </div>
-                <div className="fixed bottom-3 right-80">
-                    <VoiceChat/>
-                    <LeftBarTools/>
-                </div>
                 <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom}/>
                 <LeftBarTools
                     ownerPseudo={ownerPseudo}
