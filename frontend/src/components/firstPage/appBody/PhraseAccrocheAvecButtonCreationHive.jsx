@@ -15,9 +15,23 @@ function PhraseAccrocheAvecButtonCreationHive() {
     useEffect(() => {
         const id = localStorage.getItem("userId");
         setUserId(id);
+
+        if(id) {
+            fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/user-room/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.room){
+                        setExistingRoom(data.room);
+                    }
+                });
+        }
     }, []);
 
     const handleHiveCreation =  async(mode) => {
+        if (!userId) {
+            alert("Veuillez vous connecter pour créer une ruche.");
+            return;
+        }
         try{
             const socketId = socket.id;
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/create`,{
@@ -34,8 +48,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
 
             const data = await response.json();
             if(response.ok){
-
-                //const generatedLink = `http://localhost:3000/join/${data.room.idRoom}`;
+                //const generatedLink = `${process.env.REACT_APP_FRONTEND_URL}/join/${data.room.idRoom}`;
                 //setInviteLink(generatedLink);
                 navigate(`/hive/${data.room.idRoom}`, { state: { ownerPseudo: data.ownerPseudo , isQueenBeeMode: data.room.isQueenBeeMode } });
             }
