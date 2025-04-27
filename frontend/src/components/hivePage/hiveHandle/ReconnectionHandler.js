@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import socket from '../socket';
+import socket from '../../socket';
 
 /**
  * Hook pour gérer la reconnexion socket et WebRTC

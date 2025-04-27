@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import YouTube from "react-youtube";
-import VideoList from "./hiveBody/videoPlayer/VideoList";
-import ScreenShareComponent from "./hiveBody/ScreenShare/ScreenShareComponent";
+import VideoList from "../hiveBody/videoPlayer/VideoList";
+import ScreenShareComponent from "../hiveBody/ScreenShare/ScreenShareComponent";
 import useReconnectionHandler from './ReconnectionHandler';
 
 /**

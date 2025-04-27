@@ -18,9 +18,9 @@ import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
 
 
 // Nouvelles importations pour les composants modulaires
-import ErrorBoundary from "./components/hivePage/ErrorBoundary";
-import HiveDataLoader from "./components/hivePage/HiveDataLoader";
-import VideoContainer from "./components/hivePage/VideoContainer";
+import ErrorBoundary from "./components/hivePage/hiveHandle/ErrorBoundary";
+import HiveDataLoader from "./components/hivePage/hiveHandle/HiveDataLoader";
+import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
 
 import "./App.css";
 
@@ -31,6 +31,7 @@ function HivePage() {
     const [ownerPseudo, setOwnerPseudo] = useState(location.state?.ownerPseudo || null);
     const [isQueenBeeMode, setIsQueenBeeMode] = useState(false);
     const [timerEndsAt, setTimerEndsAt] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
     // Utilisation des hooks personnalisés
@@ -44,27 +45,36 @@ function HivePage() {
                 setIsQueenBeeMode(data.isQueenBeeMode);
                 setTimerEndsAt(data.timerEndsAt);
 
-                if (!location.state?.ownerPseudo && data.ownerPseudo) {
+                if (data.ownerPseudo) {
                     setOwnerPseudo(data.ownerPseudo);
                 }
                 setUsers(data.users);
                 setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
+                setIsLoading(false);
             });
     }, [idRoom, location.state]);
 
 
     console.log("State reçu dans HivePage :", ownerPseudo, isQueenBeeMode);
-
+    if(isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen text-white animate-pulse">
+                Chargement...
+            </div>
+        );
+    }
+    console.log("isInitiator dans HivePage:", webRTCFeatures.isInitiator);
+    console.log("isSharing dans HivePage:", webRTCFeatures.isSharing);
     return (
         <ErrorBoundary>
-            <HiveDataLoader
+            {/*<HiveDataLoader
                 idRoom={idRoom}
                 setOwnerPseudo={setOwnerPseudo}
                 setIsQueenBeeMode={setIsQueenBeeMode}
                 setTimerEndsAt={setTimerEndsAt}
                 setUsers={setUsers}
                 setOwnerId={setOwnerId}
-            />
+            />*/}
 
             <div className="bg-center bg-cover bg-fixed bg-no-repeat min-h-screen text-white bg-[#1a1a1a]"
                  style={{backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%"}}>
@@ -91,16 +101,15 @@ function HivePage() {
                 </div>
                 <div className="fixed bottom-3 right-80">
                     <VoiceChat/>
-                    <LeftBarTools/>
+                    <LeftBarTools
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        onStartSharing={webRTCFeatures.startSharing}
+                        isInitiator={webRTCFeatures.isInitiator}
+                        isSharing={webRTCFeatures.isSharing}
+                    />
                 </div>
                 <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom}/>
-                <LeftBarTools
-                    ownerPseudo={ownerPseudo}
-                    isQueenBeeMode={isQueenBeeMode}
-                    onStartSharing={webRTCFeatures.startSharing}
-                    isInitiator={webRTCFeatures.isInitiator}
-                    isSharing={webRTCFeatures.isSharing}
-                />
             </div>
         </ErrorBoundary>
     );

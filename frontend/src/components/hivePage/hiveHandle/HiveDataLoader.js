@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import socket from '../socket';
+import socket from '../../socket';
 
 /**
  * Composant pour le chargement des données de la ruche

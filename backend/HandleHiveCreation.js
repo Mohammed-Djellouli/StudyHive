@@ -72,6 +72,7 @@ const HandleHiveCreation = async (req, res) => {
         //if the user isn't connected to his account
 
         guestPseudo = `Bee-${Math.floor(1000 + Math.random() * 900)}`;
+        guestPseudo = guestPseudo.toString()
          newHive = new Hive({
             idRoom: generateHiveId(),
             createdAt: new Date(),

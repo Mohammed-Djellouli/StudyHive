@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
     const [timeLeft, setTimeLeft] = useState(null);
     const [showModal, setShowModal] = useState(false);
-
+    console.log("this is the owner pseudo in the HiveTimerBanner", ownerPseudo);
     useEffect(() => {
         const interval = setInterval(() => {
             const now = new Date().getTime();

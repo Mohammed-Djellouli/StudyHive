@@ -206,10 +206,6 @@ app.get("/", (req, res) => {
 });
 
 
-//Permissions Routes
-
-
-
 // Création
 const PORT = process.env.PORT || 5000;
 
