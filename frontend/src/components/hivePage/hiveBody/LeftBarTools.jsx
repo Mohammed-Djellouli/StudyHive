@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import VoiceChat from "../../Communication/MicChat/VoiceChat";
 
 function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing }){
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
-
     const toggleMic = () => setMicOn(prev => !prev);
     const toggleHand = () => setHandRaised(prev => !prev);
 
@@ -11,8 +11,8 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
         <div className="fixed top-[60px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
             {/* Share Screen */}
             {isInitiator && !isSharing && (
-                <button 
-                    onClick={onStartSharing} 
+                <button
+                    onClick={onStartSharing}
                     className="bg-black/60 p-2 rounded-full hover:scale-105 transition hover:bg-yellow-400/20"
                     title="Partager l'écran"
                 >
@@ -21,13 +21,7 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
             )}
 
             {/* Toggle Mic */}
-            <button onClick={toggleMic} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
-                <img
-                    src={micOn ? "/assets/open-microphone.png" : "/assets/mute-microphone.png"}
-                    alt="Mic"
-                    className="w-[24px] h-[24px]"
-                />
-            </button>
+            <VoiceChat/>
 
             {/* Toggle Raise Hand */}
             <button onClick={toggleHand} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
@@ -40,8 +34,11 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
 
             {/* BRB */}
             <div className="bg-black/60 rounded-full w-[40px] h-[40px] text-white text-sm font-bold flex items-center justify-center">
-                <button>BRB</button>
+                <button >BRB</button>
             </div>
+
+
+
         </div>
     );
 }

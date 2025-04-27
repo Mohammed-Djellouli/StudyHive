@@ -13,8 +13,7 @@ const RoomSchema = new mongoose.Schema({
         default: Date.now,
     },
     users: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        type:String,
     }],
 
     videos: [{
@@ -30,8 +29,7 @@ const RoomSchema = new mongoose.Schema({
         default: new Date(Date.now()+2*60*60*1000)
     },
     idOwner :{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        type : String,
         required: true
     },
     isQueenBeeMode: {

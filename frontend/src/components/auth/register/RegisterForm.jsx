@@ -17,7 +17,7 @@ const RegisterForm = () => {
         e.preventDefault();
 
         try {
-            const res = await axios.post('http://localhost:5001/api/auth/register', {
+            const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/register`, {
                 email,
                 pseudo,
                 password,
@@ -98,7 +98,7 @@ const RegisterForm = () => {
                 type="button"
                 className="w-full flex items-center justify-center gap-2 bg-[#FBBC04] text-black font-semibold py-2 rounded-md mb-4 hover:bg-yellow-400"
                 onClick={() => {
-                    window.location.href = "http://localhost:5001/auth/google";
+                    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/google`;
                 }}
             >
                 <FcGoogle className="text-xl" />

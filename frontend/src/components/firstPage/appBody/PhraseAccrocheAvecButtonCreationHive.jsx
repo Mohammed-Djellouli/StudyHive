@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate} from "react-router-dom";
 import  { useState, useEffect } from "react";
+import socket from "../../socket";
 
 
 
@@ -9,8 +10,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
     const [userId, setUserId] = useState(null);
-    const [existingRoom, setExistingRoom] = useState(null);
-    //const userId = "68012ef6e2497c62577d46d8" //un id temp pour tester si çela vas marcher ou pas
+
 
     useEffect(() => {
         const id = localStorage.getItem("userId");
@@ -33,13 +33,15 @@ function PhraseAccrocheAvecButtonCreationHive() {
             return;
         }
         try{
+            const socketId = socket.id;
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/create`,{
                 method: "POST",
                 headers: {
                     "content-type": "application/json",
                 },
                 body: JSON.stringify({
-                    userId: userId,
+                    userId: userId, // userId can be null if the user isn't connected
+                    socketId: socketId,
                     mode: mode,
                 })
             });

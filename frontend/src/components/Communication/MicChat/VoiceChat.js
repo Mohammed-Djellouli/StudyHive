@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import {useParams} from "react-router-dom";
 import Peer from "simple-peer/simplepeer.min.js";
 import socket from "../../socket";
 import getAudioStream from "./getAudio";
@@ -6,9 +7,10 @@ import getAudioStream from "./getAudio";
 const VoiceChat = () =>{
     const peersRef = useRef({});
     const [stream,setStream] = useState(null);
-    const [roomId] = useState("study-hive-room");
+    const {idRoom} = useParams();
+    const [roomId] = useState(idRoom);
     const [muted, setMuted] = useState(false);
-
+    const [micOn, setMicOn] = useState(true);
     //stun to help peer find the best route to connect
     //turn used when stun fails (fairewalls problems...)
     const peerConfig ={
@@ -175,7 +177,7 @@ const VoiceChat = () =>{
         audio.srcObject = stream;
         audio.autoplay = true;
         audio.muted = false;
-        audio.controls = true;
+        audio.controls = false;
         audio.setAttribute("playsinline", "true");
         document.body.appendChild(audio);
     };
@@ -188,13 +190,17 @@ const VoiceChat = () =>{
         setMuted(prev => !prev);
     };
 
+    const toggleMic = () => setMicOn(prev => !prev);
+
 
     return (
-        <div>
-            <button onClick={toggleMute}>
-                {muted ? "Unmute" : "Mute"}
-            </button>
-        </div>
+        <button onClick={()=>{toggleMic();toggleMute()}} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
+            <img
+                src={micOn ? "/assets/open-microphone.png" : "/assets/mute-microphone.png"}
+                alt="Mic"
+                className="w-[24px] h-[24px] "
+            />
+        </button>
     );
 
 };
