@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+import {useLocation} from "react-router-dom";
 import { useParams } from "react-router-dom";
 import useVideoPlayer from './hooks/useVideoPlayer';
 import useWebRTC from './hooks/useWebRTC';
@@ -25,12 +26,12 @@ import "./App.css";
 
 // Composant principal HivePage
 function HivePage() {
-    const { idRoom } = useParams();
+    const {idRoom} = useParams();
     const location = useLocation();
     const [ownerPseudo, setOwnerPseudo] = useState(location.state?.ownerPseudo || null);
     const [isQueenBeeMode, setIsQueenBeeMode] = useState(false);
-    const [timerEndsAt,  setTimerEndsAt]= useState(null);
-    const [ownerId , setOwnerId] = useState(null);
+    const [timerEndsAt, setTimerEndsAt] = useState(null);
+    const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
     // Utilisation des hooks personnalisés
     const webRTCFeatures = useWebRTC(idRoom);
@@ -46,63 +47,63 @@ function HivePage() {
                 if (!location.state?.ownerPseudo && data.ownerPseudo) {
                     setOwnerPseudo(data.ownerPseudo);
                 }
-                setUsers(data.users );
+                setUsers(data.users);
                 setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
             });
-    }, [idRoom,location.state]);
+    }, [idRoom, location.state]);
 
 
+    console.log("State reçu dans HivePage :", ownerPseudo, isQueenBeeMode);
 
-  console.log("State reçu dans HivePage :", ownerPseudo, isQueenBeeMode);
+    return (
+        <ErrorBoundary>
+            <HiveDataLoader
+                idRoom={idRoom}
+                setOwnerPseudo={setOwnerPseudo}
+                setIsQueenBeeMode={setIsQueenBeeMode}
+                setTimerEndsAt={setTimerEndsAt}
+                setUsers={setUsers}
+                setOwnerId={setOwnerId}
+            />
 
-  return (
-    <ErrorBoundary>
-      <HiveDataLoader
-        idRoom={idRoom}
-        setOwnerPseudo={setOwnerPseudo}
-        setIsQueenBeeMode={setIsQueenBeeMode}
-        setTimerEndsAt={setTimerEndsAt}
-        setUsers={setUsers}
-        setOwnerId={setOwnerId}
-      />
+            <div className="bg-center bg-cover bg-fixed bg-no-repeat min-h-screen text-white bg-[#1a1a1a]"
+                 style={{backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%"}}>
+                <Big_Logo_At_Left/>
+                <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode}
+                                                users={users.filter((user) => user._id !== ownerId)}/>
 
-      <div className="bg-center bg-cover bg-fixed bg-no-repeat min-h-screen text-white bg-[#1a1a1a]"
-        style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
-        <Big_Logo_At_Left />
-        <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} users={users.filter((user)=> user._id !== ownerId)} />
+                <SearchBar onSearch={videoPlayerFeatures.handleSearch}/>
 
-        <SearchBar onSearch={videoPlayerFeatures.handleSearch} />
+                <VideoContainer
+                    webRTCFeatures={webRTCFeatures}
+                    videoPlayerFeatures={videoPlayerFeatures}
+                />
 
-        <VideoContainer
-          webRTCFeatures={webRTCFeatures}
-          videoPlayerFeatures={videoPlayerFeatures}
-        />
-        
-             {/* Whiteboard Placement 
+                {/* Whiteboard Placement
             <div className="fixed top-[100px] left-[200px] z-20">
                 <WhiteBoard />
             </div>
             */}
 
-        <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
-          <BlocNote/>
-          <ChatBox />
-        </div>
-        <div className="fixed bottom-3 right-80">
-          <VoiceChat />
-          <LeftBarTools/>    
-        </div>
-        <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom} />
-        <LeftBarTools
-          ownerPseudo={ownerPseudo}
-          isQueenBeeMode={isQueenBeeMode}
-          onStartSharing={webRTCFeatures.startSharing}
-          isInitiator={webRTCFeatures.isInitiator}
-          isSharing={webRTCFeatures.isSharing}
-        />
-      </div>
-    </ErrorBoundary>
-  );
+                <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
+                    <BlocNote/>
+                    <ChatBox/>
+                </div>
+                <div className="fixed bottom-3 right-80">
+                    <VoiceChat/>
+                    <LeftBarTools/>
+                </div>
+                <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom}/>
+                <LeftBarTools
+                    ownerPseudo={ownerPseudo}
+                    isQueenBeeMode={isQueenBeeMode}
+                    onStartSharing={webRTCFeatures.startSharing}
+                    isInitiator={webRTCFeatures.isInitiator}
+                    isSharing={webRTCFeatures.isSharing}
+                />
+            </div>
+        </ErrorBoundary>
+    );
 
-
+}
 export default HivePage;

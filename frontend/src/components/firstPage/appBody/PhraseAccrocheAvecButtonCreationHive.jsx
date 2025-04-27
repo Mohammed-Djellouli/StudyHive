@@ -15,23 +15,9 @@ function PhraseAccrocheAvecButtonCreationHive() {
     useEffect(() => {
         const id = localStorage.getItem("userId");
         setUserId(id);
-
-        if(id) {
-            fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/user-room/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if(data.room){
-                        setExistingRoom(data.room);
-                    }
-                });
-        }
     }, []);
 
     const handleHiveCreation =  async(mode) => {
-        if (!userId) {
-            alert("Veuillez vous connecter pour créer une ruche.");
-            return;
-        }
         try{
             const socketId = socket.id;
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/create`,{
