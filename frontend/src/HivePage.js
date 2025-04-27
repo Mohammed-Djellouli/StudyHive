@@ -101,7 +101,6 @@ function HivePage() {
                 </div>
 
                 <div className="fixed bottom-3 right-80">
-                    <VoiceChat/>
                     <LeftBarTools
                         ownerPseudo={ownerPseudo}
                         isQueenBeeMode={isQueenBeeMode}
