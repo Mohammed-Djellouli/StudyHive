@@ -99,6 +99,7 @@ function HivePage() {
                     <BlocNote/>
                     <ChatBox/>
                 </div>
+
                 <div className="fixed bottom-3 right-80">
                     <VoiceChat/>
                     <LeftBarTools
@@ -109,6 +110,7 @@ function HivePage() {
                         isSharing={webRTCFeatures.isSharing}
                     />
                 </div>
+
                 <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom}/>
             </div>
         </ErrorBoundary>
