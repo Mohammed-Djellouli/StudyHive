@@ -17,7 +17,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
         setUserId(id);
 
         if(id) {
-            fetch(`http://localhost:5001/api/hive/user-room/${id}`)
+            fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/user-room/${id}`)
                 .then(res => res.json())
                 .then(data => {
                     if(data.room){
@@ -33,7 +33,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
             return;
         }
         try{
-            const response = await fetch("http://localhost:5001/api/hive/create",{
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/create`,{
                 method: "POST",
                 headers: {
                     "content-type": "application/json",
@@ -46,8 +46,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
 
             const data = await response.json();
             if(response.ok){
-
-                //const generatedLink = `http://localhost:3000/join/${data.room.idRoom}`;
+                //const generatedLink = `${process.env.REACT_APP_FRONTEND_URL}/join/${data.room.idRoom}`;
                 //setInviteLink(generatedLink);
                 navigate(`/hive/${data.room.idRoom}`, { state: { ownerPseudo: data.ownerPseudo , isQueenBeeMode: data.room.isQueenBeeMode } });
             }

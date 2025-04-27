@@ -6,6 +6,7 @@ const useVideoPlayer = (roomId) => {
     const [videoId, setVideoId] = useState(null);
     const [needsManualPlay, setNeedsManualPlay] = useState(false);
     const playerRef = useRef();
+    const [autoPlay, setAutoPlay] = useState(true);
 
     useEffect(() => {
         socket.on("syncVideo", ({ videoId, time, isPlaying, lastUpdate }) => {
@@ -26,9 +27,11 @@ const useVideoPlayer = (roomId) => {
                     }
 
                     if (isPlaying && playerState !== 1) {
-                        const result = player.playVideo();
-                        if (result instanceof Promise) {
-                            result.catch(() => setNeedsManualPlay(true));
+                        try {
+                            player.playVideo();
+                        } catch (error) {
+                            console.error("Erreur lors de la lecture automatique:", error);
+                            setNeedsManualPlay(true);
                         }
                     } else if (!isPlaying && playerState === 1) {
                         player.pauseVideo();
@@ -41,6 +44,34 @@ const useVideoPlayer = (roomId) => {
 
         return () => {
             socket.off("syncVideo");
+        };
+    }, [roomId]);
+
+    useEffect(() => {
+        socket.on("currentVideoState", ({ videoId, time, isPlaying, lastUpdate }) => {
+            if (videoId && isPlaying && playerRef.current) {
+                const now = Date.now();
+                const elapsed = (now - lastUpdate) / 1000;
+                const adjustedTime = time + elapsed;
+
+                setVideoId(videoId);
+                
+                setTimeout(() => {
+                    try {
+                        playerRef.current.seekTo(adjustedTime, true);
+                        if (isPlaying) {
+                            playerRef.current.playVideo();
+                        }
+                    } catch (error) {
+                        console.error("Erreur lors de la synchronisation initiale:", error);
+                        setNeedsManualPlay(true);
+                    }
+                }, 1000);
+            }
+        });
+
+        return () => {
+            socket.off("currentVideoState");
         };
     }, [roomId]);
 
@@ -86,6 +117,10 @@ const useVideoPlayer = (roomId) => {
 
     const onPlayerReady = (event) => {
         playerRef.current = event.target;
+        
+        if (roomId) {
+            socket.emit("requestVideoState", { roomId });
+        }
     };
 
     const onPlayerStateChange = (event) => {
@@ -127,7 +162,16 @@ const useVideoPlayer = (roomId) => {
     const playerOpts = {
         width: "90%",
         height: "90%",
-        playerVars: { autoplay: 1 }
+        playerVars: { 
+            autoplay: 1,
+            playsinline: 1,
+            mute: 0,
+            controls: 1,
+            enablejsapi: 1,
+            modestbranding: 1,
+            rel: 0,
+            fs: 1
+        }
     };
 
     return {

@@ -9,7 +9,7 @@ const VideoItem = ({ video, onVideoSelect }) => {
             <img
                 src={video.snippet.thumbnails.medium.url}
                 alt={video.snippet.title}
-                className="w-[120px] h-[80px] rounded mr-4"
+                className="w-[120px] h-[90px] rounded mr-4"
             />
             <div className="text-white text-sm font-medium">{video.snippet.title}</div>
         </div>

@@ -16,7 +16,7 @@ const server = http.createServer(app);
 
 // Middlewares
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST"],
     credentials: true
 }));
@@ -25,7 +25,7 @@ app.use(express.json());
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: process.env.FRONTEND_URL,
         methods: ["GET", "POST"],
         credentials: true
     },
@@ -74,6 +74,13 @@ io.on("connection", (socket) => {
 
         io.to(roomId).emit("updateUserList", roomUsers[roomId]);
         console.log(` ${userName || "Utilisateur"} a rejoint la ruche ${roomId}`);
+    });
+
+    // Nouvel événement pour demander l'état actuel de la vidéo
+    socket.on("requestVideoState", ({ roomId }) => {
+        if (roomState[roomId]) {
+            socket.emit("currentVideoState", roomState[roomId]);
+        }
     });
 
     // WebRTC signaling events
@@ -168,7 +175,7 @@ app.get("/", (req, res) => {
 connectDB();
 
 // Server start
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT ;
 server.listen(PORT, () => {
     console.log(` Serveur lancé sur : http://localhost:${PORT}`);
 });
