@@ -15,7 +15,7 @@ function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
                 setTimeLeft(0);
                 setShowModal(true);
                 // supprimer la room
-                fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/delete/${roomId}`, { method: "DELETE" });
+                deleteHive();
             } else {
                 setTimeLeft(diff);
             }
@@ -23,6 +23,22 @@ function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
 
         return () => clearInterval(interval);
     }, [timerEndsAt, roomId]);
+
+    const deleteHive =  async () => {
+        try {
+            await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/delete/${roomId}`, {
+                method: "DELETE",
+            });
+            console.log("Hive deleted successfully.");
+        } catch (error) {
+            console.error("Error deleting hive:", error);
+        }
+    };
+
+    const handleEndHiveClick = async () => {
+        await deleteHive();
+        setShowModal(true);
+    }
 
     const formatTime = (millis) => {
         const totalSec = Math.floor(millis / 1000);
@@ -37,11 +53,15 @@ function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
     if (timeLeft <= 600000) timerColor = "text-red-500 animate-pulse";
 
     return (
-        <div className="fixed top-5 right-10 z-50 text-right space-y-2">
+        <div className="fixed top-5 right-8 z-50 text-right space-y-2">
             <h2 className="text-xl font-semibold text-white">Hive of {ownerPseudo}</h2>
             <p className={`text-lg font-bold ${timerColor}`}>
                 {timeLeft !== null ? formatTime(timeLeft) : "Loading..."}
             </p>
+            <button
+            onClick={handleEndHiveClick}
+            className="mt-2 bg-red-500 text-white px-4 py-2  rounded hover:bg-red-700 transition"
+            > End Room</button>
 
             {showModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">

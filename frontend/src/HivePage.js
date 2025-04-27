@@ -47,9 +47,10 @@ function HivePage() {
                     setOwnerPseudo(data.ownerPseudo);
                 }
                 setUsers(data.users );
-                setOwnerId(data.idOwner);
+                setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
             });
     }, [idRoom,location.state]);
+
 
 
   console.log("State reçu dans HivePage :", ownerPseudo, isQueenBeeMode);
@@ -68,11 +69,7 @@ function HivePage() {
       <div className="bg-center bg-cover bg-fixed bg-no-repeat min-h-screen text-white bg-[#1a1a1a]"
         style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
         <Big_Logo_At_Left />
-        <Left_bar_Icons_members_In_Room
-          ownerPseudo={ownerPseudo}
-          isQueenBeeMode={isQueenBeeMode}
-          users={users.filter((user) => user._id !== ownerId)}
-        />
+        <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode} users={users.filter((user)=> user._id !== ownerId)} />
 
         <SearchBar onSearch={videoPlayerFeatures.handleSearch} />
 
@@ -80,12 +77,20 @@ function HivePage() {
           webRTCFeatures={webRTCFeatures}
           videoPlayerFeatures={videoPlayerFeatures}
         />
+        
+             {/* Whiteboard Placement 
+            <div className="fixed top-[100px] left-[200px] z-20">
+                <WhiteBoard />
+            </div>
+            */}
 
         <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
+          <BlocNote/>
           <ChatBox />
         </div>
         <div className="fixed bottom-3 right-80">
           <VoiceChat />
+          <LeftBarTools/>    
         </div>
         <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom} />
         <LeftBarTools

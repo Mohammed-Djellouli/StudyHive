@@ -1,11 +1,64 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import MemberInHive from "./MemberInHive";
-function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users }) {
+import socket  from "../../socket";
+function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: initialUsers }) {
+
+    const [users, setUsers] = useState(initialUsers);
+
+
+    useEffect(() => {
+        setUsers(initialUsers);
+    },[initialUsers]);
+
+
+    useEffect(() => {
+        const userId = localStorage.getItem("userId")||socket.id;
+        const userPseudo = localStorage.getItem("userPseudo")||'Bee-Guest';
+
+        if (userId && userPseudo) {
+            console.log(" LeftBar emit join_hive_room");
+            socket.emit("join_hive_room", {
+                roomId: window.location.pathname.split("/").pop(), // récupère idRoom depuis l'URL
+                user: {
+                    userId,
+                    pseudo: userPseudo,
+                    _id: userId,
+                    socketId: socket.id
+                }
+            });
+        }
+    }, []);
+
+
+
+    useEffect(() => {
+        const handleUserJoined = (newUser) => {
+            setUsers(prevUsers => {
+                if (prevUsers.find(u => u.userId === newUser.userId)) return prevUsers;
+                return [...prevUsers, {
+                    ...newUser,
+                    _id: newUser.userId
+                }];
+            });
+        };
+
+        const handleUserLeft = (socketIdLeft) => {
+            setUsers(prevUsers => prevUsers.filter(u => u.socketId !== socketIdLeft));
+        };
+
+        socket.on("user_joined", handleUserJoined);
+        socket.on("user_left", handleUserLeft);
+
+        return () => {
+            socket.off("user_joined", handleUserJoined);
+            socket.off("user_left", handleUserLeft);
+        };
+    }, []);
+
     console.log("Props reçues par LeftBar :", ownerPseudo, isQueenBeeMode);
     return (
         <div className="fixed bottom-[11px] left-0 w-[50px] h-[55%] p-[2px] flex flex-col justify-end bg-[#ffffff08] rounded-[10px] z-10">
-            <ul className="flex flex-col items-center justify-start overflow-y-auto h-full max-h-[90%] scrollbar-thin scrollbar-thumb-yellow-500" />
-            <ul className="flex flex-col items-center justify-between h-full m-0 p-0 list-none">
+            <ul className="flex flex-col items-center h-full m-0 p-0 list-none">
 
                 {ownerPseudo && (
                     <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center">
@@ -21,14 +74,22 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users }) 
                 )}
 
                 {/* Bees */}
-                {users.map((user) => (
-                    <MemberInHive key={user._id} pseudo={user.pseudo} />
-                    ))
-                }
+                {users
+                    .filter((user) => user.pseudo !== ownerPseudo)
+                    .map((user) => (
+                        <MemberInHive key={user._id || user.userId} pseudo={user.pseudo} />
+                    ))}
+
+
+
+
+
                 {/* Three dots */}
+                {/*
                 <li>
                     <img className="bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center" src="/assets/Trois_Point_icon.png" alt="Trois_Point" />
                 </li>
+                */}
                 </ul>
         </div>
     );
