@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import socket from "../../socket";
 
 function MemberInHive({ pseudo }) {
     const [showModal, setShowModal] = useState(false);
@@ -39,14 +40,28 @@ function MemberInHive({ pseudo }) {
                         {isMuted ? (
                             <button
                                 className="bg-black text-xs px-2 py-1 rounded w-[80px] "
-                                onClick={() => setIsMuted(false)}
+                                onClick={() => {
+                                    setIsMuted(false);
+                                    socket.emit("update_mic_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowMic: true
+                                    })
+                                    }
+                                }
                             >
                                 Unmute
                             </button>
                         ) : (
                             <button
                                 className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
-                                onClick={() => setIsMuted(true)}
+                                onClick={() => {
+                                    setIsMuted(true);
+                                    socket.emit("update_mic_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowMic: false
+                                    })
+                                }
+                            }
                             >
                                 Mute
                             </button>

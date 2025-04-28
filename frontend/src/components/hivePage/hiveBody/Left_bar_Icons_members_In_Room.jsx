@@ -13,7 +13,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: in
 
     useEffect(() => {
         const userId = localStorage.getItem("userId")||socket.id;
-        const userPseudo = localStorage.getItem("userPseudo")||'Bee-Guest';
+        const userPseudo = localStorage.getItem("userPseudo");
 
         if (userId && userPseudo) {
             console.log(" LeftBar emit join_hive_room");
@@ -28,7 +28,6 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: in
             });
         }
     }, []);
-
 
 
     useEffect(() => {

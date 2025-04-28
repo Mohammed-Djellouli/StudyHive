@@ -23,6 +23,7 @@ import HiveDataLoader from "./components/hivePage/hiveHandle/HiveDataLoader";
 import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
 
 import "./App.css";
+import socket from "./components/socket";
 
 // Composant principal HivePage
 function HivePage() {
@@ -107,6 +108,8 @@ function HivePage() {
                         onStartSharing={webRTCFeatures.startSharing}
                         isInitiator={webRTCFeatures.isInitiator}
                         isSharing={webRTCFeatures.isSharing}
+                        users={users}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
                     />
                 </div>
 
