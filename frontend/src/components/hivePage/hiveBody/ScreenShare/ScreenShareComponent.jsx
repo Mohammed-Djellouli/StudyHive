@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react';
+import socket from '../../../../components/socket';
 
 const ScreenShareComponent = ({ videoRef, isSharing, remoteStream, onStopSharing }) => {
     const [retryCount, setRetryCount] = useState(0);
@@ -14,6 +15,14 @@ const ScreenShareComponent = ({ videoRef, isSharing, remoteStream, onStopSharing
         setIsSafari(isSafariBrowser);
         console.log("Video component - Safari detection:", isSafariBrowser);
     }, []);
+
+    // Sécurité critique : vider srcObject quand remoteStream devient null
+    useEffect(() => {
+        if (!remoteStream && remoteVideoRef.current) {
+            console.log("Resetting remoteVideoRef srcObject to null (stream stopped)");
+            remoteVideoRef.current.srcObject = null;
+        }
+    }, [remoteStream]);
 
     // Check and update stream info for debugging
     useEffect(() => {
@@ -191,6 +200,21 @@ const ScreenShareComponent = ({ videoRef, isSharing, remoteStream, onStopSharing
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [debugMode]);
+
+    // Ajouter l'écouteur d'événement pour la réinitialisation
+    useEffect(() => {
+        socket.on("reset_screen_share", () => {
+            if (remoteVideoRef.current) {
+                remoteVideoRef.current.srcObject = null;
+            }
+            setStreamInfo({});
+            setRetryCount(0);
+        });
+
+        return () => {
+            socket.off("reset_screen_share");
+        };
+    }, []);
 
     return (
         <div className="relative w-full h-full">

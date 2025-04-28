@@ -181,7 +181,7 @@ const useWebRTC = (roomId) => {
         };
 
         peer.ontrack = (e) => {
-            console.log("🎥 Flux reçu de:", userID);
+            console.log(" Flux reçu de:", userID);
             if (e.streams && e.streams[0]) {
                 console.log("Mise à jour du flux distant");
                 
@@ -641,21 +641,22 @@ const useWebRTC = (roomId) => {
                 track.stop();
             });
             screenStream.current = null;
-            
-            // Notify all users in the room that video sharing has stopped
-            // This will trigger a page refresh for all users to reset their WebRTC state
-            socket.emit("video_sharing_stopped", { roomId });
 
-        Object.keys(peerConnections.current).forEach(userID => {
-            if (senders.current[userID]) {
-                senders.current[userID].forEach(sender => {
-                    peerConnections.current[userID].removeTrack(sender);
-                });
-                delete senders.current[userID];
-            }
-        });
+            Object.keys(peerConnections.current).forEach(userID => {
+                if (senders.current[userID]) {
+                    senders.current[userID].forEach(sender => {
+                        peerConnections.current[userID].removeTrack(sender);
+                    });
+                    delete senders.current[userID];
+                }
+            });
+
+            // Émettre l'événement d'arrêt du partage d'écran
+            socket.emit("stop_screen_share", { roomId });
         }
         
+        setIsSharing(false);
+        setRemoteStream(null);
         updateDebugInfo({sharing: false});
     };
 
@@ -826,10 +827,16 @@ const useWebRTC = (roomId) => {
             }
         });
 
-        // Listen for the refresh signal when video sharing stops
-        socket.on("refresh_page", () => {
-            console.log("Received page refresh signal, reloading page...");
-            window.location.reload();
+        // Remplacer l'événement refresh_page par reset_screen_share
+        socket.on("reset_screen_share", () => {
+            setIsSharing(false);
+            setRemoteStream(null);
+            if (screenStream.current) {
+                screenStream.current.getTracks().forEach((track) => {
+                    track.stop();
+                });
+                screenStream.current = null;
+            }
         });
 
         return () => {
@@ -844,7 +851,7 @@ const useWebRTC = (roomId) => {
             socket.off("answer");
             socket.off("ice-candidate");
             socket.off("user_disconnected");
-            socket.off("refresh_page");
+            socket.off("reset_screen_share");
 
             Object.keys(peerConnections.current).forEach(userId => {
                 if (peerConnections.current[userId]) {

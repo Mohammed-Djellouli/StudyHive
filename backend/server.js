@@ -87,12 +87,6 @@ io.on("connection", (socket) => {
     socket.on("joinRoom", ({ roomId, userName }) => {
         socket.join(roomId);
 
-        if (!roomUsers[roomId]) roomUsers[roomId] = [];
-        roomUsers[roomId].push({
-            socketId: socket.id,
-            userName: userName || "Anonyme"
-        });
-
         if (!rooms[roomId]) {
             rooms[roomId] = [];
         }
@@ -104,13 +98,13 @@ io.on("connection", (socket) => {
         otherUsers.forEach(id => {
             socket.to(id).emit("user joined", socket.id);
         });
-
+        
+        // Send existing video state if any
         if (roomState[roomId]) {
             socket.emit("syncVideo", roomState[roomId]);
         }
 
-        io.to(roomId).emit("updateUserList", roomUsers[roomId]);
-        console.log(` ${userName || "Utilisateur"} a rejoint la ruche ${roomId}`);
+       
     });
 
     // Nouvel événement pour demander l'état actuel de la vidéo
@@ -177,6 +171,11 @@ io.on("connection", (socket) => {
             signal,
             id: socket.id,
         });
+    });
+
+    socket.on("stop_screen_share", ({ roomId }) => {
+        // Émettre l'événement à tous les utilisateurs de la room sauf l'émetteur
+        socket.to(roomId).emit("screen_share_stopped");
     });
 
     
