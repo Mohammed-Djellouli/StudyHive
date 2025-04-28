@@ -52,8 +52,6 @@ const io = new Server(server,{
 
 // Video sync state management
 const roomState = {};
-const roomUsers = {};
-const rooms = {}; // For WebRTC connections
 
 io.on("connection", (socket) => {
 
@@ -87,18 +85,6 @@ io.on("connection", (socket) => {
     socket.on("joinRoom", ({ roomId, userName }) => {
         socket.join(roomId);
 
-        if (!rooms[roomId]) {
-            rooms[roomId] = [];
-        }
-        rooms[roomId].push(socket.id);
-
-        const otherUsers = rooms[roomId].filter(id => id !== socket.id);
-        socket.emit("all users", otherUsers);
-
-        otherUsers.forEach(id => {
-            socket.to(id).emit("user joined", socket.id);
-        });
-        
         // Send existing video state if any
         if (roomState[roomId]) {
             socket.emit("syncVideo", roomState[roomId]);
