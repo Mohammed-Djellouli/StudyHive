@@ -11,7 +11,7 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
     return (
         <div className="fixed top-[60px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
             {/* Share Screen */}
-            {isInitiator && !isSharing && (
+            {!isSharing && (
                 <button
                     onClick={onStartSharing}
                     className="bg-black/60 p-2 rounded-full hover:scale-105 transition hover:bg-yellow-400/20"

@@ -28,7 +28,8 @@ const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures }) => {
     onPlayerReady,
     onPlayerStateChange,
     handleSeek,
-    handleManualPlay
+    handleManualPlay,
+    isPlayerReady
   } = videoPlayerFeatures;
 
   // Gestion de la reconnexion

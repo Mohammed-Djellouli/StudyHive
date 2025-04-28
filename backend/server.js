@@ -136,6 +136,11 @@ io.on("connection", (socket) => {
         });
     });
 
+    // Handle video sharing stopped event and trigger page refresh for all users in the room
+    socket.on("video_sharing_stopped", ({ roomId }) => {
+        console.log(`Video sharing stopped in room ${roomId}, sending refresh signal to all users`);
+        io.to(roomId).emit("refresh_page");
+    });
 
     //when user enteres the hive (vocal)
     socket.on("join_voice", (roomId) => {
