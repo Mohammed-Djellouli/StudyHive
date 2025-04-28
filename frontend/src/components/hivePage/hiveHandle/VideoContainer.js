@@ -9,7 +9,7 @@ import socket from '../../../components/socket';
  * Composant pour l'affichage du contenu vidéo
  * Gère la liste de vidéos, le lecteur YouTube et le partage d'écran
  */
-const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures }) => {
+const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures, isModalOpen, setIsModalOpen }) => {
   const { 
     isSharing, 
     remoteStream, 
@@ -33,42 +33,26 @@ const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures }) => {
     isPlayerReady
   } = videoPlayerFeatures;
 
-  // État pour contrôler la visibilité du modal
-  const [isModalVisible, setIsModalVisible] = useState(true);
   // État pour la position du modal
   const [modalPosition, setModalPosition] = useState({ x: 150, y: 100 });
-  // État pour forcer le rafraîchissement du modal
-  const [modalKey, setModalKey] = useState(0);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
-  // Écouter l'événement d'arrêt du partage d'écran et les mises à jour de statut
+  // Écouter les événements de partage d'écran pour rafraîchir le contenu
   useEffect(() => {
-    socket.on("screen_share_stopped", () => {
-      setIsModalVisible(false);
-    });
-
-    socket.on("screen_share_status_update", ({ isSharing }) => {
-      if (isSharing) {
-        setIsModalVisible(true);
+    socket.on("screen_share_update", (data) => {
+      if (data.action === "started") {
+        setIsModalOpen(true); // Ouvre la fenêtre si un partage commence
       }
     });
-
+    socket.on("screen_share_stopped", () => {
+      // Le modal reste monté, mais son contenu sera vide
+    });
     return () => {
+      socket.off("screen_share_update");
       socket.off("screen_share_stopped");
-      socket.off("screen_share_status_update");
     };
   }, []);
-
-  // Forcer le rafraîchissement du modal quand le statut du partage change
-  useEffect(() => {
-    if (isSharing || remoteStream) {
-      setModalKey(prev => prev + 1);
-      setIsModalVisible(true);
-    } else {
-      setIsModalVisible(false);
-    }
-  }, [isSharing, remoteStream]);
 
   // Gestion de la reconnexion
   const { reconnecting } = useReconnectionHandler({
@@ -138,62 +122,52 @@ const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures }) => {
         )}
       </div>
 
-      {/* Bouton flottant pour réafficher le modal quand il est caché */}
-      {(isSharing || remoteStream) && !isModalVisible && (
-        <button
-          onClick={() => setIsModalVisible(true)}
-          className="fixed bottom-4 right-4 bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-full shadow-lg z-30"
+      {/* Modal de partage d'écran - toujours monté */}
+      <div
+        className={`fixed w-[850px] h-[480px] bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20 transition-all duration-300 ${isModalOpen ? '' : 'hidden'}`}
+        style={{
+          left: `${modalPosition.x}px`,
+          top: `${modalPosition.y}px`
+        }}
+      >
+        {/* Barre de contrôle supérieure (draggable) */}
+        <div
+          className="absolute top-0 left-0 right-0 bg-[#2a2a2a] p-2 flex justify-between items-center cursor-move"
+          onMouseDown={handleDragStart}
         >
-          Afficher le partage d'écran
-        </button>
-      )}
-
-      {/* Container pour le partage d'écran - modal déplaçable */}
-      {(isSharing || remoteStream) && isModalVisible && (
-        <div 
-          key={modalKey}
-          className="fixed w-[850px] h-[480px] bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20"
-          style={{
-            left: `${modalPosition.x}px`,
-            top: `${modalPosition.y}px`
-          }}
-        >
-          {/* Barre de contrôle supérieure (draggable) */}
-          <div 
-            className="absolute top-0 left-0 right-0 bg-[#2a2a2a] p-2 flex justify-between items-center cursor-move"
-            onMouseDown={handleDragStart}
+          <span className="text-white text-sm select-none">Partage d'écran</span>
+          {/* Bouton pour cacher la fenêtre */}
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 rounded ml-2"
           >
-            <span className="text-white text-sm select-none">Partage d'écran</span>
-            <button 
-              onClick={() => setIsModalVisible(false)}
-              className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 rounded"
-            >
-              Réduire
-            </button>
-          </div>
-
-          {/* Contenu du partage d'écran */}
-          <div className="mt-10 h-[calc(100%-2.5rem)]">
+            Cacher
+          </button>
+        </div>
+        {/* Contenu du partage d'écran ou vide si pas de partage */}
+        <div className="mt-10 h-[calc(100%-2.5rem)] flex items-center justify-center">
+          {(isSharing || remoteStream) ? (
             <ScreenShareComponent
-              key={`screen-${modalKey}`}
               videoRef={videoRef}
               isSharing={isSharing}
               remoteStream={remoteStream}
               onStopSharing={stopSharing}
             />
-          </div>
-          
-          {/* Overlay de reconnexion */}
-          {reconnecting && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="text-white text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
-                <p>Reconnexion en cours...</p>
-              </div>
-            </div>
+          ) : (
+            <span className="text-gray-400">Aucun partage d'écran en cours</span>
           )}
         </div>
-      )}
+        
+        {/* Overlay de reconnexion */}
+        {reconnecting && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="text-white text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+              <p>Reconnexion en cours...</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

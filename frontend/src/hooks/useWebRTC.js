@@ -453,6 +453,9 @@ const useWebRTC = (roomId) => {
         try {
             setIsSharing(true);
 
+            // Notify all users that screen sharing has started
+            socket.emit("screen_share_started", { roomId });
+
             await new Promise(resolve => setTimeout(resolve, 100));
 
             // Optimized media constraints based on browser
@@ -839,6 +842,13 @@ const useWebRTC = (roomId) => {
             }
         });
 
+        socket.on("screen_share_update", (data) => {
+            if (data.action === "started" && data.userId && data.userId !== socket.id) {
+                // Demander une nouvelle offre à l'utilisateur qui partage
+                socket.emit("request_screen_share_offer", { target: data.userId });
+            }
+        });
+
         return () => {
             // Clear intervals
             if (keyframeInterval.current) {
@@ -852,6 +862,7 @@ const useWebRTC = (roomId) => {
             socket.off("ice-candidate");
             socket.off("user_disconnected");
             socket.off("reset_screen_share");
+            socket.off("screen_share_update");
 
             Object.keys(peerConnections.current).forEach(userId => {
                 if (peerConnections.current[userId]) {
@@ -862,6 +873,34 @@ const useWebRTC = (roomId) => {
             senders.current = {};
         };
     }, [roomId, isSharing]);
+
+    // Ajoute un écouteur pour recevoir une nouvelle offre de partage d'écran
+    useEffect(() => {
+        socket.on("screen_share_offer", (payload) => {
+            handleReceiveOffer(payload);
+        });
+        return () => {
+            socket.off("screen_share_offer");
+        };
+    }, []);
+
+    // Ajoute un écouteur pour répondre à une demande d'offre de partage d'écran
+    useEffect(() => {
+        socket.on("request_screen_share_offer", async ({ requester }) => {
+            // Crée une nouvelle offre et l'envoie au demandeur
+            const peer = peerConnections.current[requester] || createPeer(requester);
+            await createAndSendOffer(peer, requester);
+            // Relaye l'offre via l'événement dédié
+            socket.emit("screen_share_offer", {
+                target: requester,
+                caller: socket.id,
+                sdp: peer.localDescription,
+            });
+        });
+        return () => {
+            socket.off("request_screen_share_offer");
+        };
+    }, []);
 
     return {
         isSharing,

@@ -34,6 +34,7 @@ function HivePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
+    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(true);
     // Utilisation des hooks personnalisés
     const webRTCFeatures = useWebRTC(idRoom);
     const videoPlayerFeatures = useVideoPlayer(idRoom);
@@ -87,6 +88,8 @@ function HivePage() {
                 <VideoContainer
                     webRTCFeatures={webRTCFeatures}
                     videoPlayerFeatures={videoPlayerFeatures}
+                    isModalOpen={isScreenShareWindowOpen}
+                    setIsModalOpen={setIsScreenShareWindowOpen}
                 />
 
                 {/* Whiteboard Placement
@@ -107,6 +110,8 @@ function HivePage() {
                         onStartSharing={webRTCFeatures.startSharing}
                         isInitiator={webRTCFeatures.isInitiator}
                         isSharing={webRTCFeatures.isSharing}
+                        isScreenShareWindowOpen={isScreenShareWindowOpen}
+                        onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
                     />
                 </div>
 

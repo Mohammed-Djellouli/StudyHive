@@ -173,9 +173,27 @@ io.on("connection", (socket) => {
         });
     });
 
+    // Handle screen share start
+    socket.on("screen_share_started", ({ roomId }) => {
+        socket.to(roomId).emit("screen_share_update", {
+            action: "started",
+            userId: socket.id
+        });
+    });
+
+    // Handle screen share stop
     socket.on("stop_screen_share", ({ roomId }) => {
-        // Émettre l'événement à tous les utilisateurs de la room sauf l'émetteur
         socket.to(roomId).emit("screen_share_stopped");
+    });
+
+    // Relayer la demande d'offre de partage d'écran
+    socket.on("request_screen_share_offer", ({ target }) => {
+        io.to(target).emit("request_screen_share_offer", { requester: socket.id });
+    });
+
+    // Relayer l'offre de partage d'écran
+    socket.on("screen_share_offer", (payload) => {
+        io.to(payload.target).emit("screen_share_offer", payload);
     });
 
     
