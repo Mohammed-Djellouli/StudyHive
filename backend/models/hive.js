@@ -36,7 +36,7 @@ const RoomSchema = new mongoose.Schema({
 
     users: [{
         userId: {
-            type: mongoose.Schema.Types.ObjectId,
+            type:  mongoose.Schema.Types.Mixed,
             ref: "User"
         },
         pseudo: {

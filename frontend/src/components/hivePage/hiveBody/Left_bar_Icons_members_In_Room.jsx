@@ -4,30 +4,13 @@ import socket  from "../../socket";
 function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: initialUsers }) {
 
     const [users, setUsers] = useState(initialUsers);
-
+    console.log("This is the users in the Hive",users);
 
     useEffect(() => {
         setUsers(initialUsers);
     },[initialUsers]);
 
 
-    useEffect(() => {
-        const userId = localStorage.getItem("userId")||socket.id;
-        const userPseudo = localStorage.getItem("userPseudo")||'Bee-Guest';
-
-        if (userId && userPseudo) {
-            console.log(" LeftBar emit join_hive_room");
-            socket.emit("join_hive_room", {
-                roomId: window.location.pathname.split("/").pop(), // récupère idRoom depuis l'URL
-                user: {
-                    userId,
-                    pseudo: userPseudo,
-                    _id: userId,
-                    socketId: socket.id
-                }
-            });
-        }
-    }, []);
 
 
 
@@ -37,21 +20,30 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: in
                 if (prevUsers.find(u => u.userId === newUser.userId)) return prevUsers;
                 return [...prevUsers, {
                     ...newUser,
-                    _id: newUser.userId
+                    _id: newUser.userId,
+                    socketId: newUser.socketId,
                 }];
             });
         };
 
         const handleUserLeft = (socketIdLeft) => {
-            setUsers(prevUsers => prevUsers.filter(u => u.socketId !== socketIdLeft));
+            console.log("User left event received for socket:", socketIdLeft);
+            setUsers(prevUsers => prevUsers.filter(user => user.socketId !== socketIdLeft));
+        };
+
+        const handleDisconnectUser = (userIdLeft) => {
+            console.log("Disconnect_user event received for userId:", userIdLeft);
+            setUsers(prevUsers => prevUsers.filter(user => user.userId !== userIdLeft));
         };
 
         socket.on("user_joined", handleUserJoined);
         socket.on("user_left", handleUserLeft);
+        socket.on("disconnect_user", handleDisconnectUser);
 
         return () => {
             socket.off("user_joined", handleUserJoined);
             socket.off("user_left", handleUserLeft);
+            socket.off("disconnect_user", handleDisconnectUser);
         };
     }, []);
 
@@ -77,7 +69,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: in
                 {users
                     .filter((user) => user.pseudo !== ownerPseudo)
                     .map((user) => (
-                        <MemberInHive key={user._id || user.userId} pseudo={user.pseudo} />
+                        <MemberInHive key={user._id || user.userId} pseudo={user.pseudo} isOwner={user.pseudo === ownerPseudo} />
                     ))}
 
 

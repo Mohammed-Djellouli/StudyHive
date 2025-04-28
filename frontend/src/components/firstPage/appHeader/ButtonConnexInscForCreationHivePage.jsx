@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
+import socket from "../../socket";
 
 
 function ButtonConnexInscrForCreationHivePage() {
@@ -13,12 +14,37 @@ function ButtonConnexInscrForCreationHivePage() {
         }
     }, []);
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userPseudo");
-        navigate('/');
-        window.location.reload();
-    }
+        try {
+            const pseudo = localStorage.getItem("userPseudo");
+
+
+
+
+            if (pseudo && pseudo.startsWith("Bee-")) {
+                console.log("Déconnexion d'un invité,.");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("userPseudo");
+                localStorage.removeItem("token");
+
+            }
+
+            console.log("Déconnexion d'un utilisateur normal,");
+            localStorage.removeItem("userId");
+            localStorage.removeItem("userPseudo");
+            localStorage.removeItem("token");
+            localStorage.removeItem("token");
+
+            if (socket.connected) {
+                socket.disconnect();
+            }
+
+            window.location.href = "/";
+        }
+        catch(err) {
+            console.error("Erreur durant la déconnexion :", err);
+            }
+        }
+
     return (
         <div className=" mt-11 fixed top-12 right-0 w-[700px] h-[50px] bg-[#ffffff08] rounded-l-[60px] rounded-r-none flex items-center justify-center p-[8px] gap-[200px] z-20">
             {userPseudo ? (

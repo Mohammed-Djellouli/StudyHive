@@ -1,19 +1,24 @@
 import React, { useState } from "react";
 
-function MemberInHive({ pseudo }) {
+function MemberInHive({ pseudo, isOwner = false }) {
     const [showModal, setShowModal] = useState(false);
 
     const [isMuted, setIsMuted] = useState(false);
     const [isSharingAllowed, setIsSharingAllowed] = useState(true);
     const [isVideoAllowed, setIsVideoAllowed] = useState(true);
 
+    const handleClick = () => {
+        if(!isOwner){
+            setShowModal(true);
+        }
+    }
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer">
             <img
                 src="/assets/SoloBee2.png"
                 alt="Bee"
                 className="w-[28px] h-[28px]"
-                onClick={() => setShowModal(true)}
+                onClick={handleClick}
             />
 
             {/* Hover - pseudo */}
