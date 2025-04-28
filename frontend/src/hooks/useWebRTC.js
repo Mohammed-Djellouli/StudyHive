@@ -489,7 +489,7 @@ const useWebRTC = (roomId) => {
             updateDebugInfo({mediaConstraints});
             
             screenStream.current = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
-            
+
             // Check the actual granted track settings and log them
             const videoTrack = screenStream.current.getVideoTracks()[0];
             if (videoTrack) {
@@ -645,15 +645,15 @@ const useWebRTC = (roomId) => {
             // Notify all users in the room that video sharing has stopped
             // This will trigger a page refresh for all users to reset their WebRTC state
             socket.emit("video_sharing_stopped", { roomId });
-            
-            Object.keys(peerConnections.current).forEach(userID => {
-                if (senders.current[userID]) {
-                    senders.current[userID].forEach(sender => {
-                        peerConnections.current[userID].removeTrack(sender);
-                    });
-                    delete senders.current[userID];
-                }
-            });
+
+        Object.keys(peerConnections.current).forEach(userID => {
+            if (senders.current[userID]) {
+                senders.current[userID].forEach(sender => {
+                    peerConnections.current[userID].removeTrack(sender);
+                });
+                delete senders.current[userID];
+            }
+        });
         }
         
         updateDebugInfo({sharing: false});
