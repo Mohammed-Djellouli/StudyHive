@@ -22,17 +22,21 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
                 </button>
             )}
 
-            {/* Toggle Screen Share Window */}
+            {/* Toggle Screen Share Window Visibility */}
             <button
                 onClick={onToggleScreenShareWindow}
-                className={`bg-black/60 p-2 rounded-full hover:scale-105 transition ${isScreenShareWindowOpen ? 'bg-yellow-400/20' : ''}`}
-                title={isScreenShareWindowOpen ? 'Cacher la fenêtre de partage' : 'Afficher la fenêtre de partage'}
+                className="bg-black/60 p-2 rounded-full hover:scale-105 transition hover:bg-yellow-400/20"
+                title={isScreenShareWindowOpen ? "Cacher la fenêtre de partage" : "Afficher la fenêtre de partage"}
             >
-                <img
-                    src={isScreenShareWindowOpen ? "/assets/close-window.png" : "/assets/open-window.png"}
-                    alt={isScreenShareWindowOpen ? "Fermer la fenêtre de partage" : "Ouvrir la fenêtre de partage"}
-                    className="w-[24px] h-[24px]"
-                />
+                {isScreenShareWindowOpen ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                )}
             </button>
 
             {/* Toggle Mic */}

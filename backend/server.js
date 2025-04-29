@@ -59,6 +59,15 @@ const roomUsers= {};
 
 
 
+// Ajout d'une variable globale pour suivre l'état du partage d'écran par room
+const screenShareState = {};
+
+// Store playlists in memory (you might want to move this to a database in production)
+const roomPlaylists = new Map();
+
+
+
+
 io.on("connection", (socket) => {
     socket.data.hiveRoomId = null;
     // Quand un utilisateur rejoint une Hive
@@ -66,8 +75,13 @@ io.on("connection", (socket) => {
         socket.join(roomId);
 
         socket.data.hiveRoomId = roomId;
-        io.to(roomId).emit("user_joined", user);
-        console.log(`${user.pseudo} joined room ${roomId}`);
+
+
+         // Send existing video state if any
+         if (roomState[roomId]) {
+            socket.emit("syncVideo", roomState[roomId]);
+        }
+
 
         socket.userId = userId;
 
@@ -109,6 +123,7 @@ io.on("connection", (socket) => {
             console.error("Erreur serveur join_hive_room:", error);
         }
 
+
     });
 
 
@@ -131,6 +146,7 @@ io.on("connection", (socket) => {
     socket.on("clear", () => {
         socket.broadcast.emit("clear");
     });
+
 
 
     // Nouvel événement pour demander l'état actuel de la vidéo
@@ -235,6 +251,7 @@ io.on("connection", (socket) => {
 
     // Handle screen share start
     socket.on("screen_share_started", ({ roomId }) => {
+        screenShareState[roomId] = socket.id;
         socket.to(roomId).emit("screen_share_update", {
             action: "started",
             userId: socket.id
@@ -243,7 +260,17 @@ io.on("connection", (socket) => {
 
     // Handle screen share stop
     socket.on("stop_screen_share", ({ roomId }) => {
+        delete screenShareState[roomId];
         socket.to(roomId).emit("screen_share_stopped");
+    });
+
+    // Synchronisation de l'état du partage d'écran
+    socket.on("request_screen_share_status", ({ roomId }) => {
+        const sharerId = screenShareState[roomId];
+        socket.emit("screen_share_status", {
+            isSharing: !!sharerId,
+            sharerId: sharerId || null
+        });
     });
 
     // Relayer la demande d'offre de partage d'écran
@@ -255,6 +282,40 @@ io.on("connection", (socket) => {
     socket.on("screen_share_offer", (payload) => {
         io.to(payload.target).emit("screen_share_offer", payload);
     });
+
+
+    // Handle adding a video to the playlist
+    socket.on('add_to_playlist', ({ roomId, videoId, url }) => {
+        if (!roomPlaylists.has(roomId)) {
+            roomPlaylists.set(roomId, []);
+        }
+        
+        const playlist = roomPlaylists.get(roomId);
+        const videoExists = playlist.some(video => video.videoId === videoId);
+        
+        if (!videoExists) {
+            playlist.push({ videoId, url });
+            io.to(roomId).emit('playlist_updated', playlist);
+        }
+    });
+
+    // Handle removing a video from the playlist
+    socket.on('remove_from_playlist', ({ roomId, videoId }) => {
+        if (roomPlaylists.has(roomId)) {
+            const playlist = roomPlaylists.get(roomId);
+            const updatedPlaylist = playlist.filter(video => video.videoId !== videoId);
+            roomPlaylists.set(roomId, updatedPlaylist);
+            io.to(roomId).emit('playlist_updated', updatedPlaylist);
+        }
+    });
+
+    // Handle getting the current playlist
+    socket.on('get_playlist', ({ roomId }) => {
+        const playlist = roomPlaylists.get(roomId) || [];
+        socket.emit('playlist_updated', playlist);
+    });
+
+    
 
    
 
@@ -323,6 +384,7 @@ io.on("connection", (socket) => {
 
         }
     });
+
 
 })
 
