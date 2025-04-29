@@ -27,7 +27,7 @@ app.use(cookieSession({
     maxAge: 24 * 60 * 60 * 1000,
     keys: ["studyhive_session_key"]
 }));
-const Hive = require("./models/Hive");
+const Hive = require("./models/hive");
 const User = require("./models/User");
 
 app.use(passport.initialize());

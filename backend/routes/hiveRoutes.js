@@ -1,7 +1,7 @@
 //this is hiveRoutes
 const express = require("express");
 const router = express.Router();
-const Hive = require("../models/Hive");
+const Hive = require("../models/hive");
 const User = require("../models/User");
 
 const HandleHiveCreation = require("../HandleHiveCreation");
