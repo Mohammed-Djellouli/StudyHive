@@ -285,16 +285,18 @@ io.on("connection", (socket) => {
 
 
     // Handle adding a video to the playlist
-    socket.on('add_to_playlist', ({ roomId, videoId, url }) => {
+    socket.on('add_to_playlist', ({ roomId, videoId, title, url }) => {
         if (!roomPlaylists.has(roomId)) {
             roomPlaylists.set(roomId, []);
         }
-        
         const playlist = roomPlaylists.get(roomId);
-        const videoExists = playlist.some(video => video.videoId === videoId);
+        const newVideo = { videoId, title, url };
         
-        if (!videoExists) {
-            playlist.push({ videoId, url });
+        // Vérifier si la vidéo n'est pas déjà dans la playlist
+        if (!playlist.some(video => video.videoId === videoId)) {
+            playlist.push(newVideo);
+            // Émettre l'événement de mise à jour à tous les clients dans la room
+            io.to(roomId).emit('video_added', newVideo);
             io.to(roomId).emit('playlist_updated', playlist);
         }
     });
@@ -305,11 +307,14 @@ io.on("connection", (socket) => {
             const playlist = roomPlaylists.get(roomId);
             const updatedPlaylist = playlist.filter(video => video.videoId !== videoId);
             roomPlaylists.set(roomId, updatedPlaylist);
+            
+            // Émettre les événements de mise à jour
+            io.to(roomId).emit('video_removed', { videoId });
             io.to(roomId).emit('playlist_updated', updatedPlaylist);
         }
     });
 
-    // Handle getting the current playlist
+    // Handle getting the playlist
     socket.on('get_playlist', ({ roomId }) => {
         const playlist = roomPlaylists.get(roomId) || [];
         socket.emit('playlist_updated', playlist);
