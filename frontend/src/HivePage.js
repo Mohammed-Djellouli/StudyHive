@@ -35,6 +35,8 @@ function HivePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
+    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(true);
+
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
 
@@ -175,6 +177,8 @@ function HivePage() {
                 <VideoContainer
                     webRTCFeatures={webRTCFeatures}
                     videoPlayerFeatures={videoPlayerFeatures}
+                    isModalOpen={isScreenShareWindowOpen}
+                    setIsModalOpen={setIsScreenShareWindowOpen}
                 />
 
                 {/*
@@ -195,6 +199,8 @@ function HivePage() {
                         onStartSharing={webRTCFeatures.startSharing}
                         isInitiator={webRTCFeatures.isInitiator}
                         isSharing={webRTCFeatures.isSharing}
+                        isScreenShareWindowOpen={isScreenShareWindowOpen}
+                        onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
                     />
                 </div>
 
