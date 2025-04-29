@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import socket from "../../socket";
 
 function MemberInHive({ pseudo }) {
@@ -42,6 +42,9 @@ function MemberInHive({ pseudo }) {
                                 className="bg-black text-xs px-2 py-1 rounded w-[80px] "
                                 onClick={() => {
                                     setIsMuted(false);
+                                    console.log("Socket connected?", socket.connected);
+
+                                    console.log("Sending update mic permission for", pseudo, "allowMic:", true);
                                     socket.emit("update_mic_permission", {
                                         targetUserPseudo: pseudo,
                                         allowMic: true

@@ -12,6 +12,8 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     const [muted, setMuted] = useState(false);
     const [micOn, setMicOn] = useState(true);
     const [micAllowed, setMicAllowed] = useState(true);
+    const [usersState,setUsers] = useState(users);
+
 
     //stun to help peer find the best route to connect
     //turn used when stun fails (fairewalls problems...)
@@ -46,13 +48,14 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     }, []);
 
     useEffect(() => {
-        if (!users || users.length === 0 || !currentUserId) return;
+        if (!usersState || usersState.length === 0 || !currentUserId) return;
 
-        const currentUser = users.find(user => user.userId === currentUserId || user._id === currentUserId);
+        const currentUser = usersState.find(user => user.userId === currentUserId || user._id === currentUserId);
         if (currentUser) {
             setMicAllowed(currentUser.micControl);
         }
-    }, [users, currentUserId]);
+    }, [usersState, currentUserId]);
+
 
     useEffect(()=>{
         if(!stream){
@@ -78,8 +81,10 @@ const VoiceChat = ({users = [],currentUserId}) =>{
 
     useEffect(() => {
         const handleMicPermissionUpdated = ({ userId, micControl }) => {
+            console.log("Received mic_permission_updated:", { userId, micControl });
             if (userId === currentUserId) {
                 setMicAllowed(micControl);
+                console.log("Updated micAllowed to:", micControl);
 
                 if (stream) {
                     stream.getAudioTracks().forEach(track => {
@@ -87,6 +92,11 @@ const VoiceChat = ({users = [],currentUserId}) =>{
                     });
                 }
             }
+
+            setUsers(prevUsers => prevUsers.map(user => user.userId === userId || user._id === userId ? {
+                ...user,
+                micControl,
+            }:user));
         };
 
         socket.on("mic_permission_updated", handleMicPermissionUpdated);
@@ -248,9 +258,9 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     };
 
     const toggleMic = () => setMicOn(prev => !prev);
-    console.log("the mic for this user is ",micAllowed)
-
+    console.log("Button rendering: micAllowed =", micAllowed);
     return (
+
         <button onClick={()=>{toggleMic();toggleMute()}}
                 disabled={!micAllowed}
                 className="bg-black/60 p-2 rounded-full hover:scale-105 transition">

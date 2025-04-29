@@ -34,6 +34,7 @@ app.use(passport.session());
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const authGoogleRoutes = require("./routes/authGoogle");
+const Room = require("./models/hive");
 
 app.use("/api/auth", authRoutes);
 app.use("/auth", authGoogleRoutes);
@@ -55,21 +56,14 @@ const roomState = {};
 const roomUsers = {};
 const rooms = {}; // For WebRTC connections
 
-function getRoomIdForSocket(socketId) {
-    for (const [roomId, socketsInRoom] of io.sockets.adapter.rooms) {
-        if (socketsInRoom.has(socketId)) {
-            return roomId;
-        }
-    }
-    return null;
-}
 
 
 io.on("connection", (socket) => {
-
+    socket.data.hiveRoomId = null;
     // Quand un utilisateur rejoint une Hive
     socket.on("join_hive_room", ({ roomId, user }) => {
         socket.join(roomId);
+        socket.data.hiveRoomId = roomId;
         io.to(roomId).emit("user_joined", user);
         console.log(`${user.pseudo} joined room ${roomId}`);
     });
@@ -150,6 +144,7 @@ io.on("connection", (socket) => {
     //when user enteres the hive (vocal)
     socket.on("join_voice", (roomId) => {
         socket.join(roomId);
+        socket.data.hiveRoomId = roomId;
         console.log(`${socket.id} joined ${roomId}`);
         const otherUsers = Array.from(io.sockets.adapter.rooms.get(roomId) || []).filter(id => id !== socket.id);
         socket.emit("all_users", otherUsers);// sending the list of users already connected in the hive
@@ -184,6 +179,36 @@ io.on("connection", (socket) => {
         });
     });
 
+    socket.on("update_mic_permission", async ({ targetUserPseudo, allowMic }) => {
+        console.log(`Received update_mic_permission from socket ${socket.id} for ${targetUserPseudo}: ${allowMic}`);
+        const roomId = socket.data.hiveRoomId;
+        console.log("room id saved in socket is : ",socket.data.hiveRoomId);
+        console.log("room id saved is : ", roomId);
+        if (!roomId) return;
+
+        try {
+            const room = await Room.findOne({ idRoom: roomId });
+            console.log("room id is : ",room);
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.micControl = allowMic;
+                await room.save();
+
+                //send update to users
+                io.to(roomId.toString()).emit("mic_permission_updated", {
+                    userId: user.userId,
+                    micControl: allowMic
+                });
+            }
+            console.log(`Emitting mic_permission_updated for user ${user.userId} with micControl: ${allowMic}`);
+
+        } catch (err) {
+            console.error("Failed to update mic permission:", err);
+        }
+    });
+
     
 /*
     socket.on("disconnect", () => {
@@ -208,31 +233,7 @@ io.on("connection", (socket) => {
             console.log(`A user left room ${roomId}`);
         });
     });
-    socket.on("update_mic_permission", async ({ targetUserPseudo, allowMic }) => {
-        const roomId = getRoomIdForSocket(socket.id); // You must already have this mapping
-        if (!roomId) return;
 
-        const Room = require("./models/hive"); // import your mongoose Room model if needed
-
-        try {
-            const room = await Room.findOne({ idRoom: roomId });
-            if (!room) return;
-
-            const user = room.users.find(u => u.pseudo === targetUserPseudo);
-            if (user) {
-                user.micControl = allowMic;
-                await room.save();
-
-                //send update to users
-                io.to(roomId.toString()).emit("mic_permission_updated", {
-                    userId: user.userId,
-                    micControl: allowMic
-                });
-            }
-        } catch (err) {
-            console.error("Failed to update mic permission:", err);
-        }
-    });
 
 
 })
