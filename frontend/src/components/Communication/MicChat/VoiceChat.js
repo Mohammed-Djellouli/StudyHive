@@ -62,21 +62,9 @@ const VoiceChat = ({users = [],currentUserId}) =>{
             return;
         }
         stream.getAudioTracks().forEach((track)=>{
-            track.enabled = micAllowed;
+            track.enabled = micAllowed && micOn;
         })
-    },[micAllowed,stream]);
-
-    useEffect(() => {
-        if (!micAllowed) {
-            setMicOn(false);
-            if (stream) {
-                stream.getAudioTracks().forEach(track => {
-                    track.enabled = false;
-                });
-            }
-        }
-    }, [micAllowed, stream]);
-
+    },[micOn,micAllowed,stream]);
 
 
     useEffect(() => {
@@ -249,19 +237,16 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         document.body.appendChild(audio);
     };
 
-    const toggleMute = () =>{
-        if (!stream || !micAllowed) return;
-        stream.getAudioTracks().forEach(track => {
-            track.enabled = !track.enabled;
-        });
-        setMuted(prev => !prev);
-    };
-
-    const toggleMic = () => setMicOn(prev => !prev);
+    const handleToggleMic =()=>{
+        if(!stream || !micAllowed){
+            return;
+        }
+        setMicOn(prev=>!prev);
+    }
     console.log("Button rendering: micAllowed =", micAllowed);
     return (
 
-        <button onClick={()=>{toggleMic();toggleMute()}}
+        <button onClick={handleToggleMic}
                 disabled={!micAllowed}
                 className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
             <img
