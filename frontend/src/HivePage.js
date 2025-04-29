@@ -15,7 +15,7 @@ import ChatBox from "./components/Communication/Chat/chatBox";
 import VoiceChat from "./components/Communication/MicChat/VoiceChat";
 import BlocNote from "./components/hivePage/hiveBody/BlocNote";
 import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
-
+import socket from "./socket";
 
 
 // Nouvelles importations pour les composants modulaires
@@ -36,6 +36,7 @@ function HivePage() {
     const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
     const [currentPseudo, setCurrentPseudo] = useState('');
+    const [currentId, setCurrentId] = useState('');
 
     // Utilisation des hooks personnalisés
     const webRTCFeatures = useWebRTC(idRoom);
@@ -47,7 +48,6 @@ function HivePage() {
                 console.log("ROOM :", data);
                 setIsQueenBeeMode(data.isQueenBeeMode);
                 setTimerEndsAt(data.timerEndsAt);
-
                 if (data.ownerPseudo) {
                     setOwnerPseudo(data.ownerPseudo);
                 }
@@ -58,13 +58,87 @@ function HivePage() {
     }, [idRoom, location.state]);
 
     useEffect(() => {
+        const handleBeforeUnload = () => {
+            localStorage.setItem("isRefreshing", "true");
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, []);
+
+    useEffect(() => {
+        localStorage.removeItem("isRefreshing"); //  il est revenu, on le garde
+    }, []);
+
+    useEffect(() => {
+        setTimeout(() => {
+            const userId = localStorage.getItem("userId");
+            const isRefreshing = localStorage.getItem("isRefreshing");
+            socket.emit("join_hive_room", {
+                roomId: idRoom,
+                userId: userId,
+                isRefreshing: !!isRefreshing
+            });
+            localStorage.removeItem("isRefreshing");
+        }, 1000);
+    }, []);
+
+
+    useEffect(() => {
         const pseudo = localStorage.getItem("userPseudo");
         if (pseudo) {
             setCurrentPseudo(pseudo);
         }
+        const currentId = localStorage.getItem("userId") || socket.id;
+        if (currentId) {
+            setCurrentId(currentId);
+            console.log("il rentre dans SetCurrentId",currentId);
+        }
     }, []);
+    useEffect(() => {
+        if (socket && idRoom && currentId) {
+            console.log("Emitting join_hive_room");
+            socket.emit("join_hive_room", { roomId: idRoom, userId: currentId });
+        }
+    }, [idRoom, currentId]);
 
-    console.log("State reçu dans HivePage :", ownerPseudo, isQueenBeeMode ,users);
+
+    useEffect(() => {
+        const handleUserJoined = (newUser) => {
+            console.log("User Joined :", newUser);
+            setUsers(prevUsers => {
+                if (prevUsers.find(u => u.userId === newUser.userId)) return prevUsers;
+                return [...prevUsers, {
+                    ...newUser,
+                    _id: newUser.userId || newUser.socketId,
+                    socketId: newUser.socketId,
+                }];
+            });
+        };
+
+        const handleUserLeft = (socketIdLeft) => {
+            console.log("User Left (socket)", socketIdLeft);
+            setUsers(prevUsers => prevUsers.filter(user => user.socketId !== socketIdLeft));
+        };
+
+        const handleDisconnectUser = (userIdLeft) => {
+            console.log("User Left (userId)", userIdLeft);
+            setUsers(prevUsers => prevUsers.filter(user => user.userId !== userIdLeft));
+        };
+
+        socket.on("user_joined", handleUserJoined);
+        socket.on("user_left", handleUserLeft);
+        socket.on("disconnect_user", handleDisconnectUser);
+
+        return () => {
+            socket.off("user_joined", handleUserJoined);
+            socket.off("user_left", handleUserLeft);
+            socket.off("disconnect_user", handleDisconnectUser);
+        };
+    }, []);
     if(isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
@@ -74,6 +148,7 @@ function HivePage() {
     }
     console.log("isInitiator dans HivePage:", webRTCFeatures.isInitiator);
     console.log("isSharing dans HivePage:", webRTCFeatures.isSharing);
+    console.log("ownerId----->", ownerId , "CurrentId-------->",currentId);
     return (
         <ErrorBoundary>
             {/*<HiveDataLoader
@@ -93,7 +168,7 @@ function HivePage() {
 
                 <Big_Logo_At_Left/>
                 <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode}
-                                                users={users.filter((user) => user._id !== ownerId)}/>
+                                                users={users} ownerId={ownerId}/>
 
                 <SearchBar onSearch={videoPlayerFeatures.handleSearch}/>
 
@@ -123,7 +198,7 @@ function HivePage() {
                     />
                 </div>
 
-                <HiveTimerBanner ownerPseudo={ownerPseudo} timerEndsAt={timerEndsAt} roomId={idRoom}/>
+                <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId}  ownerPseudo={ownerPseudo} />
             </div>
         <div/>
         </ErrorBoundary>

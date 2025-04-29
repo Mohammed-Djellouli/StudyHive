@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import socket from '../components/socket';
+import socket from '../socket';
 
 const useVideoPlayer = (roomId) => {
     const [videos, setVideos] = useState([]);

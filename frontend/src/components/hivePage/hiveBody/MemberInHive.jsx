@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 
-function MemberInHive({ pseudo, isOwner = false }) {
+function MemberInHive({
+                          pseudo,
+                          isOwner = false,
+                          isQueenBeeMode = false,
+                          currentUserId,
+                          ownerId
+                      }) {
     const [showModal, setShowModal] = useState(false);
 
     const [isMuted, setIsMuted] = useState(false);
@@ -8,8 +14,8 @@ function MemberInHive({ pseudo, isOwner = false }) {
     const [isVideoAllowed, setIsVideoAllowed] = useState(true);
 
     const handleClick = () => {
-        if(!isOwner){
-            setShowModal(true);
+        if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
+            setShowModal(prev => !prev);
         }
     }
     return (

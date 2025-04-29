@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
-import socket from "../../socket";
+import socket from "../../../socket";
 
 const WhiteBoard = () => {
     const canvasRef = useRef(null);

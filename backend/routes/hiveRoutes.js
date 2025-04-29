@@ -32,7 +32,7 @@ router.get("/:idRoom", async (req, res) => {
 
 router.post("/join", async (req, res) => {
     const { userId,userPseudo, idRoom } = req.body;
-
+    console.log("JOIN PAYLOAD BACKEND ====>", { userId, userPseudo, idRoom });
     try {
         const room = await Hive.findOne({ idRoom });
         if (!room) return res.status(404).json({ message: "Room not found" });
@@ -74,9 +74,8 @@ router.post("/join", async (req, res) => {
             } else {
                 //  Utilisateur Guest (socket.id, string libre)
                 room.users.push({
-                    userId: undefined,
+                    userId: userId,
                     pseudo: userPseudo,
-                    socketId: userId,         // stocker dans un champ socketId au lieu de userId
                     ...controlsDefault,
                 });
             }

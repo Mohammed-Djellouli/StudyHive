@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
-import socket from "../../socket";
+import socket from "../../../socket";
 
 
 function ButtonConnexInscrForCreationHivePage() {
@@ -21,6 +21,7 @@ function ButtonConnexInscrForCreationHivePage() {
 
 
             if (pseudo && pseudo.startsWith("Bee-")) {
+                console.log("this is the pseudo that we should delete , it Enters Here ------------->:  " + pseudo );
                 console.log("Déconnexion d'un invité,.");
                 localStorage.removeItem("userId");
                 localStorage.removeItem("userPseudo");
@@ -31,7 +32,6 @@ function ButtonConnexInscrForCreationHivePage() {
             console.log("Déconnexion d'un utilisateur normal,");
             localStorage.removeItem("userId");
             localStorage.removeItem("userPseudo");
-            localStorage.removeItem("token");
             localStorage.removeItem("token");
 
             if (socket.connected) {

@@ -39,6 +39,9 @@ const RoomSchema = new mongoose.Schema({
             type:  mongoose.Schema.Types.Mixed,
             ref: "User"
         },
+        userSocketId: {
+            type: String
+        },
         pseudo: {
             type: String,
             required: true
