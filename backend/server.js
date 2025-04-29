@@ -53,6 +53,12 @@ const io = new Server(server,{
 // Video sync state management
 const roomState = {};
 
+// Ajout d'une variable globale pour suivre l'état du partage d'écran par room
+const screenShareState = {};
+
+// Store playlists in memory (you might want to move this to a database in production)
+const roomPlaylists = new Map();
+
 io.on("connection", (socket) => {
 
     // Quand un utilisateur rejoint une Hive
@@ -60,6 +66,10 @@ io.on("connection", (socket) => {
         socket.join(roomId);
         io.to(roomId).emit("user_joined", user);
         console.log(`${user.pseudo} joined room ${roomId}`);
+         // Send existing video state if any
+         if (roomState[roomId]) {
+            socket.emit("syncVideo", roomState[roomId]);
+        }
     });
 
 
@@ -82,16 +92,7 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("clear");
     });
 
-    socket.on("joinRoom", ({ roomId, userName }) => {
-        socket.join(roomId);
-
-        // Send existing video state if any
-        if (roomState[roomId]) {
-            socket.emit("syncVideo", roomState[roomId]);
-        }
-
-       
-    });
+    
 
     // Nouvel événement pour demander l'état actuel de la vidéo
     socket.on("requestVideoState", ({ roomId }) => {
@@ -161,6 +162,7 @@ io.on("connection", (socket) => {
 
     // Handle screen share start
     socket.on("screen_share_started", ({ roomId }) => {
+        screenShareState[roomId] = socket.id;
         socket.to(roomId).emit("screen_share_update", {
             action: "started",
             userId: socket.id
@@ -169,7 +171,17 @@ io.on("connection", (socket) => {
 
     // Handle screen share stop
     socket.on("stop_screen_share", ({ roomId }) => {
+        delete screenShareState[roomId];
         socket.to(roomId).emit("screen_share_stopped");
+    });
+
+    // Synchronisation de l'état du partage d'écran
+    socket.on("request_screen_share_status", ({ roomId }) => {
+        const sharerId = screenShareState[roomId];
+        socket.emit("screen_share_status", {
+            isSharing: !!sharerId,
+            sharerId: sharerId || null
+        });
     });
 
     // Relayer la demande d'offre de partage d'écran
@@ -182,30 +194,38 @@ io.on("connection", (socket) => {
         io.to(payload.target).emit("screen_share_offer", payload);
     });
 
-    
-/*
-    socket.on("disconnect", () => {
-        console.log(" Client déconnecté:", socket.id);
-        for (const room in rooms) {
-            rooms[room] = rooms[room].filter(id => id !== socket.id);
-            if (rooms[room].length === 0) {
-                delete rooms[room];
-            }
+    // Handle adding a video to the playlist
+    socket.on('add_to_playlist', ({ roomId, videoId, url }) => {
+        if (!roomPlaylists.has(roomId)) {
+            roomPlaylists.set(roomId, []);
         }
-        for (const roomId in roomUsers) {
-            roomUsers[roomId] = roomUsers[roomId].filter(user => user.socketId !== socket.id);
+        
+        const playlist = roomPlaylists.get(roomId);
+        const videoExists = playlist.some(video => video.videoId === videoId);
+        
+        if (!videoExists) {
+            playlist.push({ videoId, url });
+            io.to(roomId).emit('playlist_updated', playlist);
         }
-        io.emit("user_disconnected", socket.id);
-    })
-    */
-
-    socket.on("disconnecting", () => {
-        const rooms = Array.from(socket.rooms).filter(r => r !== socket.id);
-        rooms.forEach(roomId => {
-            io.to(roomId).emit("user_left", socket.id);
-            console.log(`A user left room ${roomId}`);
-        });
     });
+
+    // Handle removing a video from the playlist
+    socket.on('remove_from_playlist', ({ roomId, videoId }) => {
+        if (roomPlaylists.has(roomId)) {
+            const playlist = roomPlaylists.get(roomId);
+            const updatedPlaylist = playlist.filter(video => video.videoId !== videoId);
+            roomPlaylists.set(roomId, updatedPlaylist);
+            io.to(roomId).emit('playlist_updated', updatedPlaylist);
+        }
+    });
+
+    // Handle getting the current playlist
+    socket.on('get_playlist', ({ roomId }) => {
+        const playlist = roomPlaylists.get(roomId) || [];
+        socket.emit('playlist_updated', playlist);
+    });
+
+    
 })
 
 // Route test
