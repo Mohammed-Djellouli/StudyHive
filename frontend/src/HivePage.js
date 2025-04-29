@@ -177,11 +177,11 @@ function HivePage() {
                     videoPlayerFeatures={videoPlayerFeatures}
                 />
 
-                {/* Whiteboard Placement
+                {/*
             <div className="fixed top-[100px] left-[200px] z-20">
                 <WhiteBoard />
-            </div>
-            */}
+            </div>*/}
+
 
                 <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
                     <BlocNote/>
