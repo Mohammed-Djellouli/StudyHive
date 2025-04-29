@@ -3,7 +3,7 @@ import YouTube from "react-youtube";
 import VideoList from "../hiveBody/videoPlayer/VideoList";
 import ScreenShareComponent from "../hiveBody/ScreenShare/ScreenShareComponent";
 import useReconnectionHandler from './ReconnectionHandler';
-import socket from '../../../components/socket';
+import socket from '../../socket';
 
 /**
  * Composant pour l'affichage du contenu vidéo

@@ -10,7 +10,7 @@ function generateHiveId(){
 const HandleHiveCreation = async (req, res) => {
     let guestPseudo;
     try {
-        const {userId, mode, socketId} = req.body;
+        const {userId, mode, socketId ,userPseudo  } = req.body;
         if (!mode) {
             return res.status(400).json({message: "Mode is required"});
         }
@@ -25,7 +25,7 @@ const HandleHiveCreation = async (req, res) => {
         };
 
         let newHive;
-        let ownerPseudo;
+
 
         // if user is connected to his account
         if (userId) {
@@ -38,8 +38,10 @@ const HandleHiveCreation = async (req, res) => {
                 timerEndsAt: new Date(Date.now() + 2 * 60 * 60 * 1000), //The limit time for the hive is two hours
                 isQueenBeeMode: isQueen,
                 idOwner: user._id,
+                ownerSocketId: socketId,
                 users: [{
                     userId: user._id,
+                    userSocketId: socketId,
                     pseudo: user.pseudo,
                     ...controlsDefault
                 }],
@@ -57,10 +59,19 @@ const HandleHiveCreation = async (req, res) => {
             await newHive.save();
 
             res.status(201).json({
-                message: "User Created Successfully",
-                room: newHive,
-                ownerPseudo: user?.pseudo || "Queen Bee", // fallback si pseudo non défini
+                message: "Hive Created Successfully",
+                room: {
+                    idRoom: newHive.idRoom,
+                    idOwner: newHive.idOwner,
+                    ownerPseudo: user?.pseudo || "Queen Bee",
+                    isQueenBeeMode: newHive.isQueenBeeMode,
+                    timerEndsAt: newHive.timerEndsAt,
+                    users: newHive.users,
+                    createdAt: newHive.createdAt,
+                    videos: newHive.videos,
+                }
             });
+
 
             return
 
@@ -102,10 +113,19 @@ const HandleHiveCreation = async (req, res) => {
         await newHive.save();
         console.log(`have created successfully name : ${guestPseudo} , id : ${socketId}`);
         res.status(201).json({
-            message: "User Created Successfully",
-            room: newHive,
-            ownerPseudo: guestPseudo,
+            message: "Hive Created Successfully",
+            room: {
+                idRoom: newHive.idRoom,
+                idOwner: newHive.ownerSocketId,
+                ownerPseudo: guestPseudo,
+                isQueenBeeMode: newHive.isQueenBeeMode,
+                timerEndsAt: newHive.timerEndsAt,
+                users: newHive.users,
+                createdAt: newHive.createdAt,
+                videos: newHive.videos,
+            }
         });
+
 
     } catch (err) {
         console.error(err);

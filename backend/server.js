@@ -27,6 +27,8 @@ app.use(cookieSession({
     maxAge: 24 * 60 * 60 * 1000,
     keys: ["studyhive_session_key"]
 }));
+const Hive = require("./models/Hive");
+const User = require("./models/User");
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -34,6 +36,7 @@ app.use(passport.session());
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const authGoogleRoutes = require("./routes/authGoogle");
+const Room = require("./models/hive");
 
 app.use("/api/auth", authRoutes);
 app.use("/auth", authGoogleRoutes);
@@ -52,6 +55,9 @@ const io = new Server(server,{
 
 // Video sync state management
 const roomState = {};
+const roomUsers= {};
+
+
 
 // Ajout d'une variable globale pour suivre l'état du partage d'écran par room
 const screenShareState = {};
@@ -59,18 +65,68 @@ const screenShareState = {};
 // Store playlists in memory (you might want to move this to a database in production)
 const roomPlaylists = new Map();
 
-io.on("connection", (socket) => {
 
+
+
+io.on("connection", (socket) => {
+    socket.data.hiveRoomId = null;
     // Quand un utilisateur rejoint une Hive
-    socket.on("join_hive_room", ({ roomId, user }) => {
+    socket.on("join_hive_room", async ({ roomId, userId }) => { 
         socket.join(roomId);
+
+        socket.data.hiveRoomId = roomId;
         io.to(roomId).emit("user_joined", user);
         console.log(`${user.pseudo} joined room ${roomId}`);
+
          // Send existing video state if any
          if (roomState[roomId]) {
             socket.emit("syncVideo", roomState[roomId]);
         }
+
+
+        socket.userId = userId;
+
+        // Ajouter dans roomUsers
+        if (!roomUsers[roomId]) roomUsers[roomId] = [];
+
+        const alreadyInRoom = roomUsers[roomId].some(u => u.userId === userId);
+        if (!alreadyInRoom) {
+            roomUsers[roomId].push({
+                socketId: socket.id,
+                userId
+            });
+        }
+
+        try {
+            const hive = await Hive.findOne({ idRoom: roomId });
+
+            if (!hive) {
+                console.error(`Hive ${roomId} not found`);
+                return;
+            }
+
+            const user = hive.users.find(u =>
+                (u.userId && u.userId.toString() === userId) ||
+                (u.socketId && u.socketId === userId)
+            );
+
+            if (!user) {
+                console.error(`User ${userId} not found in Hive ${roomId}`);
+                return;
+            }
+           if (roomState[roomId]) {
+            socket.emit("syncVideo", roomState[roomId]);
+            }
+
+            io.to(roomId).emit("user_joined", user);
+            console.log(`${user.pseudo} (correct user) joined room ${roomId}`);
+        } catch (error) {
+            console.error("Erreur serveur join_hive_room:", error);
+        }
+
+
     });
+
 
 
 
@@ -92,7 +148,7 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("clear");
     });
 
-    
+
 
     // Nouvel événement pour demander l'état actuel de la vidéo
     socket.on("requestVideoState", ({ roomId }) => {
@@ -126,6 +182,7 @@ io.on("connection", (socket) => {
     //when user enteres the hive (vocal)
     socket.on("join_voice", (roomId) => {
         socket.join(roomId);
+        socket.data.hiveRoomId = roomId;
         console.log(`${socket.id} joined ${roomId}`);
         const otherUsers = Array.from(io.sockets.adapter.rooms.get(roomId) || []).filter(id => id !== socket.id);
         socket.emit("all_users", otherUsers);// sending the list of users already connected in the hive
@@ -159,6 +216,39 @@ io.on("connection", (socket) => {
             id: socket.id,
         });
     });
+
+
+    socket.on("update_mic_permission", async ({ targetUserPseudo, allowMic }) => {
+        console.log(`Received update_mic_permission from socket ${socket.id} for ${targetUserPseudo}: ${allowMic}`);
+        const roomId = socket.data.hiveRoomId;
+        console.log("room id saved in socket is : ",socket.data.hiveRoomId);
+        console.log("room id saved is : ", roomId);
+        if (!roomId) return;
+
+        try {
+            const room = await Room.findOne({ idRoom: roomId });
+            console.log("room id is : ",room);
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.micControl = allowMic;
+                await room.save();
+
+                //send update to users
+                io.to(roomId.toString()).emit("mic_permission_updated", {
+                    userId: user.userId,
+                    micControl: allowMic
+                });
+            }
+            console.log(`Emitting mic_permission_updated for user ${user.userId} with micControl: ${allowMic}`);
+
+        } catch (err) {
+            console.error("Failed to update mic permission:", err);
+        }
+    });
+
+    
 
     // Handle screen share start
     socket.on("screen_share_started", ({ roomId }) => {
@@ -194,6 +284,7 @@ io.on("connection", (socket) => {
         io.to(payload.target).emit("screen_share_offer", payload);
     });
 
+
     // Handle adding a video to the playlist
     socket.on('add_to_playlist', ({ roomId, videoId, url }) => {
         if (!roomPlaylists.has(roomId)) {
@@ -226,6 +317,76 @@ io.on("connection", (socket) => {
     });
 
     
+
+   
+
+    socket.on("leave_room", async ({ roomId, userId }) => {
+        try {
+            const hive = await Hive.findOne({ idRoom: roomId });
+
+            if (hive) {
+                const userIndex = hive.users.findIndex(u =>
+                    u.userId?.toString() === userId?.toString() || u.userSocketId === userId
+                );
+
+                if (userIndex !== -1) {
+                    const user = hive.users[userIndex];
+                    const idToEmit = user.userId?.toString() || user.userSocketId;
+
+                    hive.users.splice(userIndex, 1); // Retirer de la Hive
+                    await hive.save();
+
+                    io.to(roomId).emit("update_users_list", hive.users);
+                    io.to(roomId).emit("user_left", idToEmit);
+                    console.log(` Utilisateur quitté manuellement : ${idToEmit}`);
+                } else {
+                    console.log(" User pas trouvé dans Hive lors du leave");
+                }
+
+            }
+        } catch (error) {
+            console.error("Erreur leave_room:", error);
+        }
+    });
+
+
+
+    socket.on("disconnecting", async () => {
+        const joinedRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
+        const userId = socket.userId;
+
+
+        for (const roomId of joinedRooms) {
+            const hive = await Hive.findOne({ idRoom: roomId });
+            if (!hive || !userId) return;
+
+            setTimeout(async () => {
+                const stillPresent = roomUsers[roomId]?.some(u => u.userId === userId);
+                if (stillPresent) {
+                    console.log(` ${userId} est revenu, pas supprimé.`);
+                    return;
+                }
+
+                const refreshedHive = await Hive.findOne({ idRoom: roomId });
+                if (!refreshedHive) return;
+
+                const index = refreshedHive.users.findIndex(u =>
+                    u.userId?.toString() === userId.toString()
+                );
+
+                if (index !== -1) {
+                    refreshedHive.users.splice(index, 1);
+                    await refreshedHive.save();
+                    io.to(roomId).emit("update_users_list", refreshedHive.users);
+                    io.to(roomId).emit("user_left", userId);
+                    console.log(` Utilisateur supprimé après déco réelle : ${userId}`);
+                }
+            }, 3000);
+
+        }
+    });
+
+
 })
 
 // Route test

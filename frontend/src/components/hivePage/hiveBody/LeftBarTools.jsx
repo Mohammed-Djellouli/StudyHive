@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import VoiceChat from "../../Communication/MicChat/VoiceChat";
 
-function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing, isScreenShareWindowOpen, onToggleScreenShareWindow }){
+
+function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing,users,currentUserId,toggleBRB,brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow }){
+
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
     const toggleMic = () => setMicOn(prev => !prev);
@@ -38,7 +40,7 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
             </button>
 
             {/* Toggle Mic */}
-            <VoiceChat/>
+            <VoiceChat users={users} currentUserId={currentUserId}/>
 
             {/* Toggle Raise Hand */}
             <button onClick={toggleHand} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
@@ -51,7 +53,8 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
 
             {/* BRB */}
             <div className="bg-black/60 rounded-full w-[40px] h-[40px] text-white text-sm font-bold flex items-center justify-center">
-                <button>BRB</button>
+                <button onClick={toggleBRB}
+                >{brbMode ? "Back" : "BRB"}</button>
             </div>
         </div>
     );

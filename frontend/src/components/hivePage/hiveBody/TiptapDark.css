@@ -1,0 +1,38 @@
+/* TiptapDark.css */
+
+.tiptap {
+    background-color: #1e1f21;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    min-height: 200px;
+    outline: none;
+}
+
+.tiptap ul {
+    list-style: disc;
+    padding-left: 1.5em;
+}
+
+.tiptap strong {
+    font-weight: bold;
+}
+
+.tiptap em {
+    font-style: italic;
+}
+.ProseMirror {
+    background: transparent;
+    color: white;
+    outline: none;
+    min-height: 200px;
+    padding: 0;
+}
+
+.ProseMirror p {
+    margin: 0;
+}
+
+.ProseMirror ul {
+    padding-left: 1.2rem;
+}

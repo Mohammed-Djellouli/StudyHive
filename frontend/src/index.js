@@ -6,7 +6,7 @@ import App from "./App";
 import reportWebVitals from './reportWebVitals';
 import LoginPage from "./components/auth/login/LoginPage";
 import RegisterPage from "./components/auth/register/RegisterPage";
-import GoogleAuthSuccess from "./components/auth/GoogleAuthSuccess"; // <<< ajoute ça
+import GoogleAuthSuccess from "./components/auth/GoogleAuthSuccess";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import JoinHive from "./components/hivePage/hiveHandle/JoinHive";
