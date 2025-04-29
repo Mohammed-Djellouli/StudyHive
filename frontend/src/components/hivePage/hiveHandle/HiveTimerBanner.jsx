@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import socket from "./../../../socket";
+import socket from "../../socket";
 function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo }) {
     const [timeLeft, setTimeLeft] = useState(null);
     const [showModal, setShowModal] = useState(false);

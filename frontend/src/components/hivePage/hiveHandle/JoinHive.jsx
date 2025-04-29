@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import socket from "../../../socket";
+import socket from "../../socket";
 
 function JoinHive() {
     const { idRoom } = useParams();

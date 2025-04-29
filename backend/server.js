@@ -54,6 +54,7 @@ const io = new Server(server,{
 
 // Video sync state management
 const roomState = {};
+const roomUsers= {};
 
 io.on("connection", (socket) => {
 
@@ -243,12 +244,6 @@ io.on("connection", (socket) => {
     });
 
 
-    socket.on("disconnect", () => {
-        for (const roomId in roomUsers) {
-            roomUsers[roomId] = roomUsers[roomId].filter(u => u.socketId !== socket.id);
-        }
-    });
-
 
     socket.on("disconnecting", async () => {
         const joinedRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
@@ -278,7 +273,7 @@ io.on("connection", (socket) => {
                     await refreshedHive.save();
                     io.to(roomId).emit("update_users_list", refreshedHive.users);
                     io.to(roomId).emit("user_left", userId);
-                    console.log(`🧹 Utilisateur supprimé après déco réelle : ${userId}`);
+                    console.log(` Utilisateur supprimé après déco réelle : ${userId}`);
                 }
             }, 3000);
 

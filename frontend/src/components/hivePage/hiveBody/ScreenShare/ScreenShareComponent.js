@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react';
-import socket from '../../../../components/socket';
+import socket from '../../../socket';
 
 const ScreenShareComponent = ({ videoRef, isSharing, remoteStream, onStopSharing }) => {
     const [retryCount, setRetryCount] = useState(0);

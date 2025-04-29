@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import socket from '../socket';
+import socket from '../components/socket';
 
 const peerConfig = {
     trickle: false,
