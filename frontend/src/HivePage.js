@@ -208,6 +208,7 @@ function HivePage() {
 
 
 
+
                 <WhiteBoard isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen} />
 
 
