@@ -11,14 +11,10 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     const [roomId] = useState(idRoom);
     const [muted, setMuted] = useState(false);
     const [micOn, setMicOn] = useState(true);
-    const [micAllowed, setMicAllowed] = useState(true);
-    const [usersState,setUsers] = useState(users);
-
-
+    const currentUser = users.find(u => u.userId === currentUserId || u._id === currentUserId) || null;
+    const micAllowed = currentUser ? currentUser.micControl:false;
     //stun to help peer find the best route to connect
     //turn used when stun fails (fairewalls problems...)
-
-    console.log("current user id is : ",currentUserId)
     const peerConfig ={
         trickle: false,
         config:{
@@ -41,61 +37,20 @@ const VoiceChat = ({users = [],currentUserId}) =>{
             if (audioStream){
                 console.log("Micro activé");
                 setStream(audioStream);
-                setMuted(false);
             }
         }
         initStream();
     }, []);
 
     useEffect(() => {
-        if (!usersState || usersState.length === 0 || !currentUserId) return;
-
-        const currentUser = usersState.find(user => user.userId === currentUserId || user._id === currentUserId);
-        if (currentUser) {
-            setMicAllowed(currentUser.micControl);
-        }
-    }, [usersState, currentUserId]);
-
-
-    useEffect(()=>{
-        if(!stream){
-            return;
-        }
-        stream.getAudioTracks().forEach((track)=>{
-            track.enabled = micAllowed && micOn;
-        })
-    },[micOn,micAllowed,stream]);
-
-
-    useEffect(() => {
-        const handleMicPermissionUpdated = ({ userId, micControl }) => {
-            console.log("Received mic_permission_updated:", { userId, micControl });
-            if (userId === currentUserId) {
-                setMicAllowed(micControl);
-                console.log("Updated micAllowed to:", micControl);
-
-                if (stream) {
-                    stream.getAudioTracks().forEach(track => {
-                        track.enabled = micControl;
-                    });
-                }
-            }
-
-            setUsers(prevUsers => prevUsers.map(user => user.userId === userId || user._id === userId ? {
-                ...user,
-                micControl,
-            }:user));
-        };
-
-        socket.on("mic_permission_updated", handleMicPermissionUpdated);
-
-        return () => {
-            socket.off("mic_permission_updated", handleMicPermissionUpdated);
-        };
-    }, [currentUserId, stream]);
-
-
-
+        if (!stream) return;
+        if(!currentUser) return;
+        stream.getAudioTracks().forEach(track => {
+            track.enabled = currentUser.micControl;
+        });
+        setMuted(!currentUser.micControl);
+        setMicOn(!currentUser.micControl);
+    }, [currentUser, stream]);
 
     //handle all events and peer creation
     useEffect(()=>{
@@ -226,27 +181,6 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     }, [stream, roomId]);
 
 
-    useEffect(()=>{
-        const handleBRB = (event)=>{
-            const {brb} = event.detail;
-            console.log("BRB MODE : ",brb);
-            if(stream){
-                stream.getAudioTracks().forEach((track)=>{
-                    track.enabled = !brb;
-                });
-            }
-            document.querySelectorAll('audio').forEach((audio)=>{
-                audio.muted = brb;
-            });
-            setMicOn(!brb)
-        }
-        window.addEventListener("toggle-brb",handleBRB);
-        return()=>{
-            window.removeEventListener("toggle-brb", handleBRB);
-        }
-    },[stream])
-
-
     //play audio stream that is coming
     const playAudio = (stream) => {
         const audio = new Audio();
@@ -256,21 +190,20 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         audio.controls = false;
         audio.setAttribute("playsinline", "true");
         document.body.appendChild(audio);
-        //audiosRef.current.push(audio); //here i'm saving the audio in a list (for the Bee Right back mode)
     };
 
-    const handleToggleMic =()=>{
-        if(!stream || !micAllowed){
-            return;
-        }
-        setMicOn(prev=>!prev);
-    }
-    console.log("Button rendering: micAllowed =", micAllowed);
-    return (
+    const toggleMute = () =>{
+        if (!stream) return;
+        stream.getAudioTracks().forEach(track => {
+            track.enabled = !track.enabled;
+        });
+        setMuted(prev => !prev);
+    };
 
-        <button onClick={handleToggleMic}
-                disabled={!micAllowed}
-                className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
+    const toggleMic = () => setMicOn(prev => !prev);
+
+    return (
+        <button onClick={()=>{toggleMic();toggleMute()}} className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
             <img
                 src={micOn ? "/assets/open-microphone.png" : "/assets/mute-microphone.png"}
                 alt="Mic"

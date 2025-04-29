@@ -4,13 +4,13 @@ import socket from "../../socket";
 function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo }) {
     const [timeLeft, setTimeLeft] = useState(null);
     const [showModal, setShowModal] = useState(false);
+
+
     const navigate = useNavigate();
 
     const currentId2 = localStorage.getItem("userId");
 
     // Charger socket dynamiquement
-
-
     useEffect(() => {
         const interval = setInterval(() => {
             const now = new Date().getTime();

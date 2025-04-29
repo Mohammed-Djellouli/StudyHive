@@ -24,6 +24,7 @@ import HiveDataLoader from "./components/hivePage/hiveHandle/HiveDataLoader";
 import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
 
 import "./App.css";
+import socket from "./components/socket";
 
 // Composant principal HivePage
 function HivePage() {
@@ -35,10 +36,19 @@ function HivePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
+
+    const [brbMode,setBrbMode] = useState(false);
+    const toggleBrb=()=>{
+        setBrbMode(prev =>!prev);
+        const event = new CustomEvent("toggle-brb",{detail:{brb:!brbMode}});
+        window.dispatchEvent(event);
+    }
+
     const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(true);
 
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
+
 
     // Utilisation des hooks personnalisés
     const webRTCFeatures = useWebRTC(idRoom);
@@ -199,8 +209,13 @@ function HivePage() {
                         onStartSharing={webRTCFeatures.startSharing}
                         isInitiator={webRTCFeatures.isInitiator}
                         isSharing={webRTCFeatures.isSharing}
+                        users={users}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        toggleBRB={toggleBrb}
+                        brbMode={brbMode}
                         isScreenShareWindowOpen={isScreenShareWindowOpen}
                         onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
+
                     />
                 </div>
 

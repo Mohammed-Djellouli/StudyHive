@@ -12,6 +12,24 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: in
 
 
 
+    useEffect(() => {
+        const userId = localStorage.getItem("userId")||socket.id;
+        const userPseudo = localStorage.getItem("userPseudo");
+
+        if (userId && userPseudo) {
+            console.log(" LeftBar emit join_hive_room");
+            socket.emit("join_hive_room", {
+                roomId: window.location.pathname.split("/").pop(), // récupère idRoom depuis l'URL
+                user: {
+                    userId,
+                    pseudo: userPseudo,
+                    _id: userId,
+                    socketId: socket.id
+                }
+            });
+        }
+    }, []);
+
 
 
     useEffect(() => {
@@ -109,14 +127,19 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: in
                 {users
                     .filter((user) => user.userId !== ownerId) // Pour ne pas afficher l'owner deux fois
                     .map((user) => (
+
+                        
+
                         <MemberInHive
                             key={user._id || user.userId}
                             pseudo={user.pseudo}
+                            micControl={user.micControl}
                             isOwner={user.userId === ownerId}
                             isQueenBeeMode={isQueenBeeMode}
                             currentUserId={localStorage.getItem("userId")} //
                             ownerId={ownerId}
                         />
+
                     ))}
 
 
