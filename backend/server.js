@@ -75,8 +75,7 @@ io.on("connection", (socket) => {
         socket.join(roomId);
 
         socket.data.hiveRoomId = roomId;
-        io.to(roomId).emit("user_joined", user);
-        console.log(`${user.pseudo} joined room ${roomId}`);
+
 
          // Send existing video state if any
          if (roomState[roomId]) {
