@@ -35,6 +35,13 @@ function HivePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [ownerId, setOwnerId] = useState(null);
     const [users, setUsers] = useState([]);
+    const [brbMode,setBrbMode] = useState(false);
+    const toggleBrb=()=>{
+        setBrbMode(prev =>!prev);
+        const event = new CustomEvent("toggle-brb",{detail:{brb:!brbMode}});
+        window.dispatchEvent(event);
+    }
+
     // Utilisation des hooks personnalisés
     const webRTCFeatures = useWebRTC(idRoom);
     const videoPlayerFeatures = useVideoPlayer(idRoom);
@@ -110,6 +117,8 @@ function HivePage() {
                         isSharing={webRTCFeatures.isSharing}
                         users={users}
                         currentUserId={localStorage.getItem("userId") || socket.id}
+                        toggleBRB={toggleBrb}
+                        brbMode={brbMode}
                     />
                 </div>
 

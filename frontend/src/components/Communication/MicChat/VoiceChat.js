@@ -226,6 +226,27 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     }, [stream, roomId]);
 
 
+    useEffect(()=>{
+        const handleBRB = (event)=>{
+            const {brb} = event.detail;
+            console.log("BRB MODE : ",brb);
+            if(stream){
+                stream.getAudioTracks().forEach((track)=>{
+                    track.enabled = !brb;
+                });
+            }
+            document.querySelectorAll('audio').forEach((audio)=>{
+                audio.muted = brb;
+            });
+            setMicOn(!brb)
+        }
+        window.addEventListener("toggle-brb",handleBRB);
+        return()=>{
+            window.removeEventListener("toggle-brb", handleBRB);
+        }
+    },[stream])
+
+
     //play audio stream that is coming
     const playAudio = (stream) => {
         const audio = new Audio();
@@ -235,6 +256,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         audio.controls = false;
         audio.setAttribute("playsinline", "true");
         document.body.appendChild(audio);
+        //audiosRef.current.push(audio); //here i'm saving the audio in a list (for the Bee Right back mode)
     };
 
     const handleToggleMic =()=>{
