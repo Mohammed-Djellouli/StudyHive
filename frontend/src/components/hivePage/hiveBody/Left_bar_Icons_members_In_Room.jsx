@@ -138,6 +138,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: in
                             isQueenBeeMode={isQueenBeeMode}
                             currentUserId={localStorage.getItem("userId")} //
                             ownerId={ownerId}
+                            userId={user.userId}
                         />
 
                     ))}

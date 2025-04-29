@@ -389,6 +389,9 @@ io.on("connection", (socket) => {
 
         }
     });
+    socket.on("user_speaking", ({roomId,userId,speaking}) => {
+        io.to(roomId).emit("user_speaking_status", {userId,speaking});
+    });
 
 
 })
