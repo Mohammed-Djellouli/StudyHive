@@ -62,6 +62,8 @@ function HivePage() {
     const webRTCFeatures = useWebRTC(idRoom);
     const videoPlayerFeatures = useVideoPlayer(idRoom);
 
+    const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
+
     useEffect(() => {
         fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`)
             .then(res => res.json())
@@ -77,6 +79,7 @@ function HivePage() {
                 setIsLoading(false);
             });
     }, [idRoom, location.state]);
+
 
 
     useEffect(() => {
@@ -204,14 +207,12 @@ function HivePage() {
 
 
 
-                    <div className="fixed top-[100px] left-[200px] z-20">
-                        <WhiteBoard />
-                    </div>
-                <div
-                    id="test-user-ring"
-                    className="fixed top-10 left-10 w-20 h-20 bg-gray-800 rounded-full ring-4 ring-transparent transition-all"
-                >
-                </div>
+
+
+                <WhiteBoard isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen} />
+
+
+
 
 
                 <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
@@ -232,7 +233,8 @@ function HivePage() {
                         brbMode={brbMode}
                         isScreenShareWindowOpen={isScreenShareWindowOpen}
                         onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
-
+                        onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
+                        isWhiteboardOpen={isWhiteboardOpen}
                     />
                 </div>
 

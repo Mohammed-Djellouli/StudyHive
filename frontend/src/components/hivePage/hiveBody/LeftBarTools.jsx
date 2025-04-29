@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import VoiceChat from "../../Communication/MicChat/VoiceChat";
 
 
-function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing,users,currentUserId,toggleBRB,brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow }){
+function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing,users,currentUserId,toggleBRB,brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, onToggleWhiteboard,isWhiteboardOpen  }){
 
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
@@ -47,6 +47,19 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
                 <img
                     src={handRaised ? "/assets/RisedHand-icon-after.png" : "/assets/RiseHand-icon-before.png"}
                     alt="Raise Hand"
+                    className="w-[24px] h-[24px]"
+                />
+            </button>
+
+            {/* Toggle WhiteBoard */}
+            <button
+                onClick={onToggleWhiteboard}
+                className="bg-black/60 p-2 rounded-full hover:scale-105 transition hover:bg-yellow-400/20"
+                title={isWhiteboardOpen ? "Cacher le tableau blanc" : "Afficher le tableau blanc"}
+            >
+                <img
+                    src={isWhiteboardOpen ? "/assets/UnshowBoard.png" : "/assets/ShowBoard.png"}
+                    alt="WhiteBoard"
                     className="w-[24px] h-[24px]"
                 />
             </button>
