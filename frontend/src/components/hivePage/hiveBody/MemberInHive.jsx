@@ -1,23 +1,34 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
+import socket from "../../socket";
+
 
 function MemberInHive({
                           pseudo,
+                          micControl,
                           isOwner = false,
                           isQueenBeeMode = false,
                           currentUserId,
                           ownerId
                       }) {
+
     const [showModal, setShowModal] = useState(false);
 
     const [isMuted, setIsMuted] = useState(false);
     const [isSharingAllowed, setIsSharingAllowed] = useState(true);
     const [isVideoAllowed, setIsVideoAllowed] = useState(true);
 
+
+    useEffect(() => {
+        setIsMuted(!micControl)
+    }, [micControl]);
+
+
     const handleClick = () => {
         if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
             setShowModal(prev => !prev);
         }
     }
+
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer">
             <img
@@ -50,14 +61,31 @@ function MemberInHive({
                         {isMuted ? (
                             <button
                                 className="bg-black text-xs px-2 py-1 rounded w-[80px] "
-                                onClick={() => setIsMuted(false)}
+                                onClick={() => {
+                                    setIsMuted(false);
+                                    console.log("Socket connected?", socket.connected);
+
+                                    console.log("Sending update mic permission for", pseudo, "allowMic:", true);
+                                    socket.emit("update_mic_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowMic: true
+                                    })
+                                    }
+                                }
                             >
                                 Unmute
                             </button>
                         ) : (
                             <button
                                 className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
-                                onClick={() => setIsMuted(true)}
+                                onClick={() => {
+                                    setIsMuted(true);
+                                    socket.emit("update_mic_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowMic: false
+                                    })
+                                }
+                            }
                             >
                                 Mute
                             </button>
