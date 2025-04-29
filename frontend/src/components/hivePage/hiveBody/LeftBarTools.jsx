@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import VoiceChat from "../../Communication/MicChat/VoiceChat";
 
-function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing }){
+function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing, isScreenShareWindowOpen, onToggleScreenShareWindow }){
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
     const toggleMic = () => setMicOn(prev => !prev);
     const toggleHand = () => setHandRaised(prev => !prev);
-
 
     return (
         <div className="fixed top-[60px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
@@ -20,6 +19,19 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
                     <img src="/assets/share-screen.png" alt="Share Screen" className="w-[24px] h-[24px]" />
                 </button>
             )}
+
+            {/* Toggle Screen Share Window */}
+            <button
+                onClick={onToggleScreenShareWindow}
+                className={`bg-black/60 p-2 rounded-full hover:scale-105 transition ${isScreenShareWindowOpen ? 'bg-yellow-400/20' : ''}`}
+                title={isScreenShareWindowOpen ? 'Cacher la fenêtre de partage' : 'Afficher la fenêtre de partage'}
+            >
+                <img
+                    src={isScreenShareWindowOpen ? "/assets/close-window.png" : "/assets/open-window.png"}
+                    alt={isScreenShareWindowOpen ? "Fermer la fenêtre de partage" : "Ouvrir la fenêtre de partage"}
+                    className="w-[24px] h-[24px]"
+                />
+            </button>
 
             {/* Toggle Mic */}
             <VoiceChat/>
@@ -37,9 +49,6 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
             <div className="bg-black/60 rounded-full w-[40px] h-[40px] text-white text-sm font-bold flex items-center justify-center">
                 <button >BRB</button>
             </div>
-
-
-
         </div>
     );
 }

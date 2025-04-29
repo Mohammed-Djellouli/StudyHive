@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import MemberInHive from "./MemberInHive";
-import socket  from "../../../socket";
+import socket  from "../../socket";
 function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: initialUsers,ownerId  }) {
 
     const [users, setUsers] = useState(initialUsers);

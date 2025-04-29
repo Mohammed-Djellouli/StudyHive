@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import socket from '../socket';
+import socket from '../components/socket';
 
 const peerConfig = {
     trickle: false,
@@ -181,7 +181,7 @@ const useWebRTC = (roomId) => {
         };
 
         peer.ontrack = (e) => {
-            console.log("🎥 Flux reçu de:", userID);
+            console.log(" Flux reçu de:", userID);
             if (e.streams && e.streams[0]) {
                 console.log("Mise à jour du flux distant");
                 
@@ -453,6 +453,9 @@ const useWebRTC = (roomId) => {
         try {
             setIsSharing(true);
 
+            // Notify all users that screen sharing has started
+            socket.emit("screen_share_started", { roomId });
+
             await new Promise(resolve => setTimeout(resolve, 100));
 
             // Optimized media constraints based on browser
@@ -641,21 +644,22 @@ const useWebRTC = (roomId) => {
                 track.stop();
             });
             screenStream.current = null;
-            
-            // Notify all users in the room that video sharing has stopped
-            // This will trigger a page refresh for all users to reset their WebRTC state
-            socket.emit("video_sharing_stopped", { roomId });
 
-        Object.keys(peerConnections.current).forEach(userID => {
-            if (senders.current[userID]) {
-                senders.current[userID].forEach(sender => {
-                    peerConnections.current[userID].removeTrack(sender);
-                });
-                delete senders.current[userID];
-            }
-        });
+            Object.keys(peerConnections.current).forEach(userID => {
+                if (senders.current[userID]) {
+                    senders.current[userID].forEach(sender => {
+                        peerConnections.current[userID].removeTrack(sender);
+                    });
+                    delete senders.current[userID];
+                }
+            });
+
+            // Émettre l'événement d'arrêt du partage d'écran
+            socket.emit("stop_screen_share", { roomId });
         }
         
+        setIsSharing(false);
+        setRemoteStream(null);
         updateDebugInfo({sharing: false});
     };
 
@@ -826,10 +830,23 @@ const useWebRTC = (roomId) => {
             }
         });
 
-        // Listen for the refresh signal when video sharing stops
-        socket.on("refresh_page", () => {
-            console.log("Received page refresh signal, reloading page...");
-            window.location.reload();
+        // Remplacer l'événement refresh_page par reset_screen_share
+        socket.on("reset_screen_share", () => {
+            setIsSharing(false);
+            setRemoteStream(null);
+            if (screenStream.current) {
+                screenStream.current.getTracks().forEach((track) => {
+                    track.stop();
+                });
+                screenStream.current = null;
+            }
+        });
+
+        socket.on("screen_share_update", (data) => {
+            if (data.action === "started" && data.userId && data.userId !== socket.id) {
+                // Demander une nouvelle offre à l'utilisateur qui partage
+                socket.emit("request_screen_share_offer", { target: data.userId });
+            }
         });
 
         return () => {
@@ -844,7 +861,8 @@ const useWebRTC = (roomId) => {
             socket.off("answer");
             socket.off("ice-candidate");
             socket.off("user_disconnected");
-            socket.off("refresh_page");
+            socket.off("reset_screen_share");
+            socket.off("screen_share_update");
 
             Object.keys(peerConnections.current).forEach(userId => {
                 if (peerConnections.current[userId]) {
@@ -855,6 +873,34 @@ const useWebRTC = (roomId) => {
             senders.current = {};
         };
     }, [roomId, isSharing]);
+
+    // Ajoute un écouteur pour recevoir une nouvelle offre de partage d'écran
+    useEffect(() => {
+        socket.on("screen_share_offer", (payload) => {
+            handleReceiveOffer(payload);
+        });
+        return () => {
+            socket.off("screen_share_offer");
+        };
+    }, []);
+
+    // Ajoute un écouteur pour répondre à une demande d'offre de partage d'écran
+    useEffect(() => {
+        socket.on("request_screen_share_offer", async ({ requester }) => {
+            // Crée une nouvelle offre et l'envoie au demandeur
+            const peer = peerConnections.current[requester] || createPeer(requester);
+            await createAndSendOffer(peer, requester);
+            // Relaye l'offre via l'événement dédié
+            socket.emit("screen_share_offer", {
+                target: requester,
+                caller: socket.id,
+                sdp: peer.localDescription,
+            });
+        });
+        return () => {
+            socket.off("request_screen_share_offer");
+        };
+    }, []);
 
     return {
         isSharing,

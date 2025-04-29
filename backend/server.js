@@ -54,13 +54,12 @@ const io = new Server(server,{
 
 // Video sync state management
 const roomState = {};
-const roomUsers = {};
-const rooms = {}; // For WebRTC connections
+const roomUsers= {};
 
 io.on("connection", (socket) => {
 
     // Quand un utilisateur rejoint une Hive
-    socket.on("join_hive_room", async ({ roomId, userId }) => {
+    socket.on("join_hive_room", async ({ roomId, userId }) => { 
         socket.join(roomId);
         socket.userId = userId;
 
@@ -91,6 +90,9 @@ io.on("connection", (socket) => {
             if (!user) {
                 console.error(`User ${userId} not found in Hive ${roomId}`);
                 return;
+            }
+           if (roomState[roomId]) {
+            socket.emit("syncVideo", roomState[roomId]);
             }
 
             io.to(roomId).emit("user_joined", user);
@@ -188,6 +190,31 @@ io.on("connection", (socket) => {
         });
     });
 
+    // Handle screen share start
+    socket.on("screen_share_started", ({ roomId }) => {
+        socket.to(roomId).emit("screen_share_update", {
+            action: "started",
+            userId: socket.id
+        });
+    });
+
+    // Handle screen share stop
+    socket.on("stop_screen_share", ({ roomId }) => {
+        socket.to(roomId).emit("screen_share_stopped");
+    });
+
+    // Relayer la demande d'offre de partage d'écran
+    socket.on("request_screen_share_offer", ({ target }) => {
+        io.to(target).emit("request_screen_share_offer", { requester: socket.id });
+    });
+
+    // Relayer l'offre de partage d'écran
+    socket.on("screen_share_offer", (payload) => {
+        io.to(payload.target).emit("screen_share_offer", payload);
+    });
+
+   
+
     socket.on("leave_room", async ({ roomId, userId }) => {
         try {
             const hive = await Hive.findOne({ idRoom: roomId });
@@ -218,17 +245,6 @@ io.on("connection", (socket) => {
 
 
 
-
-
-
-
-    socket.on("disconnect", () => {
-        for (const roomId in roomUsers) {
-            roomUsers[roomId] = roomUsers[roomId].filter(u => u.socketId !== socket.id);
-        }
-    });
-
-
     socket.on("disconnecting", async () => {
         const joinedRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
         const userId = socket.userId;
@@ -241,7 +257,7 @@ io.on("connection", (socket) => {
             setTimeout(async () => {
                 const stillPresent = roomUsers[roomId]?.some(u => u.userId === userId);
                 if (stillPresent) {
-                    console.log(`🔄 ${userId} est revenu, pas supprimé.`);
+                    console.log(` ${userId} est revenu, pas supprimé.`);
                     return;
                 }
 
@@ -257,17 +273,12 @@ io.on("connection", (socket) => {
                     await refreshedHive.save();
                     io.to(roomId).emit("update_users_list", refreshedHive.users);
                     io.to(roomId).emit("user_left", userId);
-                    console.log(`🧹 Utilisateur supprimé après déco réelle : ${userId}`);
+                    console.log(` Utilisateur supprimé après déco réelle : ${userId}`);
                 }
             }, 3000);
 
         }
     });
-
-
-
-
-
 
 })
 
