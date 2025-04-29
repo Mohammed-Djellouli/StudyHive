@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {useParams} from "react-router-dom";
 import Peer from "simple-peer/simplepeer.min.js";
-import socket from "../../socket";
+import socket from "../../../socket";
 import getAudioStream from "./getAudio";
 
 const VoiceChat = () =>{

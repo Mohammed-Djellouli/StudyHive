@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import socket from "../../socket";
+import socket from "../../../socket";
 
 function JoinHive() {
     const { idRoom } = useParams();
@@ -15,8 +15,9 @@ function JoinHive() {
 
             if (!userId || !userPseudo) {
                 console.log("No user found, creating guest...");
-                userId = socket.id;
-                userPseudo = `Bee-${Math.floor(1000 + Math.random() * 9000)}`;
+                let generatedNumber = Math.floor(1000 + Math.random() * 9000)
+                userId = `${socket.id}-${generatedNumber}`;
+                userPseudo = `Bee-${generatedNumber}`;
                 localStorage.setItem("userId", userId);
                 localStorage.setItem("userPseudo", userPseudo);
             }

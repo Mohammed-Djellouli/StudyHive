@@ -62,6 +62,18 @@ io.on("connection", (socket) => {
     // Quand un utilisateur rejoint une Hive
     socket.on("join_hive_room", async ({ roomId, userId }) => {
         socket.join(roomId);
+        socket.userId = userId;
+
+        // Ajouter dans roomUsers
+        if (!roomUsers[roomId]) roomUsers[roomId] = [];
+
+        const alreadyInRoom = roomUsers[roomId].some(u => u.userId === userId);
+        if (!alreadyInRoom) {
+            roomUsers[roomId].push({
+                socketId: socket.id,
+                userId
+            });
+        }
 
         try {
             const hive = await Hive.findOne({ idRoom: roomId });
@@ -90,6 +102,7 @@ io.on("connection", (socket) => {
 
 
 
+
     socket.on("send_message", ({roomId,message}) => {
         if(roomId && message){
             io.to(roomId).emit("receive_message",message);
@@ -108,34 +121,6 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("clear");
     });
 
-    socket.on("joinRoom", ({ roomId, userName }) => {
-        socket.join(roomId);
-
-        if (!roomUsers[roomId]) roomUsers[roomId] = [];
-        roomUsers[roomId].push({
-            socketId: socket.id,
-            userName: userName || "Anonyme"
-        });
-
-        if (!rooms[roomId]) {
-            rooms[roomId] = [];
-        }
-        rooms[roomId].push(socket.id);
-
-        const otherUsers = rooms[roomId].filter(id => id !== socket.id);
-        socket.emit("all users", otherUsers);
-
-        otherUsers.forEach(id => {
-            socket.to(id).emit("user joined", socket.id);
-        });
-
-        if (roomState[roomId]) {
-            socket.emit("syncVideo", roomState[roomId]);
-        }
-
-        io.to(roomId).emit("updateUserList", roomUsers[roomId]);
-        console.log(` ${userName || "Utilisateur"} a rejoint la ruche ${roomId}`);
-    });
 
     // Nouvel événement pour demander l'état actuel de la vidéo
     socket.on("requestVideoState", ({ roomId }) => {
@@ -203,59 +188,87 @@ io.on("connection", (socket) => {
         });
     });
 
+    socket.on("leave_room", async ({ roomId, userId }) => {
+        try {
+            const hive = await Hive.findOne({ idRoom: roomId });
 
-/*
-    socket.on("disconnect", () => {
-        console.log(" Client déconnecté:", socket.id);
-        for (const room in rooms) {
-            rooms[room] = rooms[room].filter(id => id !== socket.id);
-            if (rooms[room].length === 0) {
-                delete rooms[room];
+            if (hive) {
+                const userIndex = hive.users.findIndex(u =>
+                    u.userId?.toString() === userId?.toString() || u.userSocketId === userId
+                );
+
+                if (userIndex !== -1) {
+                    const user = hive.users[userIndex];
+                    const idToEmit = user.userId?.toString() || user.userSocketId;
+
+                    hive.users.splice(userIndex, 1); // Retirer de la Hive
+                    await hive.save();
+
+                    io.to(roomId).emit("update_users_list", hive.users);
+                    io.to(roomId).emit("user_left", idToEmit);
+                    console.log(` Utilisateur quitté manuellement : ${idToEmit}`);
+                } else {
+                    console.log(" User pas trouvé dans Hive lors du leave");
+                }
             }
+        } catch (error) {
+            console.error("Erreur leave_room:", error);
         }
+    });
+
+
+
+
+
+
+
+    socket.on("disconnect", () => {
         for (const roomId in roomUsers) {
-            roomUsers[roomId] = roomUsers[roomId].filter(user => user.socketId !== socket.id);
+            roomUsers[roomId] = roomUsers[roomId].filter(u => u.socketId !== socket.id);
         }
-        io.emit("user_disconnected", socket.id);
-    })
-    */
+    });
+
 
     socket.on("disconnecting", async () => {
         const joinedRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
+        const userId = socket.userId;
+
 
         for (const roomId of joinedRooms) {
-            io.to(roomId).emit("user_left", socket.id);
-            console.log(`A user left room ${roomId}`);
+            const hive = await Hive.findOne({ idRoom: roomId });
+            if (!hive || !userId) return;
 
-            try {
-                const hive = await Hive.findOne({ idRoom: roomId });
-                if (hive) {
-                    const user = hive.users.find(u => u.socketId === socket.id);
-
-                    if (user) {
-                        if (user.userId) {
-                            io.to(roomId).emit("disconnect_user", user.userId.toString());
-                            console.log(`disconnect_user envoyé pour ${user.userId}`);
-                        } else {
-                            console.log(`Guest disconnected with socketId ${socket.id}`);
-                        }
-                    }
+            setTimeout(async () => {
+                const stillPresent = roomUsers[roomId]?.some(u => u.userId === userId);
+                if (stillPresent) {
+                    console.log(`🔄 ${userId} est revenu, pas supprimé.`);
+                    return;
                 }
-            } catch (err) {
-                console.error("Erreur dans disconnecting:", err);
-            }
-        }
 
-        try {
-            const guestUser = await User.findOne({ socketId: socket.id, isGuest: true });
-            if (guestUser && guestUser.startWith("Bee-")) {
-                await guestUser.deleteOne();
-                console.log(`Guest user ${guestUser.pseudo} supprimé.`);
-            }
-        } catch (err) {
-            console.error("Erreur suppression guest :", err);
+                const refreshedHive = await Hive.findOne({ idRoom: roomId });
+                if (!refreshedHive) return;
+
+                const index = refreshedHive.users.findIndex(u =>
+                    u.userId?.toString() === userId.toString()
+                );
+
+                if (index !== -1) {
+                    refreshedHive.users.splice(index, 1);
+                    await refreshedHive.save();
+                    io.to(roomId).emit("update_users_list", refreshedHive.users);
+                    io.to(roomId).emit("user_left", userId);
+                    console.log(`🧹 Utilisateur supprimé après déco réelle : ${userId}`);
+                }
+            }, 3000);
+
         }
     });
+
+
+
+
+
+
 })
 
 // Route test

@@ -1,23 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
+import socket from "./../../../socket";
+function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo }) {
     const [timeLeft, setTimeLeft] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
 
-    const rawPseudo = localStorage.getItem("userPseudo");
-    const currentPseudo = (rawPseudo ? rawPseudo : "").trim().toLowerCase();
-    const cleanOwnerPseudo = (ownerPseudo ? ownerPseudo : "").trim().toLowerCase();
+    const currentId2 = localStorage.getItem("userId");
 
-    console.log("current pseudo ",rawPseudo ,"ownerpseudo", cleanOwnerPseudo);
-    // 💡 Charger socket dynamiquement
-    let socket;
-    try {
-        socket = require("/../../socket").default;
-    } catch (error) {
-        console.error("Erreur chargement socket :", error);
-    }
+    // Charger socket dynamiquement
+
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -29,7 +21,7 @@ function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
                 clearInterval(interval);
                 setTimeLeft(0);
                 setShowModal(true);
-                if (currentPseudo === ownerPseudo) {
+                if (currentId2 && ownerId && currentId2.toString() === ownerId.toString()) {
                     deleteHive(); // Seul le owner delete
                 }
             } else {
@@ -38,7 +30,7 @@ function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [timerEndsAt, roomId, cleanOwnerPseudo, currentPseudo]);
+    }, [timerEndsAt, roomId, ownerId, currentId2]);
 
     const deleteHive = async () => {
         try {
@@ -54,16 +46,42 @@ function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
     };
 
     const handleEndHiveClick = async () => {
-        await deleteHive();
-    };
+        const pseudo = localStorage.getItem("userPseudo");
+
+            if ( pseudo.startsWith("Bee-")) {
+                localStorage.removeItem("userId");
+                localStorage.removeItem("userPseudo");
+                localStorage.removeItem("token");
+            }
+            await deleteHive();
+
+        };
 
     const handleLeaveHiveClick = () => {
+
+        const currentPseudo = localStorage.getItem("userPseudo");
+        const currentUserId = localStorage.getItem("userId");
         if (socket) {
-            socket.emit("leave_room", { roomId });
+            socket.emit("leave_room", { roomId, userId: currentUserId });
         }
+
+
+
+        console.log("Le user courant quitte, pseudo :", currentPseudo);
+        if (
+            currentPseudo &&
+            currentPseudo.startsWith("Bee-")
+        ) {
+            localStorage.removeItem("userId");
+            localStorage.removeItem("userPseudo");
+            localStorage.removeItem("token");
+        }
+
+
+
         navigate("/");
-        window.location.reload();
     };
+
 
     const formatTime = (millis) => {
         const totalSec = Math.floor(millis / 1000);
@@ -84,7 +102,7 @@ function HiveTimerBanner({ ownerPseudo, timerEndsAt, roomId }) {
                 {timeLeft !== null ? formatTime(timeLeft) : "Loading..."}
             </p>
 
-            {currentPseudo === cleanOwnerPseudo ? (
+            {(currentId2 && ownerId && currentId2.toString() === ownerId.toString()) ?  (
                 <button
                     onClick={handleEndHiveClick}
                     className="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
