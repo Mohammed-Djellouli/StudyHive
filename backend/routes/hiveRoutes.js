@@ -29,21 +29,20 @@ router.get("/:idRoom", async (req, res) => {
     }
 });
 
-// Rejoindre une Hive
-router.post("/join", async (req, res) => {
-    const { userId, idRoom } = req.body;
 
+router.post("/join", async (req, res) => {
+    const { userId,userPseudo, idRoom } = req.body;
+    console.log("JOIN PAYLOAD BACKEND ====>", { userId, userPseudo, idRoom });
     try {
         const room = await Hive.findOne({ idRoom });
         if (!room) return res.status(404).json({ message: "Room not found" });
 
         const ownerIdString = room.idOwner?.toString?.() || room.ownerSocketId;
 
-        if (ownerIdString === userId) {
+        if (ownerIdString && ownerIdString === userId && room.idOwner)  {
             return res.status(400).json({ message: "Owner is already part of the room" });
         }
 
-// Vérifie proprement sans casser
         const alreadyInRoom = room.users.some(u => {
             if (!u.userId) return false;
             return u.userId.toString() === userId;
@@ -51,10 +50,12 @@ router.post("/join", async (req, res) => {
 
         if (!alreadyInRoom) {
             let user = null;
+            let isGuest = false;
+
             try {
                 user = await User.findById(userId);
             } catch (e) {
-                user = null; // Ignore si ce n'est pas un vrai ID
+                user = null;
             }
 
             const controlsDefault = {
@@ -64,18 +65,18 @@ router.post("/join", async (req, res) => {
             };
 
             if (user) {
-                // Compte utilisateur existant
+                //  Utilisateur inscrit
                 room.users.push({
                     userId: user._id,
                     pseudo: user.pseudo,
-                    ...controlsDefault
+                    ...controlsDefault,
                 });
             } else {
-                // Guest utilisateur
+                //  Utilisateur Guest (socket.id, string libre)
                 room.users.push({
                     userId: userId,
-                    pseudo: `Bee-${Math.floor(1000 + Math.random() * 9000)}`,
-                    ...controlsDefault
+                    pseudo: userPseudo,
+                    ...controlsDefault,
                 });
             }
 
@@ -84,12 +85,13 @@ router.post("/join", async (req, res) => {
 
         res.status(200).json({ message: "User joined successfully" });
 
-
     } catch (err) {
         console.error("Erreur ajout utilisateur :", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
+
+
 
 
 // Mettre à jour les permissions
