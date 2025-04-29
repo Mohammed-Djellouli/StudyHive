@@ -15,13 +15,17 @@ import ChatBox from "./components/Communication/Chat/chatBox";
 import VoiceChat from "./components/Communication/MicChat/VoiceChat";
 import BlocNote from "./components/hivePage/hiveBody/BlocNote";
 import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
+
+import Playlist from "./components/hivePage/hiveBody/videoPlayer/Playlist";
+import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
+
 import socket from "./components/socket";
+
 
 
 // Nouvelles importations pour les composants modulaires
 import ErrorBoundary from "./components/hivePage/hiveHandle/ErrorBoundary";
 import HiveDataLoader from "./components/hivePage/hiveHandle/HiveDataLoader";
-import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
 
 import "./App.css";
 import socket from "./components/socket";
@@ -46,13 +50,19 @@ function HivePage() {
 
     const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(true);
 
+    // État pour contrôler la visibilité de la playlist
+    const [showPlaylist, setShowPlaylist] = useState(false);
+
+
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
+
 
 
     // Utilisation des hooks personnalisés
     const webRTCFeatures = useWebRTC(idRoom);
     const videoPlayerFeatures = useVideoPlayer(idRoom);
+
     useEffect(() => {
         fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`)
             .then(res => res.json())
@@ -68,6 +78,9 @@ function HivePage() {
                 setIsLoading(false);
             });
     }, [idRoom, location.state]);
+
+
+    
 
     useEffect(() => {
         const handleBeforeUnload = () => {
@@ -151,6 +164,7 @@ function HivePage() {
             socket.off("disconnect_user", handleDisconnectUser);
         };
     }, []);
+
     if(isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
@@ -160,18 +174,9 @@ function HivePage() {
     }
     console.log("isInitiator dans HivePage:", webRTCFeatures.isInitiator);
     console.log("isSharing dans HivePage:", webRTCFeatures.isSharing);
+
     console.log("ownerId----->", ownerId , "CurrentId-------->",currentId);
     return (
-        <ErrorBoundary>
-            {/*<HiveDataLoader
-                idRoom={idRoom}
-                setOwnerPseudo={setOwnerPseudo}
-                setIsQueenBeeMode={setIsQueenBeeMode}
-                setTimerEndsAt={setTimerEndsAt}
-                setUsers={setUsers}
-                setOwnerId={setOwnerId}
-            />*/}
-
             <div className="bg-center bg-cover bg-fixed bg-no-repeat min-h-screen text-white bg-[#1a1a1a]"
                  style={{backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%"}}>
                 <div className="fixed top-2 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm shadow-lg z-50">
@@ -183,15 +188,24 @@ function HivePage() {
                                                 users={users} ownerId={ownerId}/>
 
                 <SearchBar onSearch={videoPlayerFeatures.handleSearch}/>
+                 {/* Main content area with video and playlist */}
+                 <div className="flex flex-col items-center relative">
+                {/* Playlist below video */}
+                <div className="w-[850px] mt-4 absolute top-[600px] left-1/2 transform -translate-x-1/2 z-10">
+                    <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect} />
+                </div>
+                {/* Video player area */}
+                <div className="relative w-full z-20">
+                    <VideoContainer
+                        webRTCFeatures={webRTCFeatures}
+                        videoPlayerFeatures={videoPlayerFeatures}
+                        isModalOpen={isScreenShareWindowOpen}
+                        setIsModalOpen={setIsScreenShareWindowOpen}
+                    />
+                </div>
+            </div>
 
-                <VideoContainer
-                    webRTCFeatures={webRTCFeatures}
-                    videoPlayerFeatures={videoPlayerFeatures}
-                    isModalOpen={isScreenShareWindowOpen}
-                    setIsModalOpen={setIsScreenShareWindowOpen}
-                />
-
-                {/*
+            {/*                 
             <div className="fixed top-[100px] left-[200px] z-20">
                 <WhiteBoard />
             </div>*/}
@@ -222,8 +236,7 @@ function HivePage() {
                 <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId}  ownerPseudo={ownerPseudo} />
             </div>
         <div/>
-        </ErrorBoundary>
+        
     );
-
 }
 export default HivePage;

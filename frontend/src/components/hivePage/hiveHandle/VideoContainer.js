@@ -52,7 +52,7 @@ const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures, isModalOpen, setI
       socket.off("screen_share_update");
       socket.off("screen_share_stopped");
     };
-  }, []);
+  }, [setIsModalOpen]);
 
   // Gestion de la reconnexion
   const { reconnecting } = useReconnectionHandler({
@@ -103,10 +103,13 @@ const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures, isModalOpen, setI
     };
   }, []);
 
+  // Détermine si on doit afficher le contenu du partage d'écran
+  const shouldShowScreenShare = isSharing || (remoteStream && isModalOpen);
+
   return (
     <div className="relative">
       {/* Container principal pour le lecteur vidéo - toujours visible */}
-      <div className="absolute left-[150px] top-[100px] w-[850px] h-[480px] overflow-y-auto rounded-lg bg-[#1a1a1a] p-4 z-10">
+      <div className="absolute left-[150px] top-[100px] w-[850px] h-[480px] overflow-y-auto rounded-lg bg-[#1a1a1a] p-4">
         {videoId ? (
           <VideoDisplay 
             videoId={videoId}
@@ -122,12 +125,15 @@ const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures, isModalOpen, setI
         )}
       </div>
 
-      {/* Modal de partage d'écran - toujours monté */}
+      {/* Modal de partage d'écran - toujours monté mais peut être caché */}
       <div
-        className={`fixed w-[850px] h-[480px] bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20 transition-all duration-300 ${isModalOpen ? '' : 'hidden'}`}
+        className={`fixed w-[850px] h-[480px] bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20 transition-opacity duration-300 ${
+          isModalOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+        }`}
         style={{
           left: `${modalPosition.x}px`,
-          top: `${modalPosition.y}px`
+          top: `${modalPosition.y}px`,
+          pointerEvents: isModalOpen ? 'auto' : 'none'
         }}
       >
         {/* Barre de contrôle supérieure (draggable) */}
@@ -144,9 +150,10 @@ const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures, isModalOpen, setI
             Cacher
           </button>
         </div>
-        {/* Contenu du partage d'écran ou vide si pas de partage */}
+
+        {/* Contenu du partage d'écran */}
         <div className="mt-10 h-[calc(100%-2.5rem)] flex items-center justify-center">
-          {(isSharing || remoteStream) ? (
+          {shouldShowScreenShare ? (
             <ScreenShareComponent
               videoRef={videoRef}
               isSharing={isSharing}
