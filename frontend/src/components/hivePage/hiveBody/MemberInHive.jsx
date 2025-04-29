@@ -1,16 +1,33 @@
 import React, {useEffect, useState} from "react";
 import socket from "../../socket";
 
-function MemberInHive({ pseudo,micControl }) {
+
+function MemberInHive({
+                          pseudo,
+                          micControl,
+                          isOwner = false,
+                          isQueenBeeMode = false,
+                          currentUserId,
+                          ownerId
+                      }) {
+
     const [showModal, setShowModal] = useState(false);
 
     const [isMuted, setIsMuted] = useState(false);
     const [isSharingAllowed, setIsSharingAllowed] = useState(true);
     const [isVideoAllowed, setIsVideoAllowed] = useState(true);
 
+
     useEffect(() => {
         setIsMuted(!micControl)
     }, [micControl]);
+
+
+    const handleClick = () => {
+        if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
+            setShowModal(prev => !prev);
+        }
+    }
 
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer">
@@ -18,7 +35,7 @@ function MemberInHive({ pseudo,micControl }) {
                 src="/assets/SoloBee2.png"
                 alt="Bee"
                 className="w-[28px] h-[28px]"
-                onClick={() => setShowModal(true)}
+                onClick={handleClick}
             />
 
             {/* Hover - pseudo */}
