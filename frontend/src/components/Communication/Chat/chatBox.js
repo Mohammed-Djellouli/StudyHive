@@ -2,7 +2,7 @@ import React, { useState,useEffect } from "react";
 import {useParams} from 'react-router-dom';
 import MessageList from "./messageList";
 import MessageInput from "./messageInput";
-import socket from "../../socket";
+import socket from "../../../socket";
 import "./chat.css";
 
 const ChatBox = () => {

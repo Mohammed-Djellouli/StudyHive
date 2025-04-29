@@ -16,8 +16,13 @@ router.get("/google/callback",
         });
 
         console.log("TOKEN GÉNÉRÉ :", token);
+        console.log("PSEUDO :", req.user.pseudo);
+        console.log("ID :", req.user._id);
 
-        res.redirect(`http://localhost:3000/google-auth-success?token=${token}`);
+        const redirectUrl = `http://localhost:3000/google-auth-success?token=${token}&pseudo=${encodeURIComponent(req.user.pseudo)}&userId=${req.user._id}`;
+
+        res.redirect(redirectUrl);
+
     }
 );
 

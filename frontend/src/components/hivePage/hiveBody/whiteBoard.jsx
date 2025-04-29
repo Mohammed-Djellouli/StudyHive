@@ -1,12 +1,62 @@
 import React, { useRef, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
-import socket from "../../socket";
+import socket from "../../../socket";
 
 const WhiteBoard = () => {
     const canvasRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState("#000000");
     const [brushSize, setBrushSize] = useState(3);
+
+    const getTouchPos = (touchEvent) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const touch = touchEvent.touches[0];
+        return {
+            offsetX: touch.clientX - rect.left,
+            offsetY: touch.clientY - rect.top
+        };
+    };
+
+    const handleTouchStart = (e) => {
+        const { offsetX, offsetY } = getTouchPos(e);
+        const ctx = canvasRef.current.getContext("2d");
+        ctx.strokeStyle = color;
+        ctx.lineWidth = brushSize;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(offsetX, offsetY);
+        setIsDrawing(true);
+
+        socket.emit("draw", {
+            x: offsetX,
+            y: offsetY,
+            color,
+            brushSize,
+            type: "start"
+        });
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDrawing) return;
+        const { offsetX, offsetY } = getTouchPos(e);
+        const ctx = canvasRef.current.getContext("2d");
+        ctx.lineTo(offsetX, offsetY);
+        ctx.stroke();
+
+        socket.emit("draw", {
+            x: offsetX,
+            y: offsetY,
+            color,
+            brushSize,
+            type: "draw"
+        });
+    };
+
+    const handleTouchEnd = () => {
+        setIsDrawing(false);
+        canvasRef.current.getContext("2d").beginPath();
+    };
+
 
     const startDraw = (e) => {
         const ctx = canvasRef.current.getContext("2d");
@@ -137,8 +187,13 @@ const WhiteBoard = () => {
                 onMouseMove={draw}
                 onMouseUp={stopDraw}
                 onMouseLeave={stopDraw}
-                className="border border-gray-500 rounded bg-white"
+
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="border border-gray-500 rounded bg-white touch-none"
             />
+
         </div>
     );
 };
