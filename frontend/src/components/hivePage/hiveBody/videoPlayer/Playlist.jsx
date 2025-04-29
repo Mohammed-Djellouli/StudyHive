@@ -12,32 +12,67 @@ const Playlist = ({ onVideoSelect }) => {
     const { roomId } = useParams();
 
     useEffect(() => {
+        // Fonction pour récupérer la playlist
         function fetchPlaylist() {
             socket.emit('get_playlist', { roomId });
         }
 
+        // Récupérer la playlist au chargement et à la reconnexion
         fetchPlaylist();
+        socket.on('connect', fetchPlaylist);
 
-        socket.on('connect', fetchPlaylist); // Re-fetch on reconnect
-
+        // Gestionnaire de mise à jour de la playlist
         const handlePlaylistUpdate = (updatedPlaylist) => {
+            console.log('Playlist mise à jour:', updatedPlaylist);
             setPlaylist(updatedPlaylist);
         };
+
+        // Gestionnaire de suppression de vidéo
+        const handleVideoRemoved = (data) => {
+            console.log('Vidéo supprimée:', data);
+            setPlaylist(prevPlaylist => 
+                prevPlaylist.filter(video => video.videoId !== data.videoId)
+            );
+        };
+
+        // Gestionnaire d'ajout de vidéo
+        const handleVideoAdded = (video) => {
+            console.log('Nouvelle vidéo ajoutée:', video);
+            setPlaylist(prevPlaylist => [...prevPlaylist, video]);
+        };
+
+        // Écouter les événements de mise à jour
         socket.on('playlist_updated', handlePlaylistUpdate);
+        socket.on('video_removed', handleVideoRemoved);
+        socket.on('video_added', handleVideoAdded);
 
         return () => {
             socket.off('playlist_updated', handlePlaylistUpdate);
+            socket.off('video_removed', handleVideoRemoved);
+            socket.off('video_added', handleVideoAdded);
             socket.off('connect', fetchPlaylist);
         };
     }, [roomId]);
 
     const handleRemoveVideo = (videoId) => {
+        console.log('Demande de suppression de la vidéo:', videoId);
         socket.emit('remove_from_playlist', { roomId, videoId });
     };
 
     const handlePlayVideo = (video) => {
+        console.log('Lecture de la vidéo:', video);
         if (onVideoSelect) {
-            onVideoSelect(video);
+            // Créer un objet compatible avec le format attendu par le lecteur
+            const videoForPlayer = {
+                id: { videoId: video.videoId },
+                snippet: {
+                    title: video.title,
+                    thumbnails: {
+                        medium: { url: getYouTubeThumbnail(video.videoId) }
+                    }
+                }
+            };
+            onVideoSelect(videoForPlayer);
         }
     };
 
@@ -57,12 +92,13 @@ const Playlist = ({ onVideoSelect }) => {
                 {playlist.map((video) => (
                     <div
                         key={video.videoId}
-                        className="flex flex-row items-center bg-[#23232a] rounded-lg p-3 shadow hover:bg-[#292933] transition-colors"
+                        className="flex flex-row items-center bg-[#23232a] rounded-lg p-3 shadow hover:bg-[#292933] transition-colors cursor-pointer"
+                        onClick={() => handlePlayVideo(video)}
                     >
-                        {/* Real YouTube thumbnail */}
+                        {/* Miniature YouTube */}
                         <img
                             src={getYouTubeThumbnail(video.videoId)}
-                            alt={video.videoId}
+                            alt={video.title || video.videoId}
                             className="w-[120px] h-[90px] rounded mr-4 object-cover bg-black"
                         />
                         <div className="flex-1 flex flex-col justify-center">
@@ -71,16 +107,22 @@ const Playlist = ({ onVideoSelect }) => {
                             </div>
                             <div className="flex gap-2 mt-1">
                                 <button
-                                    onClick={() => handlePlayVideo(video)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePlayVideo(video);
+                                    }}
                                     className="text-yellow-400 hover:text-yellow-300"
-                                    title="Play"
+                                    title="Lire"
                                 >
                                     <FaPlay />
                                 </button>
                                 <button
-                                    onClick={() => handleRemoveVideo(video.videoId)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveVideo(video.videoId);
+                                    }}
                                     className="text-red-500 hover:text-red-400"
-                                    title="Remove"
+                                    title="Supprimer"
                                 >
                                     <FaTrash />
                                 </button>
@@ -90,7 +132,7 @@ const Playlist = ({ onVideoSelect }) => {
                 ))}
                 {playlist.length === 0 && (
                     <div className="text-gray-400 text-center py-4 min-w-[200px]">
-                        No videos in playlist
+                        Aucune vidéo dans la playlist
                     </div>
                 )}
             </div>
