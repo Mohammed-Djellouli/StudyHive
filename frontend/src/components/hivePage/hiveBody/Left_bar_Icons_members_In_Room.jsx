@@ -76,7 +76,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users: in
                 {users
                     .filter((user) => user.pseudo !== ownerPseudo)
                     .map((user) => (
-                        <MemberInHive key={user._id || user.userId} pseudo={user.pseudo} />
+                        <MemberInHive key={user._id || user.userId} pseudo={user.pseudo} micControl={user.micControl} />
                     ))}
 
 

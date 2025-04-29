@@ -1,12 +1,16 @@
 import React, {useEffect, useState} from "react";
 import socket from "../../socket";
 
-function MemberInHive({ pseudo }) {
+function MemberInHive({ pseudo,micControl }) {
     const [showModal, setShowModal] = useState(false);
 
     const [isMuted, setIsMuted] = useState(false);
     const [isSharingAllowed, setIsSharingAllowed] = useState(true);
     const [isVideoAllowed, setIsVideoAllowed] = useState(true);
+
+    useEffect(() => {
+        setIsMuted(!micControl)
+    }, [micControl]);
 
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer">
