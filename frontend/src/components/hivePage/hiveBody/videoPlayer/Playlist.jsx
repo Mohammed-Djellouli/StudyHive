@@ -82,14 +82,9 @@ const Playlist = ({ onVideoSelect }) => {
     return (
         <div className="bg-[#18181b] rounded-xl p-4 flex flex-col gap-4 shadow-lg">
             <h3 className="text-yellow-400 text-lg font-semibold mb-2">Playlist</h3>
-            <div 
-                className="flex flex-col gap-4 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-[#2a2a2a]"
-                style={{ 
-                    maxHeight,
-                    minHeight: playlist.length > 0 ? '100px' : 'auto'
-                }}
-            >
-                {playlist.map((video) => (
+            <div className="flex flex-col gap-4 overflow-y-auto max-h-[400px] min-h-[100px] scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-[#2a2a2a]">
+
+            {playlist.map((video) => (
                     <div
                         key={video.videoId}
                         className="flex flex-row items-center bg-[#23232a] rounded-lg p-3 shadow hover:bg-[#292933] transition-colors cursor-pointer"

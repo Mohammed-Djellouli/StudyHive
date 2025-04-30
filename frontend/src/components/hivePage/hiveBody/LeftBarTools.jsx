@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import VoiceChat from "../../Communication/MicChat/VoiceChat";
 
 
-function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing,users,currentUserId,toggleBRB,brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, onToggleWhiteboard,isWhiteboardOpen  }){
+function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing,users,currentUserId,toggleBRB,brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, onToggleWhiteboard, isWhiteboardOpen  }){
 
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
@@ -63,6 +63,7 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
                     className="w-[24px] h-[24px]"
                 />
             </button>
+
 
             {/* BRB */}
             <div className="bg-black/60 rounded-full w-[40px] h-[40px] text-white text-sm font-bold flex items-center justify-center">

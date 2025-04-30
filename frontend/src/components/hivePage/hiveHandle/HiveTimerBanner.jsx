@@ -96,8 +96,7 @@ function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo
     if (timeLeft <= 600000) timerColor = "text-red-500 animate-pulse";
 
     return (
-        <div className="fixed top-5 right-8 z-50 text-right space-y-2">
-            <h2 className="text-xl font-semibold text-white">Hive of {ownerPseudo}</h2>
+        <div className="fixed top-2 right-4 z-50 flex items-center gap-4 ">
             <p className={`text-lg font-bold ${timerColor}`}>
                 {timeLeft !== null ? formatTime(timeLeft) : "Loading..."}
             </p>

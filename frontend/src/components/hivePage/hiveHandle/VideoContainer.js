@@ -109,7 +109,7 @@ const VideoContainer = ({ webRTCFeatures, videoPlayerFeatures, isModalOpen, setI
   return (
     <div className="relative">
       {/* Container principal pour le lecteur vidéo - toujours visible */}
-      <div className="absolute left-[150px] top-[100px] w-[850px] h-[480px] overflow-y-auto rounded-lg bg-[#1a1a1a] p-4">
+      <div className="absolute left-[100px] top-[100px] w-[850px] h-[450px]  rounded-lg items-center bg-[#1a1a1a] p-4">
         {videoId ? (
           <VideoDisplay 
             videoId={videoId}
