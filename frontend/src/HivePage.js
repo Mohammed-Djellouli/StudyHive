@@ -62,6 +62,8 @@ function HivePage() {
     const webRTCFeatures = useWebRTC(idRoom);
     const videoPlayerFeatures = useVideoPlayer(idRoom);
 
+    const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
+
     useEffect(() => {
         fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`)
             .then(res => res.json())
@@ -77,6 +79,7 @@ function HivePage() {
                 setIsLoading(false);
             });
     }, [idRoom, location.state]);
+
 
 
     useEffect(() => {
@@ -167,6 +170,7 @@ function HivePage() {
             <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
                 Chargement...
             </div>
+
         );
     }
     console.log("isInitiator dans HivePage:", webRTCFeatures.isInitiator);
@@ -174,16 +178,16 @@ function HivePage() {
 
     console.log("ownerId----->", ownerId, "CurrentId-------->", currentId);
     return (
-        <div className="bg-center bg-cover bg-fixed bg-no-repeat min-h-screen text-white bg-[#1a1a1a]"
-             style={{backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%"}}>
-            <div
-                className="fixed top-2 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm shadow-lg z-50">
+        <div className="min-h-screen w-full bg-[#1D1F27] bg-center bg-cover bg-no-repeat overflow-y-auto"
+             style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
+
+        <div
+                className="fixed top-2 right-[200px] transform -translate-x-1/2 bg-[#1D1F19] text-white px-4 py-2 rounded-full text-sm shadow-lg z-50">
                 <span>Connected as {currentPseudo ? currentPseudo : ownerPseudo}</span>
             </div>
 
             <Big_Logo_At_Left/>
-            <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode}
-                                            users={users} ownerId={ownerId}/>
+
 
             <SearchBar 
                 onSearch={videoPlayerFeatures.handleSearch}
@@ -192,18 +196,18 @@ function HivePage() {
                 ownerId={ownerId}
             />
             {/* Main content area with video and playlist */}
-            <div className="flex flex-col items-center relative">
+            <div className=" relative group flex items-center justify-center cursor-pointer ">
                 {/* Playlist below video */}
-                <div className="w-[850px] mt-4 absolute top-[650px] left-[30%] transform -translate-x-1/2 z-10">
-                    <Playlist 
+                <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
+                        <Playlist 
                         onVideoSelect={videoPlayerFeatures.handleVideoSelect}
                         isQueenBeeMode={isQueenBeeMode}
                         currentUserId={localStorage.getItem("userId") || socket.id}
                         ownerId={ownerId}
-                    />
+                   
                 </div>
                 {/* Video player area */}
-                <div className="relative w-full z-20">
+                <div className=" realtive w-full  ">
                     <VideoContainer
                         webRTCFeatures={webRTCFeatures}
                         videoPlayerFeatures={videoPlayerFeatures}
@@ -217,14 +221,37 @@ function HivePage() {
 
 
 
-                    
+                <WhiteBoard isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen} />
 
-                <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
-                    <BlocNote/>
+
+
+
+
+                <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]">
                     <ChatBox/>
                 </div>
+                     <div className="fixed top-[100px] left-[100px] z-20">
+                      <WhiteBoard roomId={idRoom}/>
+                    </div>
+                <div className={"fixed top-[65px] right-4 w-[90vw] max-w-[385px]"}>
+                    <BlocNote/>
+                </div>
+                {/* Membres dans la barre de gauche */}
+                {/* Bloc : membres dans la room */}
 
-                <div className="fixed bottom-3 right-80">
+                    <Left_bar_Icons_members_In_Room
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        users={users}
+                        ownerId={ownerId}
+                    />
+
+
+                {/* Séparateur visuel */}
+                <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
+
+                {/* Bloc : outils */}
+                <div className="fixed left-2 top-[320px] z-50">
                     <LeftBarTools
                         ownerPseudo={ownerPseudo}
                         isQueenBeeMode={isQueenBeeMode}
@@ -238,13 +265,20 @@ function HivePage() {
                         isScreenShareWindowOpen={isScreenShareWindowOpen}
                         onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
                         ownerId={ownerId}
+                        onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
+                        isWhiteboardOpen={isWhiteboardOpen}
+
                     />
                 </div>
+
+
 
                 <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId}
                                  ownerPseudo={ownerPseudo}/>
             </div>
+
         </div>
     );
+
 }
 export default HivePage;

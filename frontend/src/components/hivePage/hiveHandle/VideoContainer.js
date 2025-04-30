@@ -102,6 +102,57 @@ const VideoContainer = ({
         }
     };
 
+  }, []);
+
+  // Détermine si on doit afficher le contenu du partage d'écran
+  const shouldShowScreenShare = isSharing || (remoteStream && isModalOpen);
+
+  return (
+    <div className="relative">
+      {/* Container principal pour le lecteur vidéo - toujours visible */}
+      <div className="absolute left-[100px] top-[100px] w-[850px] h-[450px]  rounded-lg items-center bg-[#1a1a1a] p-4">
+        {videoId ? (
+          <VideoDisplay 
+            videoId={videoId}
+            playerOpts={playerOpts}
+            onPlayerReady={onPlayerReady}
+            onPlayerStateChange={onPlayerStateChange}
+            handleSeek={handleSeek}
+            needsManualPlay={needsManualPlay}
+            handleManualPlay={handleManualPlay}
+          />
+        ) : (
+          <VideoList videos={videos} onVideoSelect={handleVideoSelect} />
+        )}
+      </div>
+
+      {/* Modal de partage d'écran - toujours monté mais peut être caché */}
+      <div
+        className={`fixed w-[850px] h-[480px] bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20 transition-opacity duration-300 ${
+          isModalOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+        }`}
+        style={{
+          left: `${modalPosition.x}px`,
+          top: `${modalPosition.y}px`,
+          pointerEvents: isModalOpen ? 'auto' : 'none'
+        }}
+      >
+        {/* Barre de contrôle supérieure (draggable) */}
+        <div
+          className="absolute top-0 left-0 right-0 bg-[#2a2a2a] p-2 flex justify-between items-center cursor-move"
+          onMouseDown={handleDragStart}
+        >
+          <span className="text-white text-sm select-none">Partage d'écran</span>
+          {/* Bouton pour cacher la fenêtre */}
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 rounded ml-2"
+          >
+            Cacher
+          </button>
+        </div>
+
+
     // Modified event handlers
     const handleModifiedPlayerStateChange = (event) => {
         if (!hasVideoPermission()) {

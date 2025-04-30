@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import VoiceChat from "../../Communication/MicChat/VoiceChat";
 import socket from '../../../components/socket';
 
-function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing, users, currentUserId, toggleBRB, brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, ownerId }){
+function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing,users,currentUserId,toggleBRB,brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, onToggleWhiteboard, isWhiteboardOpen, ownerId   }){
+
+
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
     const [currentSharingUser, setCurrentSharingUser] = useState(null);
@@ -89,6 +91,20 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
                     className="w-[24px] h-[24px]"
                 />
             </button>
+
+            {/* Toggle WhiteBoard */}
+            <button
+                onClick={onToggleWhiteboard}
+                className="bg-black/60 p-2 rounded-full hover:scale-105 transition hover:bg-yellow-400/20"
+                title={isWhiteboardOpen ? "Cacher le tableau blanc" : "Afficher le tableau blanc"}
+            >
+                <img
+                    src={isWhiteboardOpen ? "/assets/UnshowBoard.png" : "/assets/ShowBoard.png"}
+                    alt="WhiteBoard"
+                    className="w-[24px] h-[24px]"
+                />
+            </button>
+
 
             {/* BRB */}
             <div className="bg-black/60 rounded-full w-[40px] h-[40px] text-white text-sm font-bold flex items-center justify-center">

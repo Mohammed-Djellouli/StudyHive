@@ -167,6 +167,7 @@ const Playlist = ({ onVideoSelect }) => {
     return (
         <div className="bg-[#1a1a1a] rounded-xl p-4 flex flex-col gap-4 shadow-lg">
             <h3 className="text-yellow-400 text-lg font-semibold mb-2">Playlist</h3>
+
             
             {/* Barre de recherche avec sélecteur de mode */}
             <div className="flex gap-2">
