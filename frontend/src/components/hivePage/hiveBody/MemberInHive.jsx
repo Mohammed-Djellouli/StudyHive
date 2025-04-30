@@ -8,7 +8,8 @@ function MemberInHive({
                           isOwner = false,
                           isQueenBeeMode = false,
                           currentUserId,
-                          ownerId
+                          ownerId,
+                          userId,
                       }) {
 
     const [showModal, setShowModal] = useState(false);
@@ -28,15 +29,18 @@ function MemberInHive({
             setShowModal(prev => !prev);
         }
     }
-
     return (
-        <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer">
-            <img
-                src="/assets/SoloBee2.png"
-                alt="Bee"
-                className="w-[28px] h-[28px]"
-                onClick={handleClick}
-            />
+        <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer ">
+            {/* le div pour le cercle autour de l'icon quand l'utilisateur parle*/}
+            <div id={`user-${userId}`} className="relative rounded-full ring-4 ring-transparent transition-all w-[50px] h-[50px] flex items-center justify-center">
+                <img
+                    src="/assets/SoloBee2.png"
+                    alt="Bee"
+                    className="w-[28px] h-[28px]"
+                    onClick={handleClick}
+                />
+            </div>
+
 
             {/* Hover - pseudo */}
             <span className="absolute left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-20 transition-opacity duration-200">
@@ -70,7 +74,7 @@ function MemberInHive({
                                         targetUserPseudo: pseudo,
                                         allowMic: true
                                     })
-                                    }
+                                }
                                 }
                             >
                                 Unmute
@@ -85,7 +89,7 @@ function MemberInHive({
                                         allowMic: false
                                     })
                                 }
-                            }
+                                }
                             >
                                 Mute
                             </button>
