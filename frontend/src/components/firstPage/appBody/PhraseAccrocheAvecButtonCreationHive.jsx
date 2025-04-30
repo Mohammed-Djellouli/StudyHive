@@ -34,10 +34,19 @@ function PhraseAccrocheAvecButtonCreationHive() {
 
             const data = await response.json();
             if(response.ok){
-
-                //const generatedLink = `http://localhost:3000/join/${data.room.idRoom}`;
+                //const generatedLink = `${process.env.REACT_APP_FRONTEND_URL}/join/${data.room.idRoom}`;
                 //setInviteLink(generatedLink);
-                navigate(`/hive/${data.room.idRoom}`, { state: { ownerPseudo: data.ownerPseudo , isQueenBeeMode: data.room.isQueenBeeMode } });
+                navigate(`/hive/${data.room.idRoom}`, {
+                    state:
+                        { ownerPseudo: data.ownerPseudo ,
+                            isQueenBeeMode: data.room.isQueenBeeMode
+                        } })
+                if (data.room.idOwner) {
+                    localStorage.setItem("userId", data.room.idOwner);
+                } else {
+                    localStorage.setItem("userId", data.socketId);
+                }
+                localStorage.setItem("userPseudo", data.room.ownerPseudo);
             }
             else{
                 alert("Error in front " + data.message);

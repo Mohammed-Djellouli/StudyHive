@@ -2,13 +2,15 @@ import React, { useRef, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import socket from "../../socket";
 
-const WhiteBoard = ({ roomId }) => {
+
+const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
     const canvasRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState("#000000");
     const [brushSize, setBrushSize] = useState(3);
 
-    // ➕ Join whiteboard room
+
+    // Join whiteboard room
     useEffect(() => {
         if (roomId) {
             socket.emit("join_whiteboard", roomId);
@@ -18,6 +20,93 @@ const WhiteBoard = ({ roomId }) => {
             socket.emit("leave_whiteboard", roomId);
         };
     }, [roomId]);
+
+    const modalRef = useRef(null);
+    const [modalPosition, setModalPosition] = useState({ x: 200, y: 100 });
+    const isDraggingRef = useRef(false);
+    const dragStartRef = useRef({ x: 0, y: 0 });
+
+    const handleDragStart = (e) => {
+        isDraggingRef.current = true;
+        dragStartRef.current = {
+            x: e.clientX - modalPosition.x,
+            y: e.clientY - modalPosition.y,
+        };
+        document.addEventListener("mousemove", handleDragging);
+        document.addEventListener("mouseup", handleDragEnd);
+    };
+
+    const handleDragging = (e) => {
+        if (!isDraggingRef.current) return;
+        const newX = e.clientX - dragStartRef.current.x;
+        const newY = e.clientY - dragStartRef.current.y;
+
+        const maxX = window.innerWidth - 850;
+        const maxY = window.innerHeight - 480;
+
+        setModalPosition({
+            x: Math.min(Math.max(0, newX), maxX),
+            y: Math.min(Math.max(0, newY), maxY),
+        });
+    };
+
+    const handleDragEnd = () => {
+        isDraggingRef.current = false;
+        document.removeEventListener("mousemove", handleDragging);
+        document.removeEventListener("mouseup", handleDragEnd);
+    };
+
+
+    const getTouchPos = (touchEvent) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const touch = touchEvent.touches[0];
+        return {
+            offsetX: touch.clientX - rect.left,
+            offsetY: touch.clientY - rect.top
+        };
+    };
+
+    const handleTouchStart = (e) => {
+        const { offsetX, offsetY } = getTouchPos(e);
+        const ctx = canvasRef.current.getContext("2d");
+        ctx.strokeStyle = color;
+        ctx.lineWidth = brushSize;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(offsetX, offsetY);
+        setIsDrawing(true);
+
+        socket.emit("draw", {
+            x: offsetX,
+            y: offsetY,
+            color,
+            brushSize,
+            type: "start"
+        });
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDrawing) return;
+        const { offsetX, offsetY } = getTouchPos(e);
+        const ctx = canvasRef.current.getContext("2d");
+        ctx.lineTo(offsetX, offsetY);
+        ctx.stroke();
+
+        socket.emit("draw", {
+            x: offsetX,
+            y: offsetY,
+            color,
+            brushSize,
+            type: "draw"
+        });
+    };
+
+    const handleTouchEnd = () => {
+        setIsDrawing(false);
+        canvasRef.current.getContext("2d").beginPath();
+    };
+
+
 
     const startDraw = (e) => {
         const ctx = canvasRef.current.getContext("2d");
@@ -60,7 +149,7 @@ const WhiteBoard = ({ roomId }) => {
         canvasRef.current.getContext("2d").beginPath();
     };
 
-    // 🎯 Listen for remote drawing events
+    //  Listen for remote drawing events
     useEffect(() => {
         const handleDraw = ({ x, y, color, brushSize, type }) => {
             const ctx = canvasRef.current.getContext("2d");
@@ -123,36 +212,68 @@ const WhiteBoard = ({ roomId }) => {
     }, []);
 
     return (
-        <div className="text-white space-y-4">
-            <div className="flex items-center gap-4 mb-2">
-                <label> Couleur:</label>
-                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-
-                <label> Taille:</label>
-                <input
-                    type="range"
-                    min="1"
-                    max="20"
-                    value={brushSize}
-                    onChange={(e) => {
-                        const newSize = parseInt(e.target.value);
-                        setBrushSize(newSize);
-                        socket.emit("changeBrushSize", { roomId, size: newSize });
-                    }}
-                />
-
-                <button onClick={clearCanvas} className="bg-red-600 px-4 py-1 rounded hover:bg-red-500">Clear</button>
-                <button onClick={exportToPDF} className="bg-green-600 px-4 py-1 rounded hover:bg-green-500">Export PDF</button>
+        <div
+            ref={modalRef}
+            className={`fixed w-[850px] h-[500px] bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-40 transition-opacity duration-300 ${
+                isModalOpen ? "opacity-100 visible" : "opacity-0 invisible"
+            }`}
+            style={{
+                left: `${modalPosition.x}px`,
+                top: `${modalPosition.y}px`,
+                pointerEvents: isModalOpen ? "auto" : "none",
+            }}
+        >
+            {/* Barre supérieure pour déplacer + bouton cacher */}
+            <div
+                className="absolute top-0 left-0 right-0 bg-[#2a2a2a] p-2 flex justify-between items-center cursor-move"
+                onMouseDown={handleDragStart}
+            >
+                <span className="text-white text-sm select-none">Tableau Blanc</span>
+                <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 rounded ml-2"
+                >
+                    Fermer
+                </button>
             </div>
 
-            <canvas
-                ref={canvasRef}
-                onMouseDown={startDraw}
-                onMouseMove={draw}
-                onMouseUp={stopDraw}
-                onMouseLeave={stopDraw}
-                className="border border-gray-500 rounded bg-white"
-            />
+            {/* Contenu principal */}
+            <div className="mt-10 px-4 py-2">
+                {/* outils */}
+                <div className="flex items-center gap-4 mb-2 text-white">
+                    <label> Couleur:</label>
+                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+
+                    <label> Taille:</label>
+                    <input
+                        type="range"
+                        min="1"
+                        max="20"
+                        value={brushSize}
+                        onChange={(e) => {
+                            const newSize = parseInt(e.target.value);
+                            setBrushSize(newSize);
+                            socket.emit("changeBrushSize", { roomId, size: newSize });
+                        }}
+                    />
+
+                    <button onClick={clearCanvas} className="bg-red-600 px-4 py-1 rounded hover:bg-red-500"> Clear</button>
+                    <button onClick={exportToPDF} className="bg-green-600 px-4 py-1 rounded hover:bg-green-500"> Export PDF</button>
+                </div>
+
+                {/* Canvas */}
+                <canvas
+                    ref={canvasRef}
+                    onMouseDown={startDraw}
+                    onMouseMove={draw}
+                    onMouseUp={stopDraw}
+                    onMouseLeave={stopDraw}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    className="border border-gray-500 rounded bg-white touch-none"
+                />
+            </div>
         </div>
     );
 };
