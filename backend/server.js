@@ -69,6 +69,9 @@ const roomPlaylists = new Map();
 
 
 io.on("connection", (socket) => {
+    socket.on("join_whiteboard", (roomId) => {
+        socket.join(roomId);
+    });
     socket.data.hiveRoomId = null;
     // Quand un utilisateur rejoint une Hive
     socket.on("join_hive_room", async ({ roomId, userId }) => { 
@@ -126,25 +129,22 @@ io.on("connection", (socket) => {
 
     });
 
-
-
-
     socket.on("send_message", ({roomId,message}) => {
         if(roomId && message){
             io.to(roomId).emit("receive_message",message);
         }
     })
 
-    socket.on("draw", (data) => {
-        socket.broadcast.emit("draw", data);
+    socket.on("draw", ({ roomId, ...data }) => {
+        socket.to(roomId).emit("draw", data);
     });
 
-    socket.on("changeBrushSize", (size) => {
-        socket.broadcast.emit("changeBrushSize", size);
+    socket.on("changeBrushSize", ({ roomId, size }) => {
+        socket.to(roomId).emit("changeBrushSize", size);
     });
 
-    socket.on("clear", () => {
-        socket.broadcast.emit("clear");
+    socket.on("clear", (roomId) => {
+        socket.to(roomId).emit("clear");
     });
 
 

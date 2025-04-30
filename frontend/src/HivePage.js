@@ -170,6 +170,7 @@ function HivePage() {
             <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
                 Chargement...
             </div>
+
         );
     }
     console.log("isInitiator dans HivePage:", webRTCFeatures.isInitiator);
@@ -179,7 +180,6 @@ function HivePage() {
     return (
         <div className="min-h-screen w-full bg-[#1D1F27] bg-center bg-cover bg-no-repeat overflow-y-auto"
              style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
-
 
         <div
                 className="fixed top-2 right-[200px] transform -translate-x-1/2 bg-[#1D1F19] text-white px-4 py-2 rounded-full text-sm shadow-lg z-50">
@@ -219,6 +219,9 @@ function HivePage() {
                 <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]">
                     <ChatBox/>
                 </div>
+                     <div className="fixed top-[100px] left-[100px] z-20">
+                      <WhiteBoard roomId={idRoom}/>
+                    </div>
                 <div className={"fixed top-[65px] right-4 w-[90vw] max-w-[385px]"}>
                     <BlocNote/>
                 </div>
