@@ -185,12 +185,22 @@ function HivePage() {
             <Left_bar_Icons_members_In_Room ownerPseudo={ownerPseudo} isQueenBeeMode={isQueenBeeMode}
                                             users={users} ownerId={ownerId}/>
 
-            <SearchBar onSearch={videoPlayerFeatures.handleSearch}/>
+            <SearchBar 
+                onSearch={videoPlayerFeatures.handleSearch}
+                isQueenBeeMode={isQueenBeeMode}
+                currentUserId={localStorage.getItem("userId") || socket.id}
+                ownerId={ownerId}
+            />
             {/* Main content area with video and playlist */}
             <div className="flex flex-col items-center relative">
                 {/* Playlist below video */}
-                <div className="w-[850px] mt-4 absolute top-[600px] left-1/2 transform -translate-x-1/2 z-10">
-                    <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect}/>
+                <div className="w-[850px] mt-4 absolute top-[650px] left-[30%] transform -translate-x-1/2 z-10">
+                    <Playlist 
+                        onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                        isQueenBeeMode={isQueenBeeMode}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
+                    />
                 </div>
                 {/* Video player area */}
                 <div className="relative w-full z-20">
@@ -199,15 +209,15 @@ function HivePage() {
                         videoPlayerFeatures={videoPlayerFeatures}
                         isModalOpen={isScreenShareWindowOpen}
                         setIsModalOpen={setIsScreenShareWindowOpen}
+                        isQueenBeeMode={isQueenBeeMode}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
                     />
                 </div>
 
 
 
-                    <div className="fixed top-[100px] left-[200px] z-20">
-                        <WhiteBoard />
-                    </div>
-
+                    
 
                 <div className="fixed bottom-10 right-4 w-[90vw] max-w-[385px]">
                     <BlocNote/>
@@ -227,7 +237,7 @@ function HivePage() {
                         brbMode={brbMode}
                         isScreenShareWindowOpen={isScreenShareWindowOpen}
                         onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
-
+                        ownerId={ownerId}
                     />
                 </div>
 
