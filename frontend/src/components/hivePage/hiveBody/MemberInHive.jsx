@@ -10,6 +10,7 @@ function MemberInHive({
                           currentUserId,
                           ownerId,
                           userId,
+
                       }) {
 
     const [showModal, setShowModal] = useState(false);
