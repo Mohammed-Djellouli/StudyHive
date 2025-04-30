@@ -284,6 +284,12 @@ io.on("connection", (socket) => {
     });
 
 
+    // Handle getting the playlist
+    socket.on('get_playlist', ({ roomId }) => {
+        const playlist = roomPlaylists.get(roomId) || [];
+        socket.emit('playlist_updated', playlist);
+    });
+
     // Handle adding a video to the playlist
     socket.on('add_to_playlist', ({ roomId, videoId, title, url }) => {
         if (!roomPlaylists.has(roomId)) {
@@ -292,10 +298,10 @@ io.on("connection", (socket) => {
         const playlist = roomPlaylists.get(roomId);
         const newVideo = { videoId, title, url };
         
-        // Vérifier si la vidéo n'est pas déjà dans la playlist
+        // Check if video is not already in the playlist
         if (!playlist.some(video => video.videoId === videoId)) {
             playlist.push(newVideo);
-            // Émettre l'événement de mise à jour à tous les clients dans la room
+            // Emit update events to all clients in the room
             io.to(roomId).emit('video_added', newVideo);
             io.to(roomId).emit('playlist_updated', playlist);
         }
@@ -308,19 +314,13 @@ io.on("connection", (socket) => {
             const updatedPlaylist = playlist.filter(video => video.videoId !== videoId);
             roomPlaylists.set(roomId, updatedPlaylist);
             
-            // Émettre les événements de mise à jour
+            // Emit update events to all clients in the room
             io.to(roomId).emit('video_removed', { videoId });
             io.to(roomId).emit('playlist_updated', updatedPlaylist);
         }
     });
 
-    // Handle getting the playlist
-    socket.on('get_playlist', ({ roomId }) => {
-        const playlist = roomPlaylists.get(roomId) || [];
-        socket.emit('playlist_updated', playlist);
-    });
-
-    
+   
 
    
 
@@ -403,8 +403,9 @@ app.get("/", (req, res) => {
 
 
 // Création
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 server.listen(PORT, () => {
-    console.log(`Serveur lancé sur : http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Socket.IO server ready for connections`);
 });

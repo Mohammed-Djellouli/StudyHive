@@ -189,12 +189,22 @@ function HivePage() {
             <Big_Logo_At_Left/>
 
 
-            <SearchBar onSearch={videoPlayerFeatures.handleSearch}/>
+            <SearchBar 
+                onSearch={videoPlayerFeatures.handleSearch}
+                isQueenBeeMode={isQueenBeeMode}
+                currentUserId={localStorage.getItem("userId") || socket.id}
+                ownerId={ownerId}
+            />
             {/* Main content area with video and playlist */}
             <div className=" relative group flex items-center justify-center cursor-pointer ">
                 {/* Playlist below video */}
                 <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
-                    <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect}/>
+                        <Playlist 
+                        onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                        isQueenBeeMode={isQueenBeeMode}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
+                   
                 </div>
                 {/* Video player area */}
                 <div className=" realtive w-full  ">
@@ -203,10 +213,11 @@ function HivePage() {
                         videoPlayerFeatures={videoPlayerFeatures}
                         isModalOpen={isScreenShareWindowOpen}
                         setIsModalOpen={setIsScreenShareWindowOpen}
+                        isQueenBeeMode={isQueenBeeMode}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
                     />
                 </div>
-
-
 
 
 
@@ -253,8 +264,10 @@ function HivePage() {
                         brbMode={brbMode}
                         isScreenShareWindowOpen={isScreenShareWindowOpen}
                         onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
+                        ownerId={ownerId}
                         onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
                         isWhiteboardOpen={isWhiteboardOpen}
+
                     />
                 </div>
 
