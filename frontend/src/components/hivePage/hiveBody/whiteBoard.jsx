@@ -2,11 +2,22 @@ import React, { useRef, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import socket from "../../socket";
 
-const WhiteBoard = () => {
+const WhiteBoard = ({ roomId }) => {
     const canvasRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState("#000000");
     const [brushSize, setBrushSize] = useState(3);
+
+    // ➕ Join whiteboard room
+    useEffect(() => {
+        if (roomId) {
+            socket.emit("join_whiteboard", roomId);
+        }
+
+        return () => {
+            socket.emit("leave_whiteboard", roomId);
+        };
+    }, [roomId]);
 
     const startDraw = (e) => {
         const ctx = canvasRef.current.getContext("2d");
@@ -18,6 +29,7 @@ const WhiteBoard = () => {
         setIsDrawing(true);
 
         socket.emit("draw", {
+            roomId,
             x: e.nativeEvent.offsetX,
             y: e.nativeEvent.offsetY,
             color,
@@ -34,6 +46,7 @@ const WhiteBoard = () => {
         ctx.stroke();
 
         socket.emit("draw", {
+            roomId,
             x: offsetX,
             y: offsetY,
             color,
@@ -47,6 +60,7 @@ const WhiteBoard = () => {
         canvasRef.current.getContext("2d").beginPath();
     };
 
+    // 🎯 Listen for remote drawing events
     useEffect(() => {
         const handleDraw = ({ x, y, color, brushSize, type }) => {
             const ctx = canvasRef.current.getContext("2d");
@@ -67,25 +81,25 @@ const WhiteBoard = () => {
             const ctx = canvasRef.current.getContext("2d");
             ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         };
-        socket.on("changeBrushSize", (newSize) => {
-            setBrushSize(newSize);
-        });
+
         socket.on("draw", handleDraw);
         socket.on("clear", handleClear);
+        socket.on("changeBrushSize", (size) => {
+            setBrushSize(size);
+        });
 
         return () => {
             socket.off("draw", handleDraw);
             socket.off("clear", handleClear);
+            socket.off("changeBrushSize");
         };
     }, []);
 
     const clearCanvas = () => {
         const ctx = canvasRef.current.getContext("2d");
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-        socket.emit("clear");
+        socket.emit("clear", roomId);
     };
-
 
     const exportToPDF = () => {
         const canvas = canvasRef.current;
@@ -123,12 +137,12 @@ const WhiteBoard = () => {
                     onChange={(e) => {
                         const newSize = parseInt(e.target.value);
                         setBrushSize(newSize);
-                        socket.emit("changeBrushSize", newSize);
+                        socket.emit("changeBrushSize", { roomId, size: newSize });
                     }}
                 />
 
-                <button onClick={clearCanvas} className="bg-red-600 px-4 py-1 rounded hover:bg-red-500"> Clear</button>
-                <button onClick={exportToPDF} className="bg-green-600 px-4 py-1 rounded hover:bg-green-500"> Export PDF</button>
+                <button onClick={clearCanvas} className="bg-red-600 px-4 py-1 rounded hover:bg-red-500">Clear</button>
+                <button onClick={exportToPDF} className="bg-green-600 px-4 py-1 rounded hover:bg-green-500">Export PDF</button>
             </div>
 
             <canvas

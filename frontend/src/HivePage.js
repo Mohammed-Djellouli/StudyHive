@@ -53,10 +53,10 @@ function HivePage() {
                 <BlocNote/>
                 <ChatBox/>
             </div>
-            {/* Whiteboard Placement
+
             <div className="fixed top-[100px] left-[100px] z-20">
-                <WhiteBoard />
-            </div>*/}
+                <WhiteBoard roomId={idRoom}/>
+            </div>
 
             <div className="w-full flex justify-center fixed top-0 left-0 pt-2 z-20">
                 <SearchBar />
