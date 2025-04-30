@@ -17,7 +17,8 @@ router.get("/google/callback",
 
         console.log("TOKEN GÉNÉRÉ :", token);
 
-        res.redirect(`http://localhost:3000/google-auth-success?token=${token}`);
+        res.redirect(`http://localhost:3000/google-auth-success?token=${token}&pseudo=${req.user.pseudo}`);
+
     }
 );
 

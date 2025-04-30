@@ -4,32 +4,30 @@ import { useNavigate } from "react-router-dom";
 const GoogleAuthSuccess = () => {
     const navigate = useNavigate();
     const [hasProcessed, setHasProcessed] = useState(false);
-    console.log("🧩 Composant GoogleAuthSuccess chargé !");
+    console.log(" Composant GoogleAuthSuccess chargé !");
 
     useEffect(() => {
-        console.log("🎯 useEffect lancé");
-        if (hasProcessed) return; // ⛔ si déjà fait, on ne refait rien
-
-        const currentUrl = window.location.href;
-        console.log("🔎 Current full URL:", currentUrl);
+        if (hasProcessed) return;
 
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get("token");
-        console.log("🔐 Token from URL:", token);
+        const pseudo = urlParams.get("pseudo");
 
-        if (token) {
+        if (token && pseudo) {
             localStorage.setItem("token", token);
-            alert("Connexion avec Google réussie ✅");
+            localStorage.setItem("userPseudo", pseudo);
+            alert("Connexion avec Google réussie ");
             setHasProcessed(true);
             setTimeout(() => {
                 navigate("/");
-            }, 500); // petit délai pour éviter race condition
+            }, 500);
         } else {
-            alert("Erreur: Token non trouvé dans l'URL !");
+            alert("Erreur: informations manquantes !");
             setHasProcessed(true);
             navigate("/login");
         }
     }, [navigate, hasProcessed]);
+
 
     return null;
 };
