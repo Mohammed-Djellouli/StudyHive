@@ -177,7 +177,28 @@ const VideoContainer = ({
                         hasPermission={hasVideoPermission()}
                     />
                 ) : (
-                    <VideoList videos={videos} onVideoSelect={hasVideoPermission() ? handleVideoSelect : null} />
+                    <div className="relative w-full h-full">
+                        {/* Image de fond avec faible opacité */}
+                        <div 
+                            className="absolute inset-0 bg-cover bg-center opacity-10"
+                            style={{ backgroundImage: "url('/assets/pexels-photo.jpg')" }}
+                        />
+                        {/* Logo YouTube centré */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <img 
+                                src="/assets/youtube-icon.png" 
+                                alt="YouTube" 
+                                className="w-24 h-24 opacity-50"
+                            />
+                        </div>
+                        {/* Liste des vidéos */}
+                        <div className="relative z-10">
+                            <VideoList 
+                                videos={videos} 
+                                onVideoSelect={hasVideoPermission() ? handleVideoSelect : null} 
+                            />
+                        </div>
+                    </div>
                 )}
             </div>
 
@@ -201,14 +222,6 @@ const VideoContainer = ({
                         {currentSharingUser ? 'Partage d\'écran en cours' : 'Partage d\'écran'}
                     </span>
                     <div className="flex gap-2">
-                        {isSharing && (
-                            <button
-                                onClick={stopSharing}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 rounded"
-                            >
-                                Arrêter
-                            </button>
-                        )}
                         <button
                             onClick={() => setIsModalOpen(false)}
                             className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 rounded"
