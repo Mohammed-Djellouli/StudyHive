@@ -203,7 +203,7 @@ function HivePage() {
                         onVideoSelect={videoPlayerFeatures.handleVideoSelect}
                         isQueenBeeMode={isQueenBeeMode}
                         currentUserId={localStorage.getItem("userId") || socket.id}
-                        ownerId={ownerId}
+                        ownerId={ownerId}/>
                    
                 </div>
                 {/* Video player area */}

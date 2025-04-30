@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 
-const ENDPOINT = process.env.REACT_APP_SOCKET_ENDPOINT || 'http://localhost:5001';
+const ENDPOINT = process.env.REACT_APP_SOCKET_ENDPOINT || 'http://localhost:5000';
 
 const socket = io(ENDPOINT, {
     transports: ['websocket', 'polling'],
