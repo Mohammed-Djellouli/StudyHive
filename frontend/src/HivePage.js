@@ -43,6 +43,8 @@ function HivePage() {
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
 
+    const [isChatVisible, setIsChatVisible] = useState(true);
+
     useEffect(() => {
         fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`)
             .then(res => res.json())
@@ -173,9 +175,35 @@ function HivePage() {
                 </div>
             </div>
 
+
             <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
-            <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox /></div>
-            <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
+
+
+
+
+            {/* CONTENEUR synchronisé Chat + BlocNote */}
+            <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500">
+
+                {/* BlocNote (avec marge en bas pour séparer du Chat) */}
+                <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[280px]" : "h-[550px]"} mb-2`}>
+                    <BlocNote isChatVisible={isChatVisible} />
+                </div>
+
+                {/* ChatBox masqué / visible selon l’état */}
+                <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isChatVisible ? "h-[351px] opacity-100" : "h-0 opacity-0"}`}>
+                    <ChatBox />
+                </div>
+
+                {/* Bouton séparé et fixé en bas du conteneur */}
+                <div className="mt-2">
+                    <button
+                        onClick={() => setIsChatVisible(prev => !prev)}
+                        className="w-full bg-yellow-400 text-black px-2 py-1 rounded-b-md hover:bg-yellow-300 transition"
+                    >
+                        {isChatVisible ? "▼ Masquer le Chat" : "▲ Afficher le Chat"}
+                    </button>
+                </div>
+            </div>
 
             <Left_bar_Icons_members_In_Room
                 ownerPseudo={ownerPseudo}
@@ -204,7 +232,15 @@ function HivePage() {
                 />
             </div>
 
-            <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId} ownerPseudo={ownerPseudo} />
+            <HiveTimerBanner
+                ownerId={ownerId}
+                timerEndsAt={timerEndsAt}
+                roomId={idRoom}
+                currentId={currentId}
+                ownerPseudo={ownerPseudo}
+            />
+
+
         </div>
     );
 }
