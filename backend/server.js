@@ -272,7 +272,59 @@ io.on("connection", (socket) => {
         }
     });
 
-    
+    // Gestionnaire pour la mise à jour des permissions de partage d'écran
+    socket.on("update_screen_share_permission", async ({ targetUserPseudo, allowScreenShare }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId) return;
+
+        try {
+            const room = await Room.findOne({ idRoom: roomId });
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.screenShareControl = allowScreenShare;
+                await room.save();
+
+                // Envoyer la mise à jour à tous les utilisateurs
+                io.to(roomId.toString()).emit("screen_share_permission_updated", {
+                    userId: user.userId,
+                    screenShareControl: allowScreenShare
+                });
+            }
+            console.log(`Screen share permission updated for user ${user.userId}: ${allowScreenShare}`);
+
+        } catch (err) {
+            console.error("Failed to update screen share permission:", err);
+        }
+    });
+
+    // Gestionnaire pour la mise à jour des permissions de contrôle vidéo
+    socket.on("update_video_permission", async ({ targetUserPseudo, allowVideo }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId) return;
+
+        try {
+            const room = await Room.findOne({ idRoom: roomId });
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.videoControl = allowVideo;
+                await room.save();
+
+                // Envoyer la mise à jour à tous les utilisateurs
+                io.to(roomId.toString()).emit("video_permission_updated", {
+                    userId: user.userId,
+                    videoControl: allowVideo
+                });
+            }
+            console.log(`Video permission updated for user ${user.userId}: ${allowVideo}`);
+
+        } catch (err) {
+            console.error("Failed to update video permission:", err);
+        }
+    });
 
     // Handle screen share start
     socket.on("screen_share_started", ({ roomId }) => {
@@ -309,42 +361,45 @@ io.on("connection", (socket) => {
     });
 
 
-    // Handle getting the playlist
     socket.on('get_playlist', ({ roomId }) => {
+        if (!roomId) {
+            //console.warn('get_playlist: roomId is undefined');
+            return;
+        }
+    
         const playlist = roomPlaylists.get(roomId) || [];
         socket.emit('playlist_updated', playlist);
     });
-
-    // Handle adding a video to the playlist
+    
     socket.on('add_to_playlist', ({ roomId, videoId, title, url }) => {
+        if (!roomId || !videoId || !title || !url) {
+            console.error('add_to_playlist: Missing data', { roomId, videoId, title, url });
+            return;
+        }
+    
         if (!roomPlaylists.has(roomId)) {
             roomPlaylists.set(roomId, []);
         }
+    
         const playlist = roomPlaylists.get(roomId);
-        const newVideo = { videoId, title, url };
-        
-        // Check if video is not already in the playlist
-        if (!playlist.some(video => video.videoId === videoId)) {
+        const exists = playlist.some(v => v.videoId === videoId);
+        if (!exists) {
+            const newVideo = { videoId, title, url };
             playlist.push(newVideo);
-            // Emit update events to all clients in the room
             io.to(roomId).emit('video_added', newVideo);
             io.to(roomId).emit('playlist_updated', playlist);
+        } else {
+            console.log(`[add_to_playlist] Video already exists in room ${roomId}`);
         }
     });
-
-    // Handle removing a video from the playlist
+    
     socket.on('remove_from_playlist', ({ roomId, videoId }) => {
-        if (roomPlaylists.has(roomId)) {
-            const playlist = roomPlaylists.get(roomId);
-            const updatedPlaylist = playlist.filter(video => video.videoId !== videoId);
-            roomPlaylists.set(roomId, updatedPlaylist);
-            
-            // Emit update events to all clients in the room
-            io.to(roomId).emit('video_removed', { videoId });
-            io.to(roomId).emit('playlist_updated', updatedPlaylist);
-        }
+        if (!roomPlaylists.has(roomId)) return;
+        const updated = roomPlaylists.get(roomId).filter(v => v.videoId !== videoId);
+        roomPlaylists.set(roomId, updated);
+        io.to(roomId).emit('video_removed', { videoId });
+        io.to(roomId).emit('playlist_updated', updated);
     });
-
    
 
    

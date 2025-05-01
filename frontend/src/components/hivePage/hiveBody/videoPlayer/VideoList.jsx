@@ -1,7 +1,7 @@
 import React from "react";
 import VideoItem from "./VideoItem";
 
-const VideoList = ({ videos, onVideoSelect }) => {
+const VideoList = ({ videos, onVideoSelect, roomId }) => {
     console.log('VideoList received videos:', videos);
 
     if (!videos || videos.length === 0) {
@@ -13,12 +13,13 @@ const VideoList = ({ videos, onVideoSelect }) => {
     }
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 h-full">
             {videos.map((video) => (
                 <VideoItem 
                     key={video.id.videoId} 
                     video={video} 
                     onVideoSelect={onVideoSelect}
+                    roomId={roomId}
                 />
             ))}
         </div>
