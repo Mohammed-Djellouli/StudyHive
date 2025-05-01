@@ -115,7 +115,7 @@ useEffect(() => {
     socket.on("user_joined", (newUser) => {
         setUsers((prev) => {
             if (prev.find(u => u.userId === newUser.userId)) return prev;
-            setNotification({ message: `${newUser.pseudo} a rejoint la Ruche`, type: "info" });
+            setNotification({message: `${newUser.pseudo} a rejoint la Ruche`, type: "info"});
             return [...prev, newUser];
         });
     });
@@ -139,6 +139,12 @@ useEffect(() => {
                 idStr !== user._id?.toString()
             );
         });
+
+        return () => {
+            socket.off("user_joined");
+            socket.off("user_left");
+        };
+
     });
 
     return () => {
@@ -146,6 +152,7 @@ useEffect(() => {
         socket.off("user_left");
     };
 }, []);
+
 
 
 useEffect(() => {
@@ -172,6 +179,7 @@ if (isLoading) {
 
     );
 }
+
 
 return (
     <div className="min-h-screen w-full bg-[#1D1F27] bg-center bg-cover bg-no-repeat overflow-y-auto"
@@ -211,7 +219,7 @@ return (
         </div>
 
         <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
-        <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox /></div>
+        <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox users={users} ownerId = {ownerId} /></div>
         <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
 
         <Left_bar_Icons_members_In_Room
