@@ -14,6 +14,8 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     const [micAllowed, setMicAllowed] = useState(true);
     const [usersState,setUsers] = useState(users);
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [brbActive, setBrbActive] = useState(false);
+
 
 
 
@@ -274,15 +276,17 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         const handleBRB = (event)=>{
             const {brb} = event.detail;
             console.log("BRB MODE : ",brb);
+            setBrbActive(brb);
             if(stream){
                 stream.getAudioTracks().forEach((track)=>{
-                    track.enabled = !brb;
+                    track.enabled = !brb && micAllowed;
                 });
             }
             document.querySelectorAll('audio').forEach((audio)=>{
                 audio.muted = brb;
             });
-            setMicOn(!brb)
+            setBrbActive(brb);
+            setMicOn(!brb && micAllowed);
         }
         window.addEventListener("toggle-brb",handleBRB);
         return()=>{
@@ -304,7 +308,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     };
 
     const handleToggleMic =()=>{
-        if(!stream || !micAllowed){
+        if(!stream || !micAllowed || brbActive){
             return;
         }
         setMicOn(prev=>!prev);
@@ -313,7 +317,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     return (
 
         <button onClick={handleToggleMic}
-                disabled={!micAllowed}
+                disabled={!micAllowed || brbActive}
                 className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
             <img
                 src={micOn ? "/assets/open-microphone.png" : "/assets/mute-microphone.png"}

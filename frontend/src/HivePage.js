@@ -10,7 +10,6 @@ import SearchBar from "./components/hivePage/hiveHeader/SeachBar";
 import LeftBarTools from "./components/hivePage/hiveBody/LeftBarTools";
 import HiveTimerBanner from "./components/hivePage/hiveHandle/HiveTimerBanner";
 import ChatBox from "./components/Communication/Chat/chatBox";
-import VoiceChat from "./components/Communication/MicChat/VoiceChat";
 import BlocNote from "./components/hivePage/hiveBody/BlocNote";
 import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
 import NotificationBanner from "./components/hivePage/hiveHeader/NotificationBanner";
