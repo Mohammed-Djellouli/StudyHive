@@ -13,12 +13,14 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     const [micOn, setMicOn] = useState(true);
     const [micAllowed, setMicAllowed] = useState(true);
     const [usersState,setUsers] = useState(users);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+
 
 
     //stun to help peer find the best route to connect
     //turn used when stun fails (fairewalls problems...)
 
-    console.log("current user id is : ",currentUserId)
+    //console.log("current user id is : ",currentUserId)
     const peerConfig ={
         trickle: false,
         config:{
@@ -55,6 +57,48 @@ const VoiceChat = ({users = [],currentUserId}) =>{
             setMicAllowed(currentUser.micControl);
         }
     }, [usersState, currentUserId]);
+
+
+    useEffect(() => {
+        if (!stream) return;
+
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
+        const microphone = audioContext.createMediaStreamSource(stream);
+        const dataArray = new Uint8Array(analyser.fftSize);
+
+        microphone.connect(analyser);
+
+        const checkSpeaking = () => {
+            analyser.getByteFrequencyData(dataArray);
+            const volume = dataArray.reduce((a,b) => a+b)/dataArray.length;
+
+            const speaking = volume > 1;
+            setIsSpeaking(speaking);
+            socket.emit("user_speaking", { roomId, userId: currentUserId, speaking });
+        };
+
+        const interval = setInterval(checkSpeaking, 100);
+
+        return () => clearInterval(interval);
+    }, [stream]);
+
+
+    useEffect(() => {
+        socket.on("user_speaking_status", ({ userId,speaking }) => {
+            const userElement = document.getElementById(`user-${userId}`);
+            if (userElement) {
+                userElement.classList.toggle("ring-4",speaking);
+                userElement.classList.toggle("ring-yellow-400",speaking);
+            }
+        });
+
+        return () => {
+            socket.off("user_speaking_status");
+        };
+    }, []);
+
+
 
 
     useEffect(()=>{
@@ -265,7 +309,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         }
         setMicOn(prev=>!prev);
     }
-    console.log("Button rendering: micAllowed =", micAllowed);
+    //console.log("Button rendering: micAllowed =", micAllowed);
     return (
 
         <button onClick={handleToggleMic}

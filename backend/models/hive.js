@@ -60,14 +60,6 @@ const RoomSchema = new mongoose.Schema({
         }
     }],
 
-    videos: [{
-        videoId: String,
-        title: String,
-        addedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        }
-    }]
 });
 
 const Room = mongoose.models.Room || mongoose.model("Room", RoomSchema);

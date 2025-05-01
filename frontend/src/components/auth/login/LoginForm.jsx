@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from "axios";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useNavigate, Link } from "react-router-dom";
+import {FcGoogle} from "react-icons/fc";
 
 const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -17,6 +18,8 @@ const LoginForm = () => {
                 email,
                 password
             });
+
+
 
             if (response && response.data) {
                 console.log(response.data);
@@ -83,6 +86,16 @@ const LoginForm = () => {
                 className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-md mb-4 hover:bg-yellow-300"
             >
                 se connecter
+            </button>
+            <button
+                type="button"
+                className="w-full flex items-center justify-center gap-2 bg-[#FBBC04] text-black font-semibold py-2 rounded-md mb-4 hover:bg-yellow-400"
+                onClick={() => {
+                    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/google`;
+                }}
+            >
+                <FcGoogle className="text-xl" />
+                Continue with Google
             </button>
 
             <p className="text-center text-sm text-gray-400">

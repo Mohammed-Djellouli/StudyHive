@@ -27,7 +27,7 @@ app.use(cookieSession({
     maxAge: 24 * 60 * 60 * 1000,
     keys: ["studyhive_session_key"]
 }));
-const Hive = require("./models/Hive");
+const Hive = require("./models/hive");
 const User = require("./models/User");
 
 app.use(passport.initialize());
@@ -59,17 +59,59 @@ const roomUsers= {};
 
 
 
-io.on("connection", (socket) => {
-    socket.data.hiveRoomId = null;
-    // Quand un utilisateur rejoint une Hive
-    socket.on("join_hive_room", async ({ roomId, userId }) => { 
-        socket.join(roomId);
+// Ajout d'une variable globale pour suivre l'état du partage d'écran par room
+const screenShareState = {};
+const disconnectedUsers = new Map();
 
+// Store playlists in memory (you might want to move this to a database in production)
+const roomPlaylists = new Map();
+
+
+
+
+io.on("connection", (socket) => {
+    socket.on("join_whiteboard", (roomId) => {
+        socket.join(roomId);
+    });
+    socket.data.hiveRoomId = null;
+
+    socket.on("register_identity", ({ userId }) => {
+        if (userId) {
+            socket.userId = userId;
+            console.log(`register_identity: userId ${userId} enregistré pour socket ${socket.id}`);
+        } else {
+            console.warn(`register_identity sans userId (socket ${socket.id})`);
+        }
+    });
+
+
+    // Quand un utilisateur rejoint une Hive
+    socket.on("join_hive_room", async ({ roomId, userId, isRefreshing }) => {
+        if (!userId) {
+            //console.warn(" join_hive_room appelé sans userId → socket ignoré");
+            return;
+        }
+        //console.log(" join_hive_room reçu avec:", { roomId, userId });
+        socket.join(roomId);
         socket.data.hiveRoomId = roomId;
-        io.to(roomId).emit("user_joined", user);
-        console.log(`${user.pseudo} joined room ${roomId}`);
+
+        if (disconnectedUsers.has(userId)) {
+            clearTimeout(disconnectedUsers.get(userId));
+            disconnectedUsers.delete(userId);
+            console.log(` ${userId} est revenu → suppression annulée`);
+        }
+
+
+
+
+         // Send existing video state if any
+         if (roomState[roomId]) {
+            socket.emit("syncVideo", roomState[roomId]);
+        }
+
 
         socket.userId = userId;
+        socket.userSocketId = userId;
 
         // Ajouter dans roomUsers
         if (!roomUsers[roomId]) roomUsers[roomId] = [];
@@ -109,10 +151,8 @@ io.on("connection", (socket) => {
             console.error("Erreur serveur join_hive_room:", error);
         }
 
+
     });
-
-
-
 
     socket.on("send_message", ({roomId,message}) => {
         if(roomId && message){
@@ -120,17 +160,18 @@ io.on("connection", (socket) => {
         }
     })
 
-    socket.on("draw", (data) => {
-        socket.broadcast.emit("draw", data);
+    socket.on("draw", ({ roomId, ...data }) => {
+        socket.to(roomId).emit("draw", data);
     });
 
-    socket.on("changeBrushSize", (size) => {
-        socket.broadcast.emit("changeBrushSize", size);
+    socket.on("changeBrushSize", ({ roomId, size }) => {
+        socket.to(roomId).emit("changeBrushSize", size);
     });
 
-    socket.on("clear", () => {
-        socket.broadcast.emit("clear");
+    socket.on("clear", (roomId) => {
+        socket.to(roomId).emit("clear");
     });
+
 
 
     // Nouvel événement pour demander l'état actuel de la vidéo
@@ -231,10 +272,63 @@ io.on("connection", (socket) => {
         }
     });
 
-    
+    // Gestionnaire pour la mise à jour des permissions de partage d'écran
+    socket.on("update_screen_share_permission", async ({ targetUserPseudo, allowScreenShare }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId) return;
+
+        try {
+            const room = await Room.findOne({ idRoom: roomId });
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.screenShareControl = allowScreenShare;
+                await room.save();
+
+                // Envoyer la mise à jour à tous les utilisateurs
+                io.to(roomId.toString()).emit("screen_share_permission_updated", {
+                    userId: user.userId,
+                    screenShareControl: allowScreenShare
+                });
+            }
+            console.log(`Screen share permission updated for user ${user.userId}: ${allowScreenShare}`);
+
+        } catch (err) {
+            console.error("Failed to update screen share permission:", err);
+        }
+    });
+
+    // Gestionnaire pour la mise à jour des permissions de contrôle vidéo
+    socket.on("update_video_permission", async ({ targetUserPseudo, allowVideo }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId) return;
+
+        try {
+            const room = await Room.findOne({ idRoom: roomId });
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.videoControl = allowVideo;
+                await room.save();
+
+                // Envoyer la mise à jour à tous les utilisateurs
+                io.to(roomId.toString()).emit("video_permission_updated", {
+                    userId: user.userId,
+                    videoControl: allowVideo
+                });
+            }
+            console.log(`Video permission updated for user ${user.userId}: ${allowVideo}`);
+
+        } catch (err) {
+            console.error("Failed to update video permission:", err);
+        }
+    });
 
     // Handle screen share start
     socket.on("screen_share_started", ({ roomId }) => {
+        screenShareState[roomId] = socket.id;
         socket.to(roomId).emit("screen_share_update", {
             action: "started",
             userId: socket.id
@@ -243,7 +337,17 @@ io.on("connection", (socket) => {
 
     // Handle screen share stop
     socket.on("stop_screen_share", ({ roomId }) => {
+        delete screenShareState[roomId];
         socket.to(roomId).emit("screen_share_stopped");
+    });
+
+    // Synchronisation de l'état du partage d'écran
+    socket.on("request_screen_share_status", ({ roomId }) => {
+        const sharerId = screenShareState[roomId];
+        socket.emit("screen_share_status", {
+            isSharing: !!sharerId,
+            sharerId: sharerId || null
+        });
     });
 
     // Relayer la demande d'offre de partage d'écran
@@ -255,6 +359,48 @@ io.on("connection", (socket) => {
     socket.on("screen_share_offer", (payload) => {
         io.to(payload.target).emit("screen_share_offer", payload);
     });
+
+
+    socket.on('get_playlist', ({ roomId }) => {
+        if (!roomId) {
+            //console.warn('get_playlist: roomId is undefined');
+            return;
+        }
+    
+        const playlist = roomPlaylists.get(roomId) || [];
+        socket.emit('playlist_updated', playlist);
+    });
+    
+    socket.on('add_to_playlist', ({ roomId, videoId, title, url }) => {
+        if (!roomId || !videoId || !title || !url) {
+            console.error('add_to_playlist: Missing data', { roomId, videoId, title, url });
+            return;
+        }
+    
+        if (!roomPlaylists.has(roomId)) {
+            roomPlaylists.set(roomId, []);
+        }
+    
+        const playlist = roomPlaylists.get(roomId);
+        const exists = playlist.some(v => v.videoId === videoId);
+        if (!exists) {
+            const newVideo = { videoId, title, url };
+            playlist.push(newVideo);
+            io.to(roomId).emit('video_added', newVideo);
+            io.to(roomId).emit('playlist_updated', playlist);
+        } else {
+            console.log(`[add_to_playlist] Video already exists in room ${roomId}`);
+        }
+    });
+    
+    socket.on('remove_from_playlist', ({ roomId, videoId }) => {
+        if (!roomPlaylists.has(roomId)) return;
+        const updated = roomPlaylists.get(roomId).filter(v => v.videoId !== videoId);
+        roomPlaylists.set(roomId, updated);
+        io.to(roomId).emit('video_removed', { videoId });
+        io.to(roomId).emit('playlist_updated', updated);
+    });
+   
 
    
 
@@ -290,6 +436,8 @@ io.on("connection", (socket) => {
 
 
     socket.on("disconnecting", async () => {
+        //console.log(` ######################################################[DECO] Utilisateur en déconnexion: ${socket.userId} (socket: ${socket.id})`);
+
         const joinedRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
         const userId = socket.userId;
 
@@ -298,10 +446,14 @@ io.on("connection", (socket) => {
             const hive = await Hive.findOne({ idRoom: roomId });
             if (!hive || !userId) return;
 
-            setTimeout(async () => {
+            if (roomUsers[roomId]) {
+                roomUsers[roomId] = roomUsers[roomId].filter(u => u.userId !== userId);
+            }
+
+            const timeoutId = setTimeout(async () => {
                 const stillPresent = roomUsers[roomId]?.some(u => u.userId === userId);
                 if (stillPresent) {
-                    console.log(` ${userId} est revenu, pas supprimé.`);
+                    console.log(` ${userId} est revenu à temps.`);
                     return;
                 }
 
@@ -309,7 +461,8 @@ io.on("connection", (socket) => {
                 if (!refreshedHive) return;
 
                 const index = refreshedHive.users.findIndex(u =>
-                    u.userId?.toString() === userId.toString()
+                    (u.userId && u.userId.toString() === userId?.toString()) ||
+                    (u.userSocketId && u.userSocketId === userId)
                 );
 
                 if (index !== -1) {
@@ -317,12 +470,26 @@ io.on("connection", (socket) => {
                     await refreshedHive.save();
                     io.to(roomId).emit("update_users_list", refreshedHive.users);
                     io.to(roomId).emit("user_left", userId);
-                    console.log(` Utilisateur supprimé après déco réelle : ${userId}`);
+                    console.log(` Utilisateur retiré définitivement : ${userId}`);
                 }
-            }, 3000);
 
+                if (roomUsers[roomId]) {
+                    roomUsers[roomId] = roomUsers[roomId].filter(u => u.userId !== userId);
+                }
+
+
+                disconnectedUsers.delete(userId);
+            }, 6000); // 6 secondes
+
+
+            disconnectedUsers.set(userId, timeoutId);
         }
     });
+
+    socket.on("user_speaking", ({roomId,userId,speaking}) => {
+        io.to(roomId).emit("user_speaking_status", {userId,speaking});
+    });
+
 
 })
 
@@ -336,5 +503,6 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-    console.log(`Serveur lancé sur : http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Socket.IO server ready for connections`);
 });

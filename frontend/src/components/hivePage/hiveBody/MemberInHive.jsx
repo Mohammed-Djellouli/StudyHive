@@ -5,38 +5,68 @@ import socket from "../../socket";
 function MemberInHive({
                           pseudo,
                           micControl,
+                          screenShareControl,
+                          videoControl,
                           isOwner = false,
                           isQueenBeeMode = false,
                           currentUserId,
-                          ownerId
+                          ownerId,
+                          userId,
+
                       }) {
 
     const [showModal, setShowModal] = useState(false);
-
     const [isMuted, setIsMuted] = useState(false);
-    const [isSharingAllowed, setIsSharingAllowed] = useState(true);
-    const [isVideoAllowed, setIsVideoAllowed] = useState(true);
+    const [isSharingAllowed, setIsSharingAllowed] = useState(screenShareControl);
+    const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
 
+    // Mettre à jour les états de partage d'écran et vidéo quand les props changent
+    useEffect(() => {
+        setIsSharingAllowed(screenShareControl);
+        setIsVideoAllowed(videoControl);
+    }, [screenShareControl, videoControl]);
 
     useEffect(() => {
-        setIsMuted(!micControl)
-    }, [micControl]);
+        const handleScreenSharePermissionUpdate = ({ userId: updatedUserId, screenShareControl: newScreenShareControl }) => {
+            if (updatedUserId === userId) {
+                setIsSharingAllowed(newScreenShareControl);
+            }
+        };
 
+        const handleVideoPermissionUpdate = ({ userId: updatedUserId, videoControl: newVideoControl }) => {
+            if (updatedUserId === userId) {
+                setIsVideoAllowed(newVideoControl);
+            }
+        };
+
+        socket.on("screen_share_permission_updated", handleScreenSharePermissionUpdate);
+        socket.on("video_permission_updated", handleVideoPermissionUpdate);
+
+        return () => {
+            socket.off("screen_share_permission_updated", handleScreenSharePermissionUpdate);
+            socket.off("video_permission_updated", handleVideoPermissionUpdate);
+        };
+    }, [userId]);
+
+    const canModifyPermissions = currentUserId === ownerId;
 
     const handleClick = () => {
         if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
             setShowModal(prev => !prev);
         }
     }
-
     return (
-        <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer">
-            <img
-                src="/assets/SoloBee2.png"
-                alt="Bee"
-                className="w-[28px] h-[28px]"
-                onClick={handleClick}
-            />
+        <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer ">
+            {/* le div pour le cercle autour de l'icon quand l'utilisateur parle*/}
+            <div id={`user-${userId}`} className="relative rounded-full ring-4 ring-transparent transition-all w-[50px] h-[50px] flex items-center justify-center">
+                <img
+                    src="/assets/SoloBee2.png"
+                    alt="Bee"
+                    className="w-[28px] h-[28px]"
+                    onClick={handleClick}
+                />
+            </div>
+
 
             {/* Hover - pseudo */}
             <span className="absolute left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-20 transition-opacity duration-200">
@@ -60,32 +90,27 @@ function MemberInHive({
                     <div className="flex gap-2">
                         {isMuted ? (
                             <button
-                                className="bg-black text-xs px-2 py-1 rounded w-[80px] "
+                                className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
                                 onClick={() => {
                                     setIsMuted(false);
-                                    console.log("Socket connected?", socket.connected);
-
-                                    console.log("Sending update mic permission for", pseudo, "allowMic:", true);
                                     socket.emit("update_mic_permission", {
                                         targetUserPseudo: pseudo,
                                         allowMic: true
-                                    })
-                                    }
-                                }
+                                    });
+                                }}
                             >
                                 Unmute
                             </button>
                         ) : (
                             <button
-                                className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
+                                className="bg-black text-xs px-2 py-1 rounded w-[80px]"
                                 onClick={() => {
                                     setIsMuted(true);
                                     socket.emit("update_mic_permission", {
                                         targetUserPseudo: pseudo,
                                         allowMic: false
-                                    })
-                                }
-                            }
+                                    });
+                                }}
                             >
                                 Mute
                             </button>
@@ -97,14 +122,26 @@ function MemberInHive({
                         {isSharingAllowed ? (
                             <button
                                 className="bg-black text-xs px-2 py-1 rounded w-[80px]"
-                                onClick={() => setIsSharingAllowed(false)}
+                                onClick={() => {
+                                    setIsSharingAllowed(false);
+                                    socket.emit("update_screen_share_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowScreenShare: false
+                                    });
+                                }}
                             >
                                 Block Share
                             </button>
                         ) : (
                             <button
                                 className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
-                                onClick={() => setIsSharingAllowed(true)}
+                                onClick={() => {
+                                    setIsSharingAllowed(true);
+                                    socket.emit("update_screen_share_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowScreenShare: true
+                                    });
+                                }}
                             >
                                 Allow Share
                             </button>
@@ -116,14 +153,26 @@ function MemberInHive({
                         {isVideoAllowed ? (
                             <button
                                 className="bg-black text-xs px-2 py-1 rounded w-[80px]"
-                                onClick={() => setIsVideoAllowed(false)}
+                                onClick={() => {
+                                    setIsVideoAllowed(false);
+                                    socket.emit("update_video_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowVideo: false
+                                    });
+                                }}
                             >
                                 Block Video
                             </button>
                         ) : (
                             <button
                                 className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
-                                onClick={() => setIsVideoAllowed(true)}
+                                onClick={() => {
+                                    setIsVideoAllowed(true);
+                                    socket.emit("update_video_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowVideo: true
+                                    });
+                                }}
                             >
                                 Allow Video
                             </button>
