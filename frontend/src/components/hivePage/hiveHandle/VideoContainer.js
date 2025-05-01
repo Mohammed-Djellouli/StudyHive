@@ -17,7 +17,8 @@ const VideoContainer = ({
     isQueenBeeMode,
     currentUserId,
     ownerId,
-    roomId
+    roomId,
+    users
 }) => {
     const { 
         isSharing, 
@@ -42,6 +43,30 @@ const VideoContainer = ({
         isPlayerReady
     } = videoPlayerFeatures;
 
+    const [videoPermission, setVideoPermission] = useState(false);
+
+    // Vérifier la permission vidéo basée sur users
+    useEffect(() => {
+        if (!users || users.length === 0 || !currentUserId) return;
+
+        const currentUser = users.find(user => user.userId === currentUserId || user._id === currentUserId);
+        if (currentUser) {
+            setVideoPermission(currentUser.videoControl);
+        }
+    }, [users, currentUserId]);
+
+    // Écouter les mises à jour des permissions vidéo en temps réel
+    useEffect(() => {
+        const handleVideoPermissionUpdate = ({ userId, videoControl }) => {
+            if (userId === currentUserId) {
+                setVideoPermission(videoControl);
+            }
+        };
+
+        socket.on("video_permission_updated", handleVideoPermissionUpdate);
+        return () => socket.off("video_permission_updated", handleVideoPermissionUpdate);
+    }, [currentUserId]);
+
     // État pour la position du modal
     const [modalPosition, setModalPosition] = useState({ x: 150, y: 100 });
     const isDraggingRef = useRef(false);
@@ -50,7 +75,7 @@ const VideoContainer = ({
 
     // Check if user has permission to control video
     const hasVideoPermission = () => {
-        return !isQueenBeeMode || (isQueenBeeMode && currentUserId === ownerId);
+        return videoPermission;
     };
 
     // Check if user has permission to share screen
