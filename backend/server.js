@@ -247,7 +247,59 @@ io.on("connection", (socket) => {
         }
     });
 
-    
+    // Gestionnaire pour la mise à jour des permissions de partage d'écran
+    socket.on("update_screen_share_permission", async ({ targetUserPseudo, allowScreenShare }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId) return;
+
+        try {
+            const room = await Room.findOne({ idRoom: roomId });
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.screenShareControl = allowScreenShare;
+                await room.save();
+
+                // Envoyer la mise à jour à tous les utilisateurs
+                io.to(roomId.toString()).emit("screen_share_permission_updated", {
+                    userId: user.userId,
+                    screenShareControl: allowScreenShare
+                });
+            }
+            console.log(`Screen share permission updated for user ${user.userId}: ${allowScreenShare}`);
+
+        } catch (err) {
+            console.error("Failed to update screen share permission:", err);
+        }
+    });
+
+    // Gestionnaire pour la mise à jour des permissions de contrôle vidéo
+    socket.on("update_video_permission", async ({ targetUserPseudo, allowVideo }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId) return;
+
+        try {
+            const room = await Room.findOne({ idRoom: roomId });
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.videoControl = allowVideo;
+                await room.save();
+
+                // Envoyer la mise à jour à tous les utilisateurs
+                io.to(roomId.toString()).emit("video_permission_updated", {
+                    userId: user.userId,
+                    videoControl: allowVideo
+                });
+            }
+            console.log(`Video permission updated for user ${user.userId}: ${allowVideo}`);
+
+        } catch (err) {
+            console.error("Failed to update video permission:", err);
+        }
+    });
 
     // Handle screen share start
     socket.on("screen_share_started", ({ roomId }) => {
@@ -291,7 +343,6 @@ io.on("connection", (socket) => {
         }
     
         const playlist = roomPlaylists.get(roomId) || [];
-        console.log(`[get_playlist] for room ${roomId}:`, playlist);
         socket.emit('playlist_updated', playlist);
     });
     
@@ -310,7 +361,6 @@ io.on("connection", (socket) => {
         if (!exists) {
             const newVideo = { videoId, title, url };
             playlist.push(newVideo);
-            console.log(`[add_to_playlist] Room ${roomId} added video:`, newVideo);
             io.to(roomId).emit('video_added', newVideo);
             io.to(roomId).emit('playlist_updated', playlist);
         } else {

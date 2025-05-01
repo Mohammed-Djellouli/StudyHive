@@ -194,6 +194,7 @@ function HivePage() {
                         currentUserId={localStorage.getItem("userId") || socket.id}
                         ownerId={ownerId}
                         roomId={idRoom}
+                        users={users}
                     />
                 </div>
 

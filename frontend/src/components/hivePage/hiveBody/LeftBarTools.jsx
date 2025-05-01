@@ -2,66 +2,118 @@ import React, { useState, useEffect } from 'react';
 import VoiceChat from "../../Communication/MicChat/VoiceChat";
 import socket from '../../../components/socket';
 
-function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing,users,currentUserId,toggleBRB,brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, onToggleWhiteboard, isWhiteboardOpen, ownerId   }){
-
-
+function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing, users = [], currentUserId, toggleBRB, brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, onToggleWhiteboard, isWhiteboardOpen, ownerId }) {
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
     const [currentSharingUser, setCurrentSharingUser] = useState(null);
+    const [sharePermission, setSharePermission] = useState(false);
     
     const toggleMic = () => setMicOn(prev => !prev);
     const toggleHand = () => setHandRaised(prev => !prev);
 
-    // Effet pour le rafraîchissement automatique et l'écoute des événements de partage d'écran
+    // Vérifier la permission de partage d'écran basée sur users
+    useEffect(() => {
+        try {
+            if (!Array.isArray(users) || users.length === 0 || !currentUserId) {
+                setSharePermission(false);
+                return;
+            }
+
+            const currentUser = users.find(user => 
+                user && (
+                    (user.userId && user.userId.toString() === currentUserId.toString()) || 
+                    (user._id && user._id.toString() === currentUserId.toString())
+                )
+            );
+
+            if (currentUser) {
+                setSharePermission(!!currentUser.screenShareControl);
+            } else {
+                setSharePermission(false);
+            }
+        } catch (error) {
+            console.error("Error checking share permission:", error);
+            setSharePermission(false);
+        }
+    }, [users, currentUserId]);
+
+    // Écouter les mises à jour des permissions de partage d'écran
+    useEffect(() => {
+        if (!currentUserId) return;
+
+        const handleScreenSharePermissionUpdate = ({ userId, screenShareControl }) => {
+            try {
+                if (userId && userId.toString() === currentUserId.toString()) {
+                    setSharePermission(!!screenShareControl);
+                }
+            } catch (error) {
+                console.error("Error handling screen share permission update:", error);
+            }
+        };
+
+        socket.on("screen_share_permission_updated", handleScreenSharePermissionUpdate);
+
+        return () => {
+            socket.off("screen_share_permission_updated", handleScreenSharePermissionUpdate);
+        };
+    }, [currentUserId]);
+
+    // Effet pour l'écoute des événements de partage d'écran
     useEffect(() => {
         const handleScreenShareUpdate = (data) => {
-            if (data.action === "started") {
-                setCurrentSharingUser(data.userId);
+            try {
+                if (data && data.action === "started") {
+                    setCurrentSharingUser(data.userId);
+                }
+            } catch (error) {
+                console.error("Error handling screen share update:", error);
             }
         };
 
         const handleScreenShareStopped = () => {
-            setCurrentSharingUser(null);
+            try {
+                setCurrentSharingUser(null);
+            } catch (error) {
+                console.error("Error handling screen share stop:", error);
+            }
         };
 
         socket.on("screen_share_update", handleScreenShareUpdate);
         socket.on("screen_share_stopped", handleScreenShareStopped);
 
-        // Rafraîchissement automatique toutes les secondes
-        const interval = setInterval(() => {
-            // Forcer le rafraîchissement du composant
-            setCurrentSharingUser(prev => prev);
-        }, 1000);
-
         return () => {
             socket.off("screen_share_update", handleScreenShareUpdate);
             socket.off("screen_share_stopped", handleScreenShareStopped);
-            clearInterval(interval);
         };
     }, []);
 
-    // Vérifie si le bouton de partage d'écran doit être affiché
-    const shouldShowShareButton = () => {
-        if (isQueenBeeMode) {
-            // En mode Queen Bee, seul le créateur voit le bouton
-            return currentUserId === ownerId && !isSharing;
-        }
-        // En mode Worker Bee, personne ne voit le bouton si quelqu'un partage
-        return !isSharing && !currentSharingUser;
-    };
+    // Vérifie si l'utilisateur a la permission de partager l'écran
+    const hasSharePermission = !!sharePermission;
+
+    // Vérifie si le partage est possible techniquement
+    const canShare = !isSharing && !currentSharingUser;
 
     return (
         <div className="fixed top-[60px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
             {/* Share Screen */}
-            {shouldShowShareButton() && (
-                <button
-                    onClick={onStartSharing}
-                    className="bg-black/60 p-2 rounded-full hover:scale-105 transition hover:bg-yellow-400/20"
-                    title="Partager l'écran"
-                >
-                    <img src="/assets/share-screen.png" alt="Share Screen" className="w-[24px] h-[24px]" />
-                </button>
-            )}
+            <button
+                onClick={hasSharePermission && canShare ? onStartSharing : undefined}
+                className={`bg-black/60 p-2 rounded-full transition ${
+                    !hasSharePermission || !canShare 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:scale-105 hover:bg-yellow-400/20'
+                }`}
+                title={
+                    !hasSharePermission 
+                    ? "Vous n'avez pas la permission de partager l'écran"
+                    : !canShare 
+                    ? "Partage d'écran déjà en cours"
+                    : "Partager l'écran"
+                }
+                disabled={!hasSharePermission || !canShare}
+            >
+                <img src="/assets/share-screen.png" alt="Share Screen" className="w-[24px] h-[24px]" />
+            </button>
 
             {/* Toggle Screen Share Window Visibility */}
             <button
@@ -104,7 +156,6 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
                     className="w-[24px] h-[24px]"
                 />
             </button>
-
 
             {/* BRB */}
             <div className="bg-black/60 rounded-full w-[40px] h-[40px] text-white text-sm font-bold flex items-center justify-center">
