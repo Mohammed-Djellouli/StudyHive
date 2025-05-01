@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from "react";
-import {useLocation} from "react-router-dom";
-import { useParams } from "react-router-dom";
+
+// HivePage.jsx (COMPLET ET NETTOYÉ)
+import React, { useEffect, useState } from "react";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 
 import useVideoPlayer from './hooks/useVideoPlayer';
 import useWebRTC from './hooks/useWebRTC';
@@ -51,10 +52,43 @@ function HivePage() {
     const [showPlaylist, setShowPlaylist] = useState(false);
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
+
+    const navigate = useNavigate();
+
+
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+
+        if (socket.connected) {
+            socket.emit("register_identity", { userId });
+        } else {
+            socket.once("connect", () => {
+                socket.emit("register_identity", { userId });
+            });
+        }
+    }, []);
+
     const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
 
     useEffect(() => {
-        fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`)
+        const userId = localStorage.getItem("userId");
+        const userPseudo = localStorage.getItem("userPseudo");
+
+        // Si pas d'utilisateur en mémoire → rediriger vers /join/:idRoom
+        if (!userId || !userPseudo) {
+            navigate(`/join/${idRoom}`);
+        }
+    }, [idRoom, navigate]);
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        const userPseudo = localStorage.getItem("userPseudo");
+
+        const url = new URL(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`);
+        if (userId) url.searchParams.append("userId", userId);
+        if (userPseudo) url.searchParams.append("userPseudo", userPseudo);
+
+        fetch(url.toString())
             .then(res => res.json())
             .then(data => {
                 setIsQueenBeeMode(data.isQueenBeeMode);
@@ -64,7 +98,7 @@ function HivePage() {
                 setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
                 setIsLoading(false);
             });
-    }, [idRoom, location.state]);
+    }, [idRoom]);
 
     useEffect(() => {
         const handleBeforeUnload = () => {
@@ -108,11 +142,24 @@ function HivePage() {
     }, []);
 
     useEffect(() => {
-        if (socket && idRoom && currentId) {
-            console.log("Emitting join_hive_room");
-            socket.emit("join_hive_room", {roomId: idRoom, userId: currentId});
+
+        const userId = localStorage.getItem("userId");
+        const isRefreshing = localStorage.getItem("isRefreshing");
+
+        if (userId && idRoom) {
+            socket.emit("join_hive_room", {
+                roomId: idRoom,
+                userId: userId,
+                isRefreshing: !!isRefreshing,
+            });
+
+            setTimeout(() => {
+                localStorage.removeItem("isRefreshing");
+            }, 3000);
+
         }
-    }, [idRoom, currentId]);
+    }, [idRoom]);
+
 
     useEffect(() => {
         const handleUserJoined = (newUser) => {
@@ -132,21 +179,24 @@ function HivePage() {
             setUsers(prevUsers => prevUsers.filter(user => user.socketId !== socketIdLeft));
         };
 
-        const handleDisconnectUser = (userIdLeft) => {
-            console.log("User Left (userId)", userIdLeft);
-            setUsers(prevUsers => prevUsers.filter(user => user.userId !== userIdLeft));
-        };
 
-        socket.on("user_joined", handleUserJoined);
-        socket.on("user_left", handleUserLeft);
-        socket.on("disconnect_user", handleDisconnectUser);
+
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            //console.log("########################################################################## Le navigateur est en train d’être fermé / rafraîchi");
+            localStorage.setItem("isRefreshing", "true");
+        };
+        localStorage.removeItem("userPseudo");
+        window.addEventListener("beforeunload", handleBeforeUnload);
 
         return () => {
-            socket.off("user_joined", handleUserJoined);
-            socket.off("user_left", handleUserLeft);
-            socket.off("disconnect_user", handleDisconnectUser);
+            window.removeEventListener("beforeunload", handleBeforeUnload);
         };
     }, []);
+
+
+
+
 
     if (isLoading) {
         return (
