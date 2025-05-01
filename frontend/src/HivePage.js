@@ -43,6 +43,14 @@ function HivePage() {
     const [currentId, setCurrentId] = useState('');
     const navigate = useNavigate();
 
+    const toggleBrb = () => {
+        const newValue = !brbMode;
+        setBrbMode(newValue);
+        const event = new CustomEvent("toggle-brb", { detail: { brb: newValue } });
+        window.dispatchEvent(event);
+    };
+
+
 
     useEffect(() => {
         const userId = localStorage.getItem("userId");
@@ -240,7 +248,7 @@ return (
                 isSharing={webRTCFeatures.isSharing}
                 users={users}
                 currentUserId={currentId}
-                toggleBRB={() => setBrbMode(!brbMode)}
+                toggleBRB={toggleBrb}
                 brbMode={brbMode}
                 isScreenShareWindowOpen={isScreenShareWindowOpen}
                 onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
