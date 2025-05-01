@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function SearchBar({ onSearch }) {
+function SearchBar({ onSearch, isQueenBeeMode, currentUserId, ownerId }) {
     const [term, setTerm] = useState('');
 
     const handleSubmit = (e) => {
@@ -9,6 +9,13 @@ function SearchBar({ onSearch }) {
             onSearch(term);
         }
     };
+
+    // Vérifie si l'utilisateur a la permission d'utiliser la recherche
+    const hasSearchPermission = !isQueenBeeMode || (isQueenBeeMode && currentUserId === ownerId);
+
+    if (!hasSearchPermission) {
+        return null; // Ne pas afficher la barre de recherche si pas de permission
+    }
 
     return (
         <div className="w-full flex justify-center fixed top-0 left-0 pt-4 z-20">

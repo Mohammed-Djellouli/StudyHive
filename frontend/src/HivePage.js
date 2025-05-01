@@ -132,13 +132,13 @@ function HivePage() {
             <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
                 Chargement...
             </div>
+
         );
     }
 
     return (
         <div className="min-h-screen w-full bg-[#1D1F27] bg-center bg-cover bg-no-repeat overflow-y-auto"
              style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
-
             {notification && (
                 <NotificationBanner
                     message={notification.message}
@@ -154,9 +154,11 @@ function HivePage() {
             <Big_Logo_At_Left />
             <SearchBar onSearch={videoPlayerFeatures.handleSearch} />
 
+
             <div className="relative group flex items-center justify-center cursor-pointer">
                 <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
                     <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect} />
+
                 </div>
                 <div className="realtive w-full">
                     <VideoContainer
@@ -164,11 +166,14 @@ function HivePage() {
                         videoPlayerFeatures={videoPlayerFeatures}
                         isModalOpen={isScreenShareWindowOpen}
                         setIsModalOpen={setIsScreenShareWindowOpen}
+                        isQueenBeeMode={isQueenBeeMode}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
                     />
                 </div>
             </div>
 
-            <WhiteBoard isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen} />
+            <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
             <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox /></div>
             <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
 
