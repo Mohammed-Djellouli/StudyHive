@@ -115,7 +115,7 @@ useEffect(() => {
     socket.on("user_joined", (newUser) => {
         setUsers((prev) => {
             if (prev.find(u => u.userId === newUser.userId)) return prev;
-            setNotification({ message: `${newUser.pseudo} a rejoint la Ruche`, type: "info" });
+            setNotification({message: `${newUser.pseudo} a rejoint la Ruche`, type: "info"});
             return [...prev, newUser];
         });
     });
@@ -144,7 +144,6 @@ useEffect(() => {
             socket.off("user_joined");
             socket.off("user_left");
         };
-    }, []);
 
     });
 
