@@ -2,11 +2,24 @@ import React, { useRef, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import socket from "../../socket";
 
-const WhiteBoard = ({ isModalOpen, setIsModalOpen }) => {
+
+const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
     const canvasRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState("#000000");
     const [brushSize, setBrushSize] = useState(3);
+
+
+    // Join whiteboard room
+    useEffect(() => {
+        if (roomId) {
+            socket.emit("join_whiteboard", roomId);
+        }
+
+        return () => {
+            socket.emit("leave_whiteboard", roomId);
+        };
+    }, [roomId]);
 
     const modalRef = useRef(null);
     const [modalPosition, setModalPosition] = useState({ x: 200, y: 100 });
@@ -94,6 +107,7 @@ const WhiteBoard = ({ isModalOpen, setIsModalOpen }) => {
     };
 
 
+
     const startDraw = (e) => {
         const ctx = canvasRef.current.getContext("2d");
         ctx.strokeStyle = color;
@@ -104,6 +118,7 @@ const WhiteBoard = ({ isModalOpen, setIsModalOpen }) => {
         setIsDrawing(true);
 
         socket.emit("draw", {
+            roomId,
             x: e.nativeEvent.offsetX,
             y: e.nativeEvent.offsetY,
             color,
@@ -120,6 +135,7 @@ const WhiteBoard = ({ isModalOpen, setIsModalOpen }) => {
         ctx.stroke();
 
         socket.emit("draw", {
+            roomId,
             x: offsetX,
             y: offsetY,
             color,
@@ -133,6 +149,7 @@ const WhiteBoard = ({ isModalOpen, setIsModalOpen }) => {
         canvasRef.current.getContext("2d").beginPath();
     };
 
+    //  Listen for remote drawing events
     useEffect(() => {
         const handleDraw = ({ x, y, color, brushSize, type }) => {
             const ctx = canvasRef.current.getContext("2d");
@@ -153,25 +170,25 @@ const WhiteBoard = ({ isModalOpen, setIsModalOpen }) => {
             const ctx = canvasRef.current.getContext("2d");
             ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         };
-        socket.on("changeBrushSize", (newSize) => {
-            setBrushSize(newSize);
-        });
+
         socket.on("draw", handleDraw);
         socket.on("clear", handleClear);
+        socket.on("changeBrushSize", (size) => {
+            setBrushSize(size);
+        });
 
         return () => {
             socket.off("draw", handleDraw);
             socket.off("clear", handleClear);
+            socket.off("changeBrushSize");
         };
     }, []);
 
     const clearCanvas = () => {
         const ctx = canvasRef.current.getContext("2d");
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-        socket.emit("clear");
+        socket.emit("clear", roomId);
     };
-
 
     const exportToPDF = () => {
         const canvas = canvasRef.current;
@@ -236,7 +253,7 @@ const WhiteBoard = ({ isModalOpen, setIsModalOpen }) => {
                         onChange={(e) => {
                             const newSize = parseInt(e.target.value);
                             setBrushSize(newSize);
-                            socket.emit("changeBrushSize", newSize);
+                            socket.emit("changeBrushSize", { roomId, size: newSize });
                         }}
                     />
 

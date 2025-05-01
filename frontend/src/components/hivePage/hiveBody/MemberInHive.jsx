@@ -9,7 +9,8 @@ function MemberInHive({
                           isQueenBeeMode = false,
                           currentUserId,
                           ownerId,
-                            userId,
+                          userId,
+
                       }) {
 
     const [showModal, setShowModal] = useState(false);
@@ -74,7 +75,7 @@ function MemberInHive({
                                         targetUserPseudo: pseudo,
                                         allowMic: true
                                     })
-                                    }
+                                }
                                 }
                             >
                                 Unmute
@@ -89,7 +90,7 @@ function MemberInHive({
                                         allowMic: false
                                     })
                                 }
-                            }
+                                }
                             >
                                 Mute
                             </button>

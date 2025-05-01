@@ -13,16 +13,17 @@ const GoogleAuthSuccess = () => {
         const currentUrl = window.location.href;
         console.log(" Current full URL:", currentUrl);
 
+
         const urlParams = new URLSearchParams(window.location.search);
 
         const pseudo = urlParams.get("pseudo");
         const userId = urlParams.get("userId");
         const token = urlParams.get("token");
 
-        console.log("🔐 Token from URL:", token);
-        console.log("🔐 pseudo from URL:", pseudo);
-        console.log("🔐 userId from URL:", userId);
 
+        console.log("Token from URL:", token);
+        console.log("pseudo from URL:", pseudo);
+        console.log("userId from URL:", userId);
         if (token && pseudo && userId) {
             localStorage.setItem("token", token);
 
@@ -38,6 +39,7 @@ const GoogleAuthSuccess = () => {
             navigate("/login");
         }
     }, [navigate, hasProcessed]);
+
 
     return null;
 };
