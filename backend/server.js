@@ -61,6 +61,7 @@ const roomUsers= {};
 
 // Ajout d'une variable globale pour suivre l'état du partage d'écran par room
 const screenShareState = {};
+const disconnectedUsers = new Map();
 
 // Store playlists in memory (you might want to move this to a database in production)
 const roomPlaylists = new Map();
@@ -73,11 +74,34 @@ io.on("connection", (socket) => {
         socket.join(roomId);
     });
     socket.data.hiveRoomId = null;
-    // Quand un utilisateur rejoint une Hive
-    socket.on("join_hive_room", async ({ roomId, userId }) => { 
-        socket.join(roomId);
 
+    socket.on("register_identity", ({ userId }) => {
+        if (userId) {
+            socket.userId = userId;
+            console.log(`register_identity: userId ${userId} enregistré pour socket ${socket.id}`);
+        } else {
+            console.warn(`register_identity sans userId (socket ${socket.id})`);
+        }
+    });
+
+
+    // Quand un utilisateur rejoint une Hive
+    socket.on("join_hive_room", async ({ roomId, userId, isRefreshing }) => {
+        if (!userId) {
+            //console.warn(" join_hive_room appelé sans userId → socket ignoré");
+            return;
+        }
+        //console.log(" join_hive_room reçu avec:", { roomId, userId });
+        socket.join(roomId);
         socket.data.hiveRoomId = roomId;
+
+        if (disconnectedUsers.has(userId)) {
+            clearTimeout(disconnectedUsers.get(userId));
+            disconnectedUsers.delete(userId);
+            console.log(` ${userId} est revenu → suppression annulée`);
+        }
+
+
 
 
          // Send existing video state if any
@@ -87,6 +111,7 @@ io.on("connection", (socket) => {
 
 
         socket.userId = userId;
+        socket.userSocketId = userId;
 
         // Ajouter dans roomUsers
         if (!roomUsers[roomId]) roomUsers[roomId] = [];
@@ -356,6 +381,8 @@ io.on("connection", (socket) => {
 
 
     socket.on("disconnecting", async () => {
+        //console.log(` ######################################################[DECO] Utilisateur en déconnexion: ${socket.userId} (socket: ${socket.id})`);
+
         const joinedRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
         const userId = socket.userId;
 
@@ -364,10 +391,14 @@ io.on("connection", (socket) => {
             const hive = await Hive.findOne({ idRoom: roomId });
             if (!hive || !userId) return;
 
-            setTimeout(async () => {
+            if (roomUsers[roomId]) {
+                roomUsers[roomId] = roomUsers[roomId].filter(u => u.userId !== userId);
+            }
+
+            const timeoutId = setTimeout(async () => {
                 const stillPresent = roomUsers[roomId]?.some(u => u.userId === userId);
                 if (stillPresent) {
-                    console.log(` ${userId} est revenu, pas supprimé.`);
+                    console.log(` ${userId} est revenu à temps.`);
                     return;
                 }
 
@@ -375,7 +406,8 @@ io.on("connection", (socket) => {
                 if (!refreshedHive) return;
 
                 const index = refreshedHive.users.findIndex(u =>
-                    u.userId?.toString() === userId.toString()
+                    (u.userId && u.userId.toString() === userId?.toString()) ||
+                    (u.userSocketId && u.userSocketId === userId)
                 );
 
                 if (index !== -1) {
@@ -383,12 +415,22 @@ io.on("connection", (socket) => {
                     await refreshedHive.save();
                     io.to(roomId).emit("update_users_list", refreshedHive.users);
                     io.to(roomId).emit("user_left", userId);
-                    console.log(` Utilisateur supprimé après déco réelle : ${userId}`);
+                    console.log(` Utilisateur retiré définitivement : ${userId}`);
                 }
-            }, 3000);
 
+                if (roomUsers[roomId]) {
+                    roomUsers[roomId] = roomUsers[roomId].filter(u => u.userId !== userId);
+                }
+
+
+                disconnectedUsers.delete(userId);
+            }, 6000); // 6 secondes
+
+
+            disconnectedUsers.set(userId, timeoutId);
         }
     });
+
     socket.on("user_speaking", ({roomId,userId,speaking}) => {
         io.to(roomId).emit("user_speaking_status", {userId,speaking});
     });

@@ -1,6 +1,6 @@
 // HivePage.jsx (COMPLET ET NETTOYÉ)
 import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 
 import useVideoPlayer from './hooks/useVideoPlayer';
 import useWebRTC from './hooks/useWebRTC';
@@ -42,9 +42,40 @@ function HivePage() {
 
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
+    const navigate = useNavigate();
+
 
     useEffect(() => {
-        fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`)
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+
+        if (socket.connected) {
+            socket.emit("register_identity", { userId });
+        } else {
+            socket.once("connect", () => {
+                socket.emit("register_identity", { userId });
+            });
+        }
+    }, []);
+
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        const userPseudo = localStorage.getItem("userPseudo");
+
+        // Si pas d'utilisateur en mémoire → rediriger vers /join/:idRoom
+        if (!userId || !userPseudo) {
+            navigate(`/join/${idRoom}`);
+        }
+    }, [idRoom, navigate]);
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        const userPseudo = localStorage.getItem("userPseudo");
+
+        const url = new URL(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`);
+        if (userId) url.searchParams.append("userId", userId);
+        if (userPseudo) url.searchParams.append("userPseudo", userPseudo);
+
+        fetch(url.toString())
             .then(res => res.json())
             .then(data => {
                 setIsQueenBeeMode(data.isQueenBeeMode);
@@ -54,7 +85,7 @@ function HivePage() {
                 setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
                 setIsLoading(false);
             });
-    }, [idRoom, location.state]);
+    }, [idRoom]);
 
     useEffect(() => {
         const pseudo = localStorage.getItem("userPseudo");
@@ -64,10 +95,22 @@ function HivePage() {
     }, []);
 
     useEffect(() => {
-        if (socket && idRoom && currentId) {
-            socket.emit("join_hive_room", { roomId: idRoom, userId: currentId });
+        const userId = localStorage.getItem("userId");
+        const isRefreshing = localStorage.getItem("isRefreshing");
+
+        if (userId && idRoom) {
+            socket.emit("join_hive_room", {
+                roomId: idRoom,
+                userId: userId,
+                isRefreshing: !!isRefreshing,
+            });
+
+            setTimeout(() => {
+                localStorage.removeItem("isRefreshing");
+            }, 3000);
         }
-    }, [idRoom, currentId]);
+    }, [idRoom]);
+
 
     useEffect(() => {
         socket.on("user_joined", (newUser) => {
@@ -105,27 +148,22 @@ function HivePage() {
         };
     }, []);
 
+
     useEffect(() => {
-        const handleUnload = () => {
-            const userId = localStorage.getItem("userId");
-            const pseudo = localStorage.getItem("userPseudo");
-            const roomId = idRoom;
-
-            if (socket && roomId && userId) {
-                socket.emit("leave_hive_room", { roomId, userId, pseudo });
-            }
-            setNotification({ message: `${pseudo} a quitté la Ruche`, type: "danger" });
-            // Nettoyage localStorage
-            localStorage.removeItem("userId");
-            localStorage.removeItem("userPseudo");
+        const handleBeforeUnload = () => {
+            console.log("########################################################################## Le navigateur est en train d’être fermé / rafraîchi");
+            localStorage.setItem("isRefreshing", "true");
         };
-
-        window.addEventListener("beforeunload", handleUnload);
+        localStorage.removeItem("userPseudo");
+        window.addEventListener("beforeunload", handleBeforeUnload);
 
         return () => {
-            window.removeEventListener("beforeunload", handleUnload);
+            window.removeEventListener("beforeunload", handleBeforeUnload);
         };
-    }, [idRoom]);
+    }, []);
+
+
+
 
     if (isLoading) {
         return (
