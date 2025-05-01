@@ -69,6 +69,9 @@ const roomPlaylists = new Map();
 
 
 io.on("connection", (socket) => {
+    socket.on("join_whiteboard", (roomId) => {
+        socket.join(roomId);
+    });
     socket.data.hiveRoomId = null;
     // Quand un utilisateur rejoint une Hive
     socket.on("join_hive_room", async ({ roomId, userId }) => { 
@@ -126,25 +129,22 @@ io.on("connection", (socket) => {
 
     });
 
-
-
-
     socket.on("send_message", ({roomId,message}) => {
         if(roomId && message){
             io.to(roomId).emit("receive_message",message);
         }
     })
 
-    socket.on("draw", (data) => {
-        socket.broadcast.emit("draw", data);
+    socket.on("draw", ({ roomId, ...data }) => {
+        socket.to(roomId).emit("draw", data);
     });
 
-    socket.on("changeBrushSize", (size) => {
-        socket.broadcast.emit("changeBrushSize", size);
+    socket.on("changeBrushSize", ({ roomId, size }) => {
+        socket.to(roomId).emit("changeBrushSize", size);
     });
 
-    socket.on("clear", () => {
-        socket.broadcast.emit("clear");
+    socket.on("clear", (roomId) => {
+        socket.to(roomId).emit("clear");
     });
 
 
@@ -284,6 +284,12 @@ io.on("connection", (socket) => {
     });
 
 
+    // Handle getting the playlist
+    socket.on('get_playlist', ({ roomId }) => {
+        const playlist = roomPlaylists.get(roomId) || [];
+        socket.emit('playlist_updated', playlist);
+    });
+
     // Handle adding a video to the playlist
     socket.on('add_to_playlist', ({ roomId, videoId, title, url }) => {
         if (!roomPlaylists.has(roomId)) {
@@ -292,10 +298,10 @@ io.on("connection", (socket) => {
         const playlist = roomPlaylists.get(roomId);
         const newVideo = { videoId, title, url };
         
-        // Vérifier si la vidéo n'est pas déjà dans la playlist
+        // Check if video is not already in the playlist
         if (!playlist.some(video => video.videoId === videoId)) {
             playlist.push(newVideo);
-            // Émettre l'événement de mise à jour à tous les clients dans la room
+            // Emit update events to all clients in the room
             io.to(roomId).emit('video_added', newVideo);
             io.to(roomId).emit('playlist_updated', playlist);
         }
@@ -308,19 +314,13 @@ io.on("connection", (socket) => {
             const updatedPlaylist = playlist.filter(video => video.videoId !== videoId);
             roomPlaylists.set(roomId, updatedPlaylist);
             
-            // Émettre les événements de mise à jour
+            // Emit update events to all clients in the room
             io.to(roomId).emit('video_removed', { videoId });
             io.to(roomId).emit('playlist_updated', updatedPlaylist);
         }
     });
 
-    // Handle getting the playlist
-    socket.on('get_playlist', ({ roomId }) => {
-        const playlist = roomPlaylists.get(roomId) || [];
-        socket.emit('playlist_updated', playlist);
-    });
-
-    
+   
 
    
 
@@ -406,5 +406,6 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-    console.log(`Serveur lancé sur : http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Socket.IO server ready for connections`);
 });
