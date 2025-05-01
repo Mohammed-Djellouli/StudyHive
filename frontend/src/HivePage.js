@@ -10,7 +10,6 @@ import SearchBar from "./components/hivePage/hiveHeader/SeachBar";
 import LeftBarTools from "./components/hivePage/hiveBody/LeftBarTools";
 import HiveTimerBanner from "./components/hivePage/hiveHandle/HiveTimerBanner";
 import ChatBox from "./components/Communication/Chat/chatBox";
-import VoiceChat from "./components/Communication/MicChat/VoiceChat";
 import BlocNote from "./components/hivePage/hiveBody/BlocNote";
 import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
 import NotificationBanner from "./components/hivePage/hiveHeader/NotificationBanner";
@@ -42,6 +41,14 @@ function HivePage() {
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
     const navigate = useNavigate();
+
+    const toggleBrb = () => {
+        const newValue = !brbMode;
+        setBrbMode(newValue);
+        const event = new CustomEvent("toggle-brb", { detail: { brb: newValue } });
+        window.dispatchEvent(event);
+    };
+
 
 
     useEffect(() => {
@@ -240,7 +247,7 @@ return (
                 isSharing={webRTCFeatures.isSharing}
                 users={users}
                 currentUserId={currentId}
-                toggleBRB={() => setBrbMode(!brbMode)}
+                toggleBRB={toggleBrb}
                 brbMode={brbMode}
                 isScreenShareWindowOpen={isScreenShareWindowOpen}
                 onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
