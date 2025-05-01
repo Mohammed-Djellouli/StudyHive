@@ -317,7 +317,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     return (
 
         <button onClick={handleToggleMic}
-                disabled={!micAllowed || brbActive}
+                disabled={!micAllowed}
                 className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
             <img
                 src={micOn ? "/assets/open-microphone.png" : "/assets/mute-microphone.png"}
