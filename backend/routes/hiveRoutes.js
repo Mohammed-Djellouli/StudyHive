@@ -10,53 +10,24 @@ const HandleHiveCreation = require("../HandleHiveCreation");
 router.post("/create", HandleHiveCreation);
 
 // Obtenir une Hive
-// GET /api/hive/:idRoom
 router.get("/:idRoom", async (req, res) => {
-    const idRoom = req.params.idRoom;
-    const { userId, userPseudo } = req.query;
-
     try {
-        const room = await Hive.findOne({ idRoom }).populate("idOwner", "pseudo");
-        if (!room) return res.status(404).json({ message: "Hive not found" });
+        const hive = await Hive.findOne({ idRoom: req.params.idRoom })
+            .populate("idOwner", "pseudo");
 
-        // Ajouter l'utilisateur s'il n'est pas déjà là
-        if (userId && userPseudo) {
-            const alreadyInRoom = room.users.some(u => u.userId?.toString() === userId);
-            if (!alreadyInRoom) {
-                let user;
-                try {
-                    user = await User.findById(userId);
-                } catch (_) {
-                    user = null;
-                }
-
-                const controlsDefault = {
-                    micControl: !room.isQueenBeeMode,
-                    screenShareControl: !room.isQueenBeeMode,
-                    videoControl: !room.isQueenBeeMode,
-                };
-
-                room.users.push({
-                    userId,
-                    pseudo: user?.pseudo || userPseudo,
-                    ...controlsDefault,
-                });
-
-                await room.save();
-            }
+        if (!hive) {
+            return res.status(404).json({ message: "Hive not found" });
         }
 
         res.status(200).json({
-            ...room._doc,
-            ownerPseudo: room.idOwner?.pseudo || null,
+            ...hive._doc,
+            ownerPseudo: hive.idOwner?.pseudo || null,
         });
-
     } catch (err) {
         console.error("Erreur serveur GET /api/hive/:idRoom", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
-
 
 
 router.post("/join", async (req, res) => {
@@ -104,7 +75,6 @@ router.post("/join", async (req, res) => {
                 //  Utilisateur Guest (socket.id, string libre)
                 room.users.push({
                     userId: userId,
-                    userSocketId: userId,
                     pseudo: userPseudo,
                     ...controlsDefault,
                 });
