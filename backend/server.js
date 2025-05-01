@@ -284,42 +284,47 @@ io.on("connection", (socket) => {
     });
 
 
-    // Handle getting the playlist
     socket.on('get_playlist', ({ roomId }) => {
+        if (!roomId) {
+            //console.warn('get_playlist: roomId is undefined');
+            return;
+        }
+    
         const playlist = roomPlaylists.get(roomId) || [];
+        console.log(`[get_playlist] for room ${roomId}:`, playlist);
         socket.emit('playlist_updated', playlist);
     });
-
-    // Handle adding a video to the playlist
+    
     socket.on('add_to_playlist', ({ roomId, videoId, title, url }) => {
+        if (!roomId || !videoId || !title || !url) {
+            console.error('add_to_playlist: Missing data', { roomId, videoId, title, url });
+            return;
+        }
+    
         if (!roomPlaylists.has(roomId)) {
             roomPlaylists.set(roomId, []);
         }
+    
         const playlist = roomPlaylists.get(roomId);
-        const newVideo = { videoId, title, url };
-        
-        // Check if video is not already in the playlist
-        if (!playlist.some(video => video.videoId === videoId)) {
+        const exists = playlist.some(v => v.videoId === videoId);
+        if (!exists) {
+            const newVideo = { videoId, title, url };
             playlist.push(newVideo);
-            // Emit update events to all clients in the room
+            console.log(`[add_to_playlist] Room ${roomId} added video:`, newVideo);
             io.to(roomId).emit('video_added', newVideo);
             io.to(roomId).emit('playlist_updated', playlist);
+        } else {
+            console.log(`[add_to_playlist] Video already exists in room ${roomId}`);
         }
     });
-
-    // Handle removing a video from the playlist
+    
     socket.on('remove_from_playlist', ({ roomId, videoId }) => {
-        if (roomPlaylists.has(roomId)) {
-            const playlist = roomPlaylists.get(roomId);
-            const updatedPlaylist = playlist.filter(video => video.videoId !== videoId);
-            roomPlaylists.set(roomId, updatedPlaylist);
-            
-            // Emit update events to all clients in the room
-            io.to(roomId).emit('video_removed', { videoId });
-            io.to(roomId).emit('playlist_updated', updatedPlaylist);
-        }
+        if (!roomPlaylists.has(roomId)) return;
+        const updated = roomPlaylists.get(roomId).filter(v => v.videoId !== videoId);
+        roomPlaylists.set(roomId, updated);
+        io.to(roomId).emit('video_removed', { videoId });
+        io.to(roomId).emit('playlist_updated', updated);
     });
-
    
 
    

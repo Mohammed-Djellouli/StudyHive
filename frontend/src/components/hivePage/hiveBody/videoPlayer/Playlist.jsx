@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import socket from '../../../../components/socket';
-import { useParams } from 'react-router-dom';
 import { FaTrash, FaPlay, FaSearch, FaPlus } from 'react-icons/fa';
 import '../../../../styles/scrollbar.css';
 
 const getYouTubeThumbnail = (videoId) =>
     `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
 
-const Playlist = ({ onVideoSelect }) => {
+const Playlist = ({ onVideoSelect, roomId }) => {
     const [playlist, setPlaylist] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchMode, setSearchMode] = useState('playlist');
-    const { roomId } = useParams();
 
     // Function to fetch playlist
     function fetchPlaylist() {
@@ -97,7 +95,7 @@ const Playlist = ({ onVideoSelect }) => {
         const apiKey = process.env.REACT_APP_YOUTUBE_API_KEY;
         
         try {
-            const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${encodeURIComponent(term)}&key=${apiKey}&type=video`;
+            const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(term)}&key=${apiKey}&type=video`;
             const response = await fetch(searchUrl);
             const data = await response.json();
             

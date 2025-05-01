@@ -1,6 +1,6 @@
-// HivePage.jsx (COMPLET ET NETTOYÉ)
-import React, { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useLocation} from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import useVideoPlayer from './hooks/useVideoPlayer';
 import useWebRTC from './hooks/useWebRTC';
@@ -18,6 +18,10 @@ import NotificationBanner from "./components/hivePage/hiveHeader/NotificationBan
 import Playlist from "./components/hivePage/hiveBody/videoPlayer/Playlist";
 import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
 import socket from "./components/socket";
+
+// Nouvelles importations pour les composants modulaires
+import ErrorBoundary from "./components/hivePage/hiveHandle/ErrorBoundary";
+import HiveDataLoader from "./components/hivePage/hiveHandle/HiveDataLoader";
 
 import "./App.css";
 
@@ -37,11 +41,17 @@ function HivePage() {
     const videoPlayerFeatures = useVideoPlayer(idRoom);
 
     const [brbMode, setBrbMode] = useState(false);
-    const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
-    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(true);
+    const toggleBrb = () => {
+        setBrbMode(prev => !prev);
+        const event = new CustomEvent("toggle-brb", {detail: {brb: !brbMode}});
+        window.dispatchEvent(event);
+    }
 
+    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(false);
+    const [showPlaylist, setShowPlaylist] = useState(false);
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
+    const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
 
     useEffect(() => {
         fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/${idRoom}`)
@@ -57,110 +67,124 @@ function HivePage() {
     }, [idRoom, location.state]);
 
     useEffect(() => {
+        const handleBeforeUnload = () => {
+            localStorage.setItem("isRefreshing", "true");
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, []);
+
+    useEffect(() => {
+        localStorage.removeItem("isRefreshing");
+    }, []);
+
+    useEffect(() => {
+        setTimeout(() => {
+            const userId = localStorage.getItem("userId");
+            const isRefreshing = localStorage.getItem("isRefreshing");
+            socket.emit("join_hive_room", {
+                roomId: idRoom,
+                userId: userId,
+                isRefreshing: !!isRefreshing
+            });
+            localStorage.removeItem("isRefreshing");
+        }, 1000);
+    }, []);
+
+    useEffect(() => {
         const pseudo = localStorage.getItem("userPseudo");
-        const id = localStorage.getItem("userId") || socket.id;
-        if (pseudo) setCurrentPseudo(pseudo);
-        if (id) setCurrentId(id);
+        if (pseudo) {
+            setCurrentPseudo(pseudo);
+        }
+        const storedId = localStorage.getItem("userId") || socket.id;
+        if (storedId) {
+            setCurrentId(storedId);
+            console.log("il rentre dans SetCurrentId", storedId);
+        }
     }, []);
 
     useEffect(() => {
         if (socket && idRoom && currentId) {
-            socket.emit("join_hive_room", { roomId: idRoom, userId: currentId });
+            console.log("Emitting join_hive_room");
+            socket.emit("join_hive_room", {roomId: idRoom, userId: currentId});
         }
     }, [idRoom, currentId]);
 
     useEffect(() => {
-        socket.on("user_joined", (newUser) => {
-            setUsers((prev) => {
-                if (prev.find(u => u.userId === newUser.userId)) return prev;
-                setNotification({ message: `${newUser.pseudo} a rejoint la Ruche`, type: "info" });
-                return [...prev, newUser];
+        const handleUserJoined = (newUser) => {
+            console.log("User Joined :", newUser);
+            setUsers(prevUsers => {
+                if (prevUsers.find(u => u.userId === newUser.userId)) return prevUsers;
+                return [...prevUsers, {
+                    ...newUser,
+                    _id: newUser.userId || newUser.socketId,
+                    socketId: newUser.socketId,
+                }];
             });
-        });
+        };
 
-        socket.on("user_left", (idLeft) => {
-            const idStr = idLeft.toString();
-            setUsers((prev) => {
-                const userToRemove = prev.find(user =>
-                    idStr === user.userId?.toString() ||
-                    idStr === user.socketId?.toString() ||
-                    idStr === user._id?.toString()
-                );
+        const handleUserLeft = (socketIdLeft) => {
+            console.log("User Left (socket)", socketIdLeft);
+            setUsers(prevUsers => prevUsers.filter(user => user.socketId !== socketIdLeft));
+        };
 
-                if (userToRemove) {
-                    setNotification({ message: `${userToRemove.pseudo} a quitté la Ruche`, type: "danger" });
-                }
+        const handleDisconnectUser = (userIdLeft) => {
+            console.log("User Left (userId)", userIdLeft);
+            setUsers(prevUsers => prevUsers.filter(user => user.userId !== userIdLeft));
+        };
 
-                return prev.filter(user =>
-                    idStr !== user.userId?.toString() &&
-                    idStr !== user.socketId?.toString() &&
-                    idStr !== user._id?.toString()
-                );
-            });
-        });
+        socket.on("user_joined", handleUserJoined);
+        socket.on("user_left", handleUserLeft);
+        socket.on("disconnect_user", handleDisconnectUser);
 
         return () => {
-            socket.off("user_joined");
-            socket.off("user_left");
+            socket.off("user_joined", handleUserJoined);
+            socket.off("user_left", handleUserLeft);
+            socket.off("disconnect_user", handleDisconnectUser);
         };
     }, []);
-
-    useEffect(() => {
-        const handleUnload = () => {
-            const userId = localStorage.getItem("userId");
-            const pseudo = localStorage.getItem("userPseudo");
-            const roomId = idRoom;
-
-            if (socket && roomId && userId) {
-                socket.emit("leave_hive_room", { roomId, userId, pseudo });
-            }
-            setNotification({ message: `${pseudo} a quitté la Ruche`, type: "danger" });
-            // Nettoyage localStorage
-            localStorage.removeItem("userId");
-            localStorage.removeItem("userPseudo");
-        };
-
-        window.addEventListener("beforeunload", handleUnload);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleUnload);
-        };
-    }, [idRoom]);
 
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
                 Chargement...
             </div>
-
         );
     }
 
     return (
         <div className="min-h-screen w-full bg-[#1D1F27] bg-center bg-cover bg-no-repeat overflow-y-auto"
              style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
-            {notification && (
-                <NotificationBanner
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => setNotification(null)}
-                />
-            )}
 
             <div className="fixed top-2 right-[200px] transform -translate-x-1/2 bg-[#1D1F19] text-white px-4 py-2 rounded-full text-sm shadow-lg z-50">
-                <span>Connected as {currentPseudo || ownerPseudo}</span>
+                <span>Connected as {currentPseudo ? currentPseudo : ownerPseudo}</span>
             </div>
 
-            <Big_Logo_At_Left />
-            <SearchBar onSearch={videoPlayerFeatures.handleSearch} />
+            <Big_Logo_At_Left/>
 
+            <SearchBar 
+                onSearch={videoPlayerFeatures.handleSearch}
+                isQueenBeeMode={isQueenBeeMode}
+                currentUserId={localStorage.getItem("userId") || socket.id}
+                ownerId={ownerId}
+            />
 
             <div className="relative group flex items-center justify-center cursor-pointer">
-                <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
-                    <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect} />
-
+                <div className="w-[850px] mt-4 absolute top-[550px] left-[100px]">
+                    <Playlist 
+                        onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                        isQueenBeeMode={isQueenBeeMode}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
+                        roomId={idRoom}
+                    />
                 </div>
-                <div className="realtive w-full">
+
+                <div className="relative w-full">
                     <VideoContainer
                         webRTCFeatures={webRTCFeatures}
                         videoPlayerFeatures={videoPlayerFeatures}
@@ -169,42 +193,60 @@ function HivePage() {
                         isQueenBeeMode={isQueenBeeMode}
                         currentUserId={localStorage.getItem("userId") || socket.id}
                         ownerId={ownerId}
+                        roomId={idRoom}
                     />
                 </div>
-            </div>
 
-            <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
-            <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox /></div>
-            <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
+                <WhiteBoard isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen} />
 
-            <Left_bar_Icons_members_In_Room
-                ownerPseudo={ownerPseudo}
-                isQueenBeeMode={isQueenBeeMode}
-                users={users}
-                ownerId={ownerId}
-            />
+                <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]">
+                    <ChatBox/>
+                </div>
 
-            <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
+                <div className="fixed top-[100px] left-[100px] z-20">
+                    <WhiteBoard roomId={idRoom}/>
+                </div>
 
-            <div className="fixed left-2 top-[320px] z-50">
-                <LeftBarTools
+                <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]">
+                    <BlocNote/>
+                </div>
+
+                <Left_bar_Icons_members_In_Room
                     ownerPseudo={ownerPseudo}
                     isQueenBeeMode={isQueenBeeMode}
-                    onStartSharing={webRTCFeatures.startSharing}
-                    isInitiator={webRTCFeatures.isInitiator}
-                    isSharing={webRTCFeatures.isSharing}
                     users={users}
-                    currentUserId={currentId}
-                    toggleBRB={() => setBrbMode(!brbMode)}
-                    brbMode={brbMode}
-                    isScreenShareWindowOpen={isScreenShareWindowOpen}
-                    onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
-                    onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
-                    isWhiteboardOpen={isWhiteboardOpen}
+                    ownerId={ownerId}
+                />
+
+                <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
+
+                <div className="fixed left-2 top-[320px] z-50">
+                    <LeftBarTools
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        onStartSharing={webRTCFeatures.startSharing}
+                        isInitiator={webRTCFeatures.isInitiator}
+                        isSharing={webRTCFeatures.isSharing}
+                        users={users}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        toggleBRB={toggleBrb}
+                        brbMode={brbMode}
+                        isScreenShareWindowOpen={isScreenShareWindowOpen}
+                        onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
+                        ownerId={ownerId}
+                        onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
+                        isWhiteboardOpen={isWhiteboardOpen}
+                    />
+                </div>
+
+                <HiveTimerBanner
+                    ownerId={ownerId}
+                    timerEndsAt={timerEndsAt}
+                    roomId={idRoom}
+                    currentId={currentId}
+                    ownerPseudo={ownerPseudo}
                 />
             </div>
-
-            <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId} ownerPseudo={ownerPseudo} />
         </div>
     );
 }
