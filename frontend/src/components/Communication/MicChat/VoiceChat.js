@@ -20,7 +20,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     //stun to help peer find the best route to connect
     //turn used when stun fails (fairewalls problems...)
 
-    console.log("current user id is : ",currentUserId)
+    //console.log("current user id is : ",currentUserId)
     const peerConfig ={
         trickle: false,
         config:{
@@ -309,7 +309,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         }
         setMicOn(prev=>!prev);
     }
-    console.log("Button rendering: micAllowed =", micAllowed);
+    //console.log("Button rendering: micAllowed =", micAllowed);
     return (
 
         <button onClick={handleToggleMic}

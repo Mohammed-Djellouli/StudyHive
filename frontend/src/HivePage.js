@@ -98,7 +98,6 @@ function HivePage() {
                 );
             });
         });
-
         return () => {
             socket.off("user_joined");
             socket.off("user_left");
@@ -158,7 +157,6 @@ function HivePage() {
             <div className="relative group flex items-center justify-center cursor-pointer">
                 <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
                     <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect} />
-
                 </div>
                 <div className="realtive w-full">
                     <VideoContainer
@@ -174,7 +172,7 @@ function HivePage() {
             </div>
 
             <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
-            <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox /></div>
+            <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox users={users} ownerId = {ownerId} /></div>
             <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
 
             <Left_bar_Icons_members_In_Room
