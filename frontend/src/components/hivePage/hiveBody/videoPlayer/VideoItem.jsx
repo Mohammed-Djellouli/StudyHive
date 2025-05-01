@@ -1,15 +1,13 @@
 import React from "react";
 import { FaPlus } from 'react-icons/fa';
 import socket from '../../../../components/socket';
-import { useParams } from 'react-router-dom';
 
-const VideoItem = ({ video, onVideoSelect }) => {
-    const { roomId } = useParams();
-
+const VideoItem = ({ video, onVideoSelect, roomId }) => {
     const handleAddToPlaylist = (e) => {
-        e.stopPropagation(); // Empêche le déclenchement du onClick du parent
+        e.stopPropagation();
         
-        // Utiliser le même format que dans Playlist.jsx
+        console.log('Video object in VideoItem:', video);
+        
         socket.emit('add_to_playlist', {
             roomId,
             videoId: video.id.videoId,

@@ -9,41 +9,52 @@ const useVideoPlayer = (roomId) => {
     const [autoPlay, setAutoPlay] = useState(true);
 
     useEffect(() => {
-        socket.on("syncVideo", ({ videoId, time, isPlaying, lastUpdate }) => {
-            setVideoId(videoId);
+        if (!roomId) {
+            console.warn("roomId is not defined in useVideoPlayer");
+            return;
+        }
 
-            const interval = setInterval(() => {
-                const player = playerRef.current;
-                if (player && typeof player.getPlayerState === "function") {
-                    const now = Date.now();
-                    const elapsed = (now - lastUpdate) / 1000;
-                    const adjustedTime = isPlaying ? time + elapsed : time;
+        const handleSyncVideo = ({ videoId, time, isPlaying, lastUpdate }) => {
+            try {
+                setVideoId(videoId);
 
-                    const currentTime = player.getCurrentTime();
-                    const playerState = player.getPlayerState();
+                const interval = setInterval(() => {
+                    const player = playerRef.current;
+                    if (player && typeof player.getPlayerState === "function") {
+                        const now = Date.now();
+                        const elapsed = (now - lastUpdate) / 1000;
+                        const adjustedTime = isPlaying ? time + elapsed : time;
 
-                    if (Math.abs(currentTime - adjustedTime) > 0.5) {
-                        player.seekTo(adjustedTime, true);
-                    }
+                        const currentTime = player.getCurrentTime();
+                        const playerState = player.getPlayerState();
 
-                    if (isPlaying && playerState !== 1) {
-                        try {
-                            player.playVideo();
-                        } catch (error) {
-                            console.error("Erreur lors de la lecture automatique:", error);
-                            setNeedsManualPlay(true);
+                        if (Math.abs(currentTime - adjustedTime) > 0.5) {
+                            player.seekTo(adjustedTime, true);
                         }
-                    } else if (!isPlaying && playerState === 1) {
-                        player.pauseVideo();
-                    }
 
-                    clearInterval(interval);
-                }
-            }, 300);
-        });
+                        if (isPlaying && playerState !== 1) {
+                            try {
+                                player.playVideo();
+                            } catch (error) {
+                                console.error("Erreur lors de la lecture automatique:", error);
+                                setNeedsManualPlay(true);
+                            }
+                        } else if (!isPlaying && playerState === 1) {
+                            player.pauseVideo();
+                        }
+
+                        clearInterval(interval);
+                    }
+                }, 300);
+            } catch (error) {
+                console.error("Error in handleSyncVideo:", error);
+            }
+        };
+
+        socket.on("syncVideo", handleSyncVideo);
 
         return () => {
-            socket.off("syncVideo");
+            socket.off("syncVideo", handleSyncVideo);
         };
     }, [roomId]);
 
@@ -83,7 +94,7 @@ const useVideoPlayer = (roomId) => {
         try {
             console.log('Making API request...');
             const res = await fetch(
-                `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${encodeURIComponent(searchTerm)}&key=${apiKey}&type=video`
+                `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(searchTerm)}&key=${apiKey}&type=video`
             );
             const data = await res.json();
             console.log('API Response:', data);
@@ -101,34 +112,80 @@ const useVideoPlayer = (roomId) => {
     };
 
     const handleVideoSelect = (video) => {
-        const newVideoId = video?.id?.videoId;
-        if (!newVideoId) return;
+        try {
+            if (!roomId) {
+                console.error("roomId is undefined in handleVideoSelect");
+                return;
+            }
 
-        const currentTime = playerRef.current?.getCurrentTime?.() || 0;
+            const newVideoId = video?.id?.videoId;
+            if (!newVideoId) return;
 
-        socket.emit("videoChanged", {
-            roomId,
-            videoId: newVideoId,
-            time: currentTime,
-        });
+            const currentTime = playerRef.current?.getCurrentTime?.() || 0;
 
-        setVideoId(newVideoId);
+            socket.emit("videoChanged", {
+                roomId,
+                videoId: newVideoId,
+                time: currentTime,
+            });
+
+            setVideoId(newVideoId);
+        } catch (error) {
+            console.error("Error in handleVideoSelect:", error);
+        }
     };
 
     const onPlayerReady = (event) => {
-        playerRef.current = event.target;
-        
-        if (roomId) {
+        try {
+            if (!roomId) {
+                console.error("roomId is undefined in onPlayerReady");
+                return;
+            }
+
+            playerRef.current = event.target;
             socket.emit("requestVideoState", { roomId });
+        } catch (error) {
+            console.error("Error in onPlayerReady:", error);
         }
     };
 
     const onPlayerStateChange = (event) => {
-        const state = event.data;
-        const currentTime = event.target.getCurrentTime();
-        const isPlaying = state === 1;
+        try {
+            if (!roomId) {
+                console.error("roomId is undefined in onPlayerStateChange");
+                return;
+            }
 
-        if (state === 1 || state === 2) {
+            const state = event.data;
+            const currentTime = event.target.getCurrentTime();
+            const isPlaying = state === 1;
+
+            if (state === 1 || state === 2) {
+                socket.emit("syncVideo", {
+                    roomId,
+                    videoId,
+                    time: currentTime,
+                    isPlaying,
+                    lastUpdate: Date.now(),
+                });
+            }
+        } catch (error) {
+            console.error("Error in onPlayerStateChange:", error);
+        }
+    };
+
+    const handleSeek = () => {
+        try {
+            if (!roomId) {
+                console.error("roomId is undefined in handleSeek");
+                return;
+            }
+
+            if (!playerRef.current) return;
+
+            const currentTime = playerRef.current.getCurrentTime();
+            const isPlaying = playerRef.current.getPlayerState() === 1;
+
             socket.emit("syncVideo", {
                 roomId,
                 videoId,
@@ -136,32 +193,24 @@ const useVideoPlayer = (roomId) => {
                 isPlaying,
                 lastUpdate: Date.now(),
             });
+        } catch (error) {
+            console.error("Error in handleSeek:", error);
         }
     };
 
-    const handleSeek = () => {
-        if (!playerRef.current) return;
-
-        const currentTime = playerRef.current.getCurrentTime();
-        const isPlaying = playerRef.current.getPlayerState() === 1;
-
-        socket.emit("syncVideo", {
-            roomId,
-            videoId,
-            time: currentTime,
-            isPlaying,
-            lastUpdate: Date.now(),
-        });
-    };
-
     const handleManualPlay = () => {
+        if (!roomId) {
+            console.error("roomId is undefined in handleManualPlay");
+            return;
+        }
+
         playerRef.current?.playVideo();
         setNeedsManualPlay(false);
     };
 
     const playerOpts = {
-        width: "90%",
-        height: "90%",
+        width: '100%',
+        height: '100%',
         playerVars: { 
             autoplay: 1,
             playsinline: 1,
