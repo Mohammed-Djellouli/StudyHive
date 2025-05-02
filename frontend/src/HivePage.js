@@ -19,6 +19,8 @@ import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
 import NotificationBanner from "./components/hivePage/hiveHeader/NotificationBanner";
 import Playlist from "./components/hivePage/hiveBody/videoPlayer/Playlist";
 import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
+import InviteModal from "./components/hivePage/hiveHandle/InviteModal";
+
 import socket from "./components/socket";
 
 import "./App.css";
@@ -49,6 +51,10 @@ function HivePage() {
     const [isChatVisible, setIsChatVisible] = useState(true);
 
     const navigate = useNavigate();
+
+    const [justExcludedIds, setJustExcludedIds] = useState(new Set());
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
 
     const toggleBrb = () => {
         const newValue = !brbMode;
@@ -158,6 +164,22 @@ useEffect(() => {
             });
         });
 
+    });
+
+    socket.on("user_left", (idLeft) => {
+        const idStr = idLeft.toString();
+        if (justExcludedIds.has(idStr)) {
+            console.log(" Ignoré car déjà exclu :", idStr);
+            return;
+        }
+        setUsers((prev) => {
+            const userToRemove = prev.find(user =>
+                idStr === user.userId?.toString() ||
+                idStr === user.socketId?.toString() ||
+                idStr === user._id?.toString()
+            );
+
+
 
 
         socket.on("user_left", (idLeft) => {
@@ -203,6 +225,57 @@ useEffect(() => {
         };
 }, []);
 
+    useEffect(() => {
+        const handleExclusion = (data) => {
+            const kickedId = data?.userId;
+            const myId = localStorage.getItem("userId");
+            const myPseudo = localStorage.getItem("userPseudo");
+
+            if (!kickedId || !myId) return;
+
+            const isMe = String(kickedId).trim() === String(myId).trim();
+
+
+            setJustExcludedIds(prev => new Set(prev).add(kickedId));
+
+            if (isMe) {
+
+
+                if (myPseudo?.startsWith("Bee-")) {
+                    localStorage.removeItem("userId");
+                    localStorage.removeItem("userPseudo");
+                }
+
+                setNotification({
+                    message: "Vous avez été exclu de la ruche.",
+                    type: "danger"
+                });
+
+
+                setTimeout(() => {
+                    navigate("/", {
+                        state: {
+                            notification: {
+                                message: "Vous avez été exclu de la ruche.",
+                                type: "danger"
+                            }
+                        }
+                    });
+                }, 1000);
+            } else {
+                setNotification({
+                    message: `${myPseudo} a été exclu.`,
+                    type: "danger"
+                });
+            }
+        };
+
+        socket.on("excluded_from_room", handleExclusion);
+
+        return () => {
+            socket.off("excluded_from_room", handleExclusion);
+        };
+    }, [navigate]);
 
 if (isLoading) {
     return (
@@ -230,6 +303,25 @@ return (
         </div>
 
         <Big_Logo_At_Left />
+
+        {(!isQueenBeeMode || (isQueenBeeMode && currentId === ownerId)) && (
+            <div className="absolute top-4 left-[320px] z-50">
+                <button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="bg-amber-400 text-black px-4 py-1 rounded-full text-sm shadow hover:bg-amber-300 transition"
+                >
+                    Inviter
+                </button>
+            </div>
+        )}
+
+        {isInviteModalOpen && (
+            <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />
+        )}
+
+
+        
+
         <SearchBar onSearch={videoPlayerFeatures.handleSearch}
                    currentUserId={localStorage.getItem("userId") || socket.id}
                    ownerId={ownerId}
@@ -281,6 +373,7 @@ return (
 
 
 
+
         <div className="relative group flex items-center justify-center cursor-pointer">
             <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
                 <Playlist
@@ -311,6 +404,9 @@ return (
             isQueenBeeMode={isQueenBeeMode}
             users={users}
             ownerId={ownerId}
+            roomId={idRoom}
+            setNotification={setNotification}
+            setJustExcludedIds={setJustExcludedIds}
             setNotification={setNotification}
         />
 

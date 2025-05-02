@@ -3,6 +3,16 @@ import { useNavigate} from "react-router-dom";
 import  { useState, useEffect } from "react";
 import socket from "../../socket";
 
+function formatCountdown(endsAt) {
+    if (!endsAt) return "--:--:--";
+    const remainingMs = new Date(endsAt) - new Date();
+    if (remainingMs <= 0) return "Expiré";
+
+    const h = String(Math.floor(remainingMs / 3600000)).padStart(2, '0');
+    const m = String(Math.floor((remainingMs % 3600000) / 60000)).padStart(2, '0');
+    const s = String(Math.floor((remainingMs % 60000) / 1000)).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+}
 
 
 function PhraseAccrocheAvecButtonCreationHive() {
@@ -10,6 +20,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
     const [userId, setUserId] = useState(null);
+    const [lastHive, setLastHive] = useState(null);
 
 
     useEffect(() => {
@@ -57,6 +68,34 @@ function PhraseAccrocheAvecButtonCreationHive() {
         }
     };
 
+    useEffect(() => {
+        const id = localStorage.getItem("userId");
+        setUserId(id);
+        //console.log(" userId localStorage récupéré :", id);
+
+        if (id) {
+            const url = `${process.env.REACT_APP_BACKEND_URL}/api/hive/last-created/${id}`;
+            //console.log("🌐 Envoi de requête vers :", url);
+
+            fetch(url)
+                .then(async res => {
+                    const data = await res.json();
+              //      console.log(" Réponse reçue de /last-created :", data);
+
+                    if (res.ok && data.idRoom) {
+                        setLastHive(data);
+                    } else {
+                        console.warn("⚠ Aucune ancienne ruche trouvée.");
+                    }
+                })
+                .catch(err => {
+                    console.error(" Erreur FETCH ancienne ruche :", err);
+                });
+        }
+    }, []);
+
+
+
     return (
         <div className="flex flex-col items-center space-y-4 mt-20">
             <p className="text-2xl text-white text-center">Transforme Le Travail</p>
@@ -65,7 +104,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
 
             {/* Container du bouton + HoneyStane */}
             <div className="relative inline-block">
-                    <button className="w-[300px] bg-[#FFCE1C] text-black font-bold text-[20px] px-6 py-2 rounded-[6px] "
+                    <button className="relative w-[300px] z-20 bg-[#FFCE1C] text-black font-bold text-[20px] px-6 py-2 rounded-[6px] "
                     onClick={() => setShowModal(true)}>
                         Créer une Ruche
                     </button>
@@ -74,7 +113,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
                 <img
                     src="/assets/HoneyStane.png"
                     alt="Honey stain"
-                    className="absolute -bottom-20 -right-16 w-[200px]"
+                    className="absolute -bottom-20 -right-16 w-[200px] z-10"
                 />
                 <img src="/assets/SoloBee2.png" className="absolute -left-72 w-[100px] transfomr rotate-[-290deg]" />
                 <img src="/assets/SoloBee2.png" className="absolute -right-72 -top-48 w-[100px] transform rotate-[-120deg]"/>
@@ -104,6 +143,34 @@ function PhraseAccrocheAvecButtonCreationHive() {
                                 }}
                         > Queen Bee Mode</button>
                     </div>
+                    {userId && lastHive && new Date(lastHive.timerEndsAt) > new Date() && (
+                        <>
+                            <div className="flex items-center my-4">
+                                <div className="flex-grow border-t border-gray-600"></div>
+                                <span className="mx-4 text-gray-400">OU</span>
+                                <div className="flex-grow border-t border-gray-600"></div>
+                            </div>
+
+                            <div className="text-center space-y-2">
+                                <p className="text-lg text-white font-semibold">Rejoindre votre ancienne ruche</p>
+                                <p className="text-sm text-gray-400">
+                                    Temps restant : <span>{formatCountdown(lastHive.timerEndsAt)}</span>
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        navigate(`/hive/${lastHive.idRoom}`, {
+                                            state: { ownerPseudo: lastHive.ownerPseudo }
+                                        });
+                                    }}
+                                    className="mt-2 w-full bg-[#FFCE1C] text-black font-bold py-2 rounded-lg hover:opacity-90 transition"
+                                >
+                                    Rejoindre
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+
                     <div className="flex justify-center">
                         <button
                             className="text-gray-400 text-sm underline hover:text-white"

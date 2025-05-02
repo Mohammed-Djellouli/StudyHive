@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import socket from "../../socket";
 
+import { useNavigate } from "react-router-dom";
+
+
 function MemberInHive({
                           pseudo,
                           micControl,
@@ -19,6 +22,8 @@ function MemberInHive({
     const [isWhiteboardAllowed, setIsWhiteboardAllowed] = useState(whiteBoardControl);
     const [isSharingAllowed, setIsSharingAllowed] = useState(screenShareControl);
     const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
+
+    const navigate = useNavigate();
 
     // Mettre à jour les états de partage d'écran et vidéo quand les props changent
     useEffect(() => {
@@ -69,6 +74,11 @@ function MemberInHive({
         if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
             setShowModal((prev) => !prev);
         }
+
+
+
+    const handleExclusion = () => {
+        socket.emit("exclude_user", { roomId, userId });
     };
 
     return (
@@ -241,6 +251,14 @@ function MemberInHive({
                                 Allow Video
                             </button>
                         )}
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleExclusion}
+                            className="bg-red-600 text-xs px-4 py-1 rounded hover:bg-red-700 w-[80px]"
+                        >
+                            Exclure
+                        </button>
                     </div>
                 </div>
             )}

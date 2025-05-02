@@ -428,6 +428,37 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("exclude_user", async ({ roomId, userId }) => {
+        console.log(" Event 'exclude_user' reçu avec : ", { roomId, userId });
+        try {
+            const room = await Hive.findOne({ idRoom: roomId });
+            console.log("Room trouvée :", room ? "OUI" : "NON");
+            if (!room) return;
+
+            const index = room.users.findIndex(u => u.userId?.toString() === userId || u.userSocketId === userId);
+            if (index !== -1) {
+                console.log(" Utilisateur trouvé à supprimer :", room.users[index]);
+                room.users.splice(index, 1);
+                await room.save();
+                //console.log(" Envoi des événements : update_users_list, user_left, excluded_from_room");
+                io.to(roomId).emit("update_users_list", room.users);
+                io.to(roomId).emit("user_left", userId);
+                const targetSocket = [...io.sockets.sockets.values()].find(
+                    s => s.userId?.toString() === userId?.toString()
+                );
+
+                if (targetSocket) {
+                    targetSocket.leave(roomId);
+                    targetSocket.emit("excluded_from_room",{ userId });
+                }
+                console.log(` Utilisateur ${userId} exclu de la ruche ${roomId}`);
+            }
+        } catch (err) {
+            console.error("Erreur exclusion utilisateur :", err);
+        }
+    });
+
+
 
 
     socket.on("disconnecting", async () => {

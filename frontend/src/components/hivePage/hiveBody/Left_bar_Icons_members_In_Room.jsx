@@ -2,7 +2,10 @@ import React, { useEffect } from 'react';
 import MemberInHive from "./MemberInHive";
 import socket from "../../socket";
 
-function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ownerId, setNotification }){
+
+function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ownerId,roomId,setNotification,  setJustExcludedIds
+                                        }) {
+
 
     useEffect(() => {
         const userId = localStorage.getItem("userId") || socket.id;
@@ -53,7 +56,10 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             currentUserId={localStorage.getItem("userId")}
                             ownerId={ownerId}
                             userId={user.userId}
+                            roomId={roomId}
+                            setJustExcludedIds={setJustExcludedIds}
                             setNotification={setNotification}
+
                         />
                     ))}
             </ul>
