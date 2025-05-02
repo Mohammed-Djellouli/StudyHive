@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+
+import React, {useEffect, useState} from "react";
+import {useLocation} from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 
 import useVideoPlayer from './hooks/useVideoPlayer';
 import useWebRTC from './hooks/useWebRTC';
@@ -38,10 +42,14 @@ function HivePage() {
 
     const [brbMode, setBrbMode] = useState(false);
     const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
-    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(true);
+    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(false);
 
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
+
+
+    const [isChatVisible, setIsChatVisible] = useState(true);
+
     const navigate = useNavigate();
 
     const [justExcludedIds, setJustExcludedIds] = useState(new Set());
@@ -70,7 +78,7 @@ function HivePage() {
         }
     }, []);
 
-    useEffect(() => {
+  useEffect(() => {
         const userId = localStorage.getItem("userId");
         const userPseudo = localStorage.getItem("userPseudo");
 
@@ -79,6 +87,22 @@ function HivePage() {
             navigate(`/join/${idRoom}`);
         }
     }, [idRoom, navigate]);
+
+    useEffect(() => {
+        socket.on("whiteboard_permission_updated", ({ pseudo, whiteBoardControl }) => {
+            setUsers(prev =>
+                prev.map(user =>
+                    user.pseudo === pseudo ? { ...user, whiteBoardControl } : user
+                )
+            );
+        });
+
+        return () => {
+            socket.off("whiteboard_permission_updated");
+        };
+    }, []);
+
+
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         const userPseudo = localStorage.getItem("userPseudo");
@@ -97,7 +121,7 @@ function HivePage() {
                 setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
                 setIsLoading(false);
             });
-}, [idRoom]);
+    }, [idRoom]);
 
 useEffect(() => {
     const pseudo = localStorage.getItem("userPseudo");
@@ -124,13 +148,22 @@ useEffect(() => {
 }, [idRoom]);
 
 
-useEffect(() => {
-    socket.on("user_joined", (newUser) => {
-        setUsers((prev) => {
-            if (prev.find(u => u.userId === newUser.userId)) return prev;
-            setNotification({message: `${newUser.pseudo} a rejoint la Ruche`, type: "info"});
-            return [...prev, newUser];
+    useEffect(() => {
+        socket.on("user_joined", (newUser) => {
+            setUsers((prev) => {
+                if (prev.find(u => u.userId === newUser.userId)) return prev;
+
+                const newUserWithDefaults = {
+                    micControl: true,
+                    whiteBoardControl: false,
+                    ...newUser
+                };
+
+                setNotification({ message: `${newUser.pseudo} a rejoint la Ruche`, type: "info" });
+                return [...prev, newUserWithDefaults];
+            });
         });
+
     });
 
     socket.on("user_left", (idLeft) => {
@@ -146,29 +179,35 @@ useEffect(() => {
                 idStr === user._id?.toString()
             );
 
-            if (userToRemove) {
-                setNotification({ message: `${userToRemove.pseudo} a quitté la Ruche`, type: "danger" });
-            }
 
-            return prev.filter(user =>
-                idStr !== user.userId?.toString() &&
-                idStr !== user.socketId?.toString() &&
-                idStr !== user._id?.toString()
-            );
+
+
+        socket.on("user_left", (idLeft) => {
+            const idStr = idLeft.toString();
+            setUsers((prev) => {
+                const userToRemove = prev.find(user =>
+                    idStr === user.userId?.toString() ||
+                    idStr === user.socketId?.toString() ||
+                    idStr === user._id?.toString()
+                );
+
+                if (userToRemove) {
+                    setNotification({ message: `${userToRemove.pseudo} a quitté la Ruche`, type: "danger" });
+                }
+
+                return prev.filter(user =>
+                    idStr !== user.userId?.toString() &&
+                    idStr !== user.socketId?.toString() &&
+                    idStr !== user._id?.toString()
+                );
+            });
         });
 
         return () => {
             socket.off("user_joined");
             socket.off("user_left");
         };
-
-    });
-
-    return () => {
-        socket.off("user_joined");
-        socket.off("user_left");
-    };
-}, []);
+    }, []);
 
 
 
@@ -176,6 +215,7 @@ useEffect(() => {
         const handleBeforeUnload = () => {
             console.log("########################################################################## Le navigateur est en train d’être fermé / rafraîchi");
             localStorage.setItem("isRefreshing", "true");
+
         };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
@@ -237,8 +277,6 @@ useEffect(() => {
         };
     }, [navigate]);
 
-
-
 if (isLoading) {
     return (
         <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
@@ -265,6 +303,7 @@ return (
         </div>
 
         <Big_Logo_At_Left />
+
         {(!isQueenBeeMode || (isQueenBeeMode && currentId === ownerId)) && (
             <div className="absolute top-4 left-[320px] z-50">
                 <button
@@ -281,12 +320,67 @@ return (
         )}
 
 
-        <SearchBar onSearch={videoPlayerFeatures.handleSearch} />
+        
+
+        <SearchBar onSearch={videoPlayerFeatures.handleSearch}
+                   currentUserId={localStorage.getItem("userId") || socket.id}
+                   ownerId={ownerId}
+                   users={users}
+        />
+
+
+
+        <WhiteBoard
+            roomId={idRoom}
+            isModalOpen={isWhiteboardOpen}
+            setIsModalOpen={setIsWhiteboardOpen}
+            canDraw={users.find(u => u.userId === currentId)?.whiteBoardControl ?? true}
+            setNotification={setNotification}
+        />
+
+
+
+
+
+
+        {/* CONTENEUR synchronisé Chat + BlocNote */}
+            <div className="absolute top-[65px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500 max-h-[calc(100vh-80px)] overflow-y-auto bg-transparent">
+
+                {/* BlocNote */}
+                <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[280px]" : "h-[550px]"} mb-2`}>
+                    <BlocNote isChatVisible={isChatVisible} />
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[351px] opacity-100" : "h-0 opacity-0"} overflow-hidden`}>
+                    <div className="w-full h-full">
+                        <ChatBox users={users} ownerId = {ownerId} />
+                    </div>
+                </div>
+
+
+                {/* Bouton sticky toujours visible */}
+                <div className="sticky bottom-0 bg-[#1D1F27] mt-2 z-10">
+                    <button
+                        onClick={() => setIsChatVisible(prev => !prev)}
+                        className="w-full bg-yellow-400 text-black px-2 py-1 rounded-b-md hover:bg-yellow-300 transition"
+                    >
+                        {isChatVisible ? "▼ Masquer le Chat" : "▲ Afficher le Chat"}
+                    </button>
+                </div>
+            </div>
+
+
+
+
 
 
         <div className="relative group flex items-center justify-center cursor-pointer">
             <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
-                <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect} />
+                <Playlist
+                    onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                    roomId={idRoom}
+                />
+
 
             </div>
             <div className="realtive w-full">
@@ -298,13 +392,12 @@ return (
                     isQueenBeeMode={isQueenBeeMode}
                     currentUserId={localStorage.getItem("userId") || socket.id}
                     ownerId={ownerId}
+                    users={users}
+                    roomId={idRoom}
                 />
+
             </div>
         </div>
-
-        <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
-        <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox users={users} ownerId = {ownerId} /></div>
-        <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
 
         <Left_bar_Icons_members_In_Room
             ownerPseudo={ownerPseudo}
@@ -314,10 +407,13 @@ return (
             roomId={idRoom}
             setNotification={setNotification}
             setJustExcludedIds={setJustExcludedIds}
-
+            setNotification={setNotification}
         />
 
         <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
+
+
+
 
         <div className="fixed left-2 top-[320px] z-50">
             <LeftBarTools
@@ -335,6 +431,7 @@ return (
                 onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
                 isWhiteboardOpen={isWhiteboardOpen}
             />
+
         </div>
 
         <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId} ownerPseudo={ownerPseudo} />

@@ -55,7 +55,7 @@ function JoinHive() {
             }
         };
 
-        //  attendre que le socket soit connecté
+        // 🛡️ attendre que le socket soit connecté
         if (socket.connected) {
             joinHiveRequest();
         } else {
