@@ -82,6 +82,17 @@ function HivePage() {
         }
     }, [idRoom, navigate]);
 
+    useEffect(() => {
+        socket.on("whiteboard_permission_updated", ({ pseudo, whiteBoardControl }) => {
+            setUsers(prevUsers => prevUsers.map(user =>
+                user.pseudo === pseudo ? { ...user, whiteBoardControl } : user
+            ));
+        });
+
+        return () => {
+            socket.off("whiteboard_permission_updated");
+        };
+    }, []);
 
 
     useEffect(() => {
@@ -144,6 +155,7 @@ useEffect(() => {
                 return [...prev, newUserWithDefaults];
             });
         });
+
 
 
         socket.on("user_left", (idLeft) => {

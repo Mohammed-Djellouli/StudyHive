@@ -37,11 +37,16 @@ function MemberInHive({
 
         const handleWhiteboardPermissionUpdate = ({ pseudo, whiteBoardControl }) => {
             if (pseudo === myPseudo) {
+                setWhiteBoardAllowed(whiteBoardControl); // ✅ <-- AJOUT IMPORTANT
+
                 const message = whiteBoardControl
                     ? "Tu as reçu l'accès au tableau blanc"
                     : "Ton accès au tableau blanc a été retiré";
 
-                setNotification({ message, type: whiteBoardControl ? "info" : "danger" });
+                setNotification({
+                    message,
+                    type: whiteBoardControl ? "info" : "danger"
+                });
             }
         };
 
@@ -51,6 +56,7 @@ function MemberInHive({
             socket.off("whiteboard_permission_updated", handleWhiteboardPermissionUpdate);
         };
     }, []);
+
 
 
     useEffect(() => {
