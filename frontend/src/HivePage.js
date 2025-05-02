@@ -46,6 +46,8 @@ function HivePage() {
     const [currentId, setCurrentId] = useState('');
 
 
+    const [isChatVisible, setIsChatVisible] = useState(true);
+
     const navigate = useNavigate();
 
     const toggleBrb = () => {
@@ -79,6 +81,7 @@ function HivePage() {
             navigate(`/join/${idRoom}`);
         }
     }, [idRoom, navigate]);
+
 
 
     useEffect(() => {
@@ -130,10 +133,18 @@ useEffect(() => {
         socket.on("user_joined", (newUser) => {
             setUsers((prev) => {
                 if (prev.find(u => u.userId === newUser.userId)) return prev;
+
+                const newUserWithDefaults = {
+                    micControl: true,
+                    whiteBoardControl: false,
+                    ...newUser
+                };
+
                 setNotification({ message: `${newUser.pseudo} a rejoint la Ruche`, type: "info" });
-                return [...prev, newUser];
+                return [...prev, newUserWithDefaults];
             });
         });
+
 
         socket.on("user_left", (idLeft) => {
             const idStr = idLeft.toString();
@@ -163,10 +174,12 @@ useEffect(() => {
     }, []);
 
 
+
 useEffect(() => {
         const handleBeforeUnload = () => {
             console.log("########################################################################## Le navigateur est en train d’être fermé / rafraîchi");
             localStorage.setItem("isRefreshing", "true");
+
         };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
@@ -211,6 +224,49 @@ return (
 
 
 
+            <WhiteBoard
+                roomId={idRoom}
+                isModalOpen={isWhiteboardOpen}
+                setIsModalOpen={setIsWhiteboardOpen}
+                canDraw={
+                    users.find(u => u.userId === currentId)?.whiteBoardControl ?? true
+                }
+            />
+
+
+
+
+
+            {/* CONTENEUR synchronisé Chat + BlocNote */}
+            <div className="absolute top-[65px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500 max-h-[calc(100vh-80px)] overflow-y-auto bg-transparent">
+
+                {/* BlocNote */}
+                <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[280px]" : "h-[550px]"} mb-2`}>
+                    <BlocNote isChatVisible={isChatVisible} />
+                </div>
+
+                <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[351px] opacity-100" : "h-0 opacity-0"} overflow-hidden`}>
+                    <div className="w-full h-full">
+                        <ChatBox />
+                    </div>
+                </div>
+
+
+                {/* Bouton sticky toujours visible */}
+                <div className="sticky bottom-0 bg-[#1D1F27] mt-2 z-10">
+                    <button
+                        onClick={() => setIsChatVisible(prev => !prev)}
+                        className="w-full bg-yellow-400 text-black px-2 py-1 rounded-b-md hover:bg-yellow-300 transition"
+                    >
+                        {isChatVisible ? "▼ Masquer le Chat" : "▲ Afficher le Chat"}
+                    </button>
+                </div>
+            </div>
+
+
+            
+
+
         <div className="relative group flex items-center justify-center cursor-pointer">
             <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
                 <Playlist
@@ -236,18 +292,18 @@ return (
             </div>
         </div>
 
-        <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
-        <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox users={users} ownerId = {ownerId} /></div>
-        <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
-
         <Left_bar_Icons_members_In_Room
             ownerPseudo={ownerPseudo}
             isQueenBeeMode={isQueenBeeMode}
             users={users}
             ownerId={ownerId}
+            setNotification={setNotification}
         />
 
         <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
+
+      
+
 
         <div className="fixed left-2 top-[320px] z-50">
             <LeftBarTools
@@ -265,6 +321,7 @@ return (
                 onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
                 isWhiteboardOpen={isWhiteboardOpen}
             />
+
         </div>
 
         <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId} ownerPseudo={ownerPseudo} />

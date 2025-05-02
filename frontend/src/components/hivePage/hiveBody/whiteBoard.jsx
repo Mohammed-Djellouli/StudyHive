@@ -3,29 +3,37 @@ import { jsPDF } from "jspdf";
 import socket from "../../socket";
 import { FaEraser } from "react-icons/fa";
 
-
-const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
+const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw }) => {
     const canvasRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState("#000000");
     const [brushSize, setBrushSize] = useState(3);
-
-
-    // Join whiteboard room
-    useEffect(() => {
-        if (roomId) {
-            socket.emit("join_whiteboard", roomId);
-        }
-
-        return () => {
-            socket.emit("leave_whiteboard", roomId);
-        };
-    }, [roomId]);
+    const [canDrawState, setCanDrawState] = useState(canDraw);
 
     const modalRef = useRef(null);
     const [modalPosition, setModalPosition] = useState({ x: 200, y: 100 });
     const isDraggingRef = useRef(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const myPseudo = localStorage.getItem("userPseudo");
+
+        socket.on("whiteboard_permission_updated", ({ pseudo, whiteBoardControl }) => {
+            if (pseudo === myPseudo) {
+                setCanDrawState(whiteBoardControl);
+            }
+        });
+
+        return () => {
+            socket.off("whiteboard_permission_updated");
+        };
+    }, []);
+
+    // Join whiteboard room
+    useEffect(() => {
+        if (roomId) socket.emit("join_whiteboard", roomId);
+        return () => socket.emit("leave_whiteboard", roomId);
+    }, [roomId]);
 
     const handleDragStart = (e) => {
         isDraggingRef.current = true;
@@ -41,7 +49,6 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
         if (!isDraggingRef.current) return;
         const newX = e.clientX - dragStartRef.current.x;
         const newY = e.clientY - dragStartRef.current.y;
-
         const maxX = window.innerWidth - 850;
         const maxY = window.innerHeight - 480;
 
@@ -57,7 +64,6 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
         document.removeEventListener("mouseup", handleDragEnd);
     };
 
-
     const getTouchPos = (touchEvent) => {
         const rect = canvasRef.current.getBoundingClientRect();
         const touch = touchEvent.touches[0];
@@ -68,6 +74,7 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
     };
 
     const handleTouchStart = (e) => {
+        if (!canDrawState ) return;
         const { offsetX, offsetY } = getTouchPos(e);
         const ctx = canvasRef.current.getContext("2d");
         ctx.strokeStyle = color;
@@ -76,30 +83,16 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
         ctx.beginPath();
         ctx.moveTo(offsetX, offsetY);
         setIsDrawing(true);
-
-        socket.emit("draw", {
-            x: offsetX,
-            y: offsetY,
-            color,
-            brushSize,
-            type: "start"
-        });
+        socket.emit("draw", { x: offsetX, y: offsetY, color, brushSize, type: "start" });
     };
 
     const handleTouchMove = (e) => {
-        if (!isDrawing) return;
+        if (!isDrawing || !canDrawState ) return;
         const { offsetX, offsetY } = getTouchPos(e);
         const ctx = canvasRef.current.getContext("2d");
         ctx.lineTo(offsetX, offsetY);
         ctx.stroke();
-
-        socket.emit("draw", {
-            x: offsetX,
-            y: offsetY,
-            color,
-            brushSize,
-            type: "draw"
-        });
+        socket.emit("draw", { x: offsetX, y: offsetY, color, brushSize, type: "draw" });
     };
 
     const handleTouchEnd = () => {
@@ -107,9 +100,8 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
         canvasRef.current.getContext("2d").beginPath();
     };
 
-
-
     const startDraw = (e) => {
+        if (!canDrawState ) return;
         const ctx = canvasRef.current.getContext("2d");
         ctx.strokeStyle = color;
         ctx.lineWidth = brushSize;
@@ -117,7 +109,6 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
         ctx.beginPath();
         ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
         setIsDrawing(true);
-
         socket.emit("draw", {
             roomId,
             x: e.nativeEvent.offsetX,
@@ -129,12 +120,11 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
     };
 
     const draw = (e) => {
-        if (!isDrawing) return;
+        if (!isDrawing || !canDrawState ) return;
         const ctx = canvasRef.current.getContext("2d");
         const { offsetX, offsetY } = e.nativeEvent;
         ctx.lineTo(offsetX, offsetY);
         ctx.stroke();
-
         socket.emit("draw", {
             roomId,
             x: offsetX,
@@ -150,7 +140,6 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
         canvasRef.current.getContext("2d").beginPath();
     };
 
-    //  Listen for remote drawing events
     useEffect(() => {
         const handleDraw = ({ x, y, color, brushSize, type }) => {
             const ctx = canvasRef.current.getContext("2d");
@@ -174,9 +163,7 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
 
         socket.on("draw", handleDraw);
         socket.on("clear", handleClear);
-        socket.on("changeBrushSize", (size) => {
-            setBrushSize(size);
-        });
+        socket.on("changeBrushSize", (size) => setBrushSize(size));
 
         return () => {
             socket.off("draw", handleDraw);
@@ -224,7 +211,7 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
                 pointerEvents: isModalOpen ? "auto" : "none",
             }}
         >
-            {/* Barre supérieure pour déplacer + bouton cacher */}
+            {/* Barre de titre */}
             <div
                 className="absolute top-0 left-0 right-0 bg-[#2a2a2a] p-2 flex justify-between items-center cursor-move"
                 onMouseDown={handleDragStart}
@@ -238,13 +225,11 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
                 </button>
             </div>
 
-            {/* Contenu principal */}
-            <div className="mt-10 px-4 py-2">
-                {/* outils */}
+            {/* Contenu */}
+            <div className="mt-10 px-4 py-2 relative">
                 <div className="flex items-center gap-4 mb-2 text-white">
                     <label> Couleur:</label>
                     <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-
                     <label> Taille:</label>
                     <input
                         type="range"
@@ -257,23 +242,14 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
                             socket.emit("changeBrushSize", { roomId, size: newSize });
                         }}
                     />
-
-                    <button
-                        onClick={clearCanvas}
-                        className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center"
-                    >
+                    <button onClick={clearCanvas} className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center">
                         <FaEraser className="w-5 h-5" />
                     </button>
-                    <button
-                        onClick={exportToPDF}
-                        className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center"
-                    >
+                    <button onClick={exportToPDF} className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center">
                         <img src="/Assets/export.png" alt="Exporter en PDF" className="w-6 h-6" />
                     </button>
-
                 </div>
 
-                {/* Canvas */}
                 <canvas
                     ref={canvasRef}
                     onMouseDown={startDraw}
@@ -285,6 +261,11 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
                     onTouchEnd={handleTouchEnd}
                     className="border border-gray-500 rounded bg-white touch-none"
                 />
+
+                {!canDrawState  && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 text-white text-lg font-semibold z-50 rounded">
+                    </div>
+                )}
             </div>
         </div>
     );

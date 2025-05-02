@@ -189,6 +189,24 @@ io.on("connection", (socket) => {
         socket.emit("all_users", otherUsers);// sending the list of users already connected in the hive
     });
 
+    socket.on("update_whiteboard_permission", async ({ targetUserPseudo, allowWhiteboard }) => {
+        const hive = await Hive.findOne({ "users.pseudo": targetUserPseudo });
+
+        if (!hive) return;
+
+        const user = hive.users.find(u => u.pseudo === targetUserPseudo);
+        if (user) {
+            user.whiteBoardControl = allowWhiteboard;
+            await hive.save();
+
+            io.to(hive.idRoom.toString()).emit("whiteboard_permission_updated", {
+                pseudo: targetUserPseudo,
+                whiteBoardControl: allowWhiteboard
+            });
+        }
+    });
+
+
     socket.on("videoChanged", ({ roomId, videoId, time }) => {
         const lastUpdate = Date.now();
         const isPlaying = true;

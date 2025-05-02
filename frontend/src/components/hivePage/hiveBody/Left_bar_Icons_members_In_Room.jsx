@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import MemberInHive from "./MemberInHive";
 import socket from "../../socket";
 
-function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ownerId }) {
+function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ownerId, setNotification }){
+
     useEffect(() => {
         const userId = localStorage.getItem("userId") || socket.id;
         const userPseudo = localStorage.getItem("userPseudo");
@@ -44,6 +45,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             key={user._id || user.userId}
                             pseudo={user.pseudo}
                             micControl={user.micControl}
+                            whiteBoardControl={user.whiteBoardControl}
                             screenShareControl={user.screenShareControl}
                             videoControl={user.videoControl}
                             isOwner={user.userId === ownerId}
@@ -51,6 +53,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             currentUserId={localStorage.getItem("userId")}
                             ownerId={ownerId}
                             userId={user.userId}
+                            setNotification={setNotification}
                         />
                     ))}
             </ul>
