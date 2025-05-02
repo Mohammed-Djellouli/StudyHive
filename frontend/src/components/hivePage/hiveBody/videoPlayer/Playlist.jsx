@@ -12,17 +12,14 @@ const Playlist = ({ onVideoSelect, roomId }) => {
 
     // Function to fetch playlist
     function fetchPlaylist() {
-        socket.emit('get_playlist', { roomId });
+        if (roomId) {
+            socket.emit('get_playlist', { roomId });
+        }
     }
 
     useEffect(() => {
         // Initial fetch
         fetchPlaylist();
-        
-        // Set up interval for periodic refresh (every 1 second)
-        const refreshInterval = setInterval(() => {
-            fetchPlaylist();
-        }, 1000);
         
         // Socket event handlers
         const handlePlaylistUpdate = (updatedPlaylist) => {
@@ -30,10 +27,9 @@ const Playlist = ({ onVideoSelect, roomId }) => {
         };
 
         const handleVideoRemoved = (data) => {
-            setPlaylist(prevPlaylist => {
-                const newPlaylist = prevPlaylist.filter(video => video.videoId !== data.videoId);
-                return newPlaylist;
-            });
+            setPlaylist(prevPlaylist => 
+                prevPlaylist.filter(video => video.videoId !== data.videoId)
+            );
         };
 
         const handleVideoAdded = (video) => {
@@ -41,8 +37,7 @@ const Playlist = ({ onVideoSelect, roomId }) => {
                 if (prevPlaylist.some(v => v.videoId === video.videoId)) {
                     return prevPlaylist;
                 }
-                const newPlaylist = [video, ...prevPlaylist];
-                return newPlaylist;
+                return [video, ...prevPlaylist];
             });
         };
 
@@ -54,7 +49,6 @@ const Playlist = ({ onVideoSelect, roomId }) => {
 
         // Cleanup function
         return () => {
-            clearInterval(refreshInterval);
             socket.off('connect', fetchPlaylist);
             socket.off('playlist_updated', handlePlaylistUpdate);
             socket.off('video_removed', handleVideoRemoved);
@@ -63,8 +57,11 @@ const Playlist = ({ onVideoSelect, roomId }) => {
     }, [roomId]);
 
     // Function to remove video from playlist
-    const handleRemoveVideo = (videoId) => {
-        socket.emit('remove_from_playlist', { roomId, videoId });
+    const handleRemoveVideo = (videoId, e) => {
+        e.stopPropagation();
+        if (roomId) {
+            socket.emit('remove_from_playlist', { roomId, videoId });
+        }
     };
 
     // Search change handler
@@ -152,10 +149,7 @@ const Playlist = ({ onVideoSelect, roomId }) => {
                                     <FaPlay />
                                 </button>
                                 <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveVideo(video.videoId);
-                                    }}
+                                    onClick={(e) => handleRemoveVideo(video.videoId, e)}
                                     className="text-red-500 hover:text-red-400"
                                     title="Supprimer"
                                 >

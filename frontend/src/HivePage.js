@@ -270,9 +270,10 @@ return (
 
         <div className="relative group flex items-center justify-center cursor-pointer">
             <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
-                <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect}
-                 />
-
+                <Playlist 
+                    onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                    roomId={idRoom}
+                />
             </div>
             <div className="realtive w-full">
                 <VideoContainer
