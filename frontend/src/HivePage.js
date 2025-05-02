@@ -71,7 +71,7 @@ function HivePage() {
             });
         }
     }, []);
-  
+
   useEffect(() => {
         const userId = localStorage.getItem("userId");
         const userPseudo = localStorage.getItem("userPseudo");
@@ -188,8 +188,8 @@ useEffect(() => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
 }, []);
-  
-  
+
+
 if (isLoading) {
     return (
         <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
@@ -247,7 +247,7 @@ return (
 
                 <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[351px] opacity-100" : "h-0 opacity-0"} overflow-hidden`}>
                     <div className="w-full h-full">
-                        <ChatBox />
+                        <ChatBox users={users} ownerId = {ownerId} />
                     </div>
                 </div>
 
@@ -264,7 +264,7 @@ return (
             </div>
 
 
-            
+
 
 
         <div className="relative group flex items-center justify-center cursor-pointer">
@@ -302,7 +302,7 @@ return (
 
         <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
 
-      
+
 
 
         <div className="fixed left-2 top-[320px] z-50">
