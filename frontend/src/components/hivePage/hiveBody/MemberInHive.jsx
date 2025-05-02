@@ -70,7 +70,11 @@ function MemberInHive({
         socket.emit("exclude_user", { roomId, userId });
     };
 
-
+    // Check if user has permission to control video
+    const hasVideoPermission = () => {
+        // Allow video control if the user is the owner or has been granted video control
+        return currentUserId === ownerId || videoControl;
+    };
 
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer ">

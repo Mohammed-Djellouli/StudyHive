@@ -75,7 +75,11 @@ const VideoContainer = ({
 
     // Check if user has permission to control video
     const hasVideoPermission = () => {
-        return videoPermission;
+        if (currentUserId === ownerId) {
+            return true;
+        } else {
+            return videoPermission;
+        }
     };
 
     // Check if user has permission to share screen

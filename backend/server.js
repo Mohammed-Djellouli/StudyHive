@@ -311,6 +311,7 @@ io.on("connection", (socket) => {
             if (!room) return;
 
             const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            console.log("user is : ",user);
             if (user) {
                 user.videoControl = allowVideo;
                 await room.save();
@@ -322,6 +323,7 @@ io.on("connection", (socket) => {
                 });
             }
             console.log(`Video permission updated for user ${user.userId}: ${allowVideo}`);
+            console.log("user after update : ",user);
 
         } catch (err) {
             console.error("Failed to update video permission:", err);

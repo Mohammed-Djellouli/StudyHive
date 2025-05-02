@@ -61,7 +61,7 @@ router.get("/:idRoom", async (req, res) => {
 router.get("/last-created/:userId", async (req, res) => {
     console.log(" [GET] /api/hive/last-created/:userId CALLED");
     const userId = req.params.userId;
-    console.log("🔍 userId reçu :", userId);
+    console.log(" userId reçu :", userId);
 
     try {
         const objectId = new mongoose.Types.ObjectId(userId); //  conversion explicite

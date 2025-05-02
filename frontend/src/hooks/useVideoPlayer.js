@@ -113,15 +113,23 @@ const useVideoPlayer = (roomId) => {
 
     const handleVideoSelect = (video) => {
         try {
+            console.log("handleVideoSelect called with video:", video);
             if (!roomId) {
                 console.error("roomId is undefined in handleVideoSelect");
                 return;
             }
 
             const newVideoId = video?.id?.videoId;
-            if (!newVideoId) return;
+            if (!newVideoId) {
+                console.error("Invalid video ID:", video);
+                return;
+            }
+
+            console.log("Setting new video ID:", newVideoId);
+            setVideoId(newVideoId);
 
             const currentTime = playerRef.current?.getCurrentTime?.() || 0;
+            console.log("Current time:", currentTime);
 
             socket.emit("videoChanged", {
                 roomId,
@@ -129,7 +137,6 @@ const useVideoPlayer = (roomId) => {
                 time: currentTime,
             });
 
-            setVideoId(newVideoId);
         } catch (error) {
             console.error("Error in handleVideoSelect:", error);
         }

@@ -36,7 +36,7 @@ function HivePage() {
 
     const [brbMode, setBrbMode] = useState(false);
     const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
-    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(true);
+    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(false);
 
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
@@ -261,12 +261,17 @@ return (
         </div>
 
         <Big_Logo_At_Left />
-        <SearchBar onSearch={videoPlayerFeatures.handleSearch} />
+        <SearchBar onSearch={videoPlayerFeatures.handleSearch}
+        currentUserId={localStorage.getItem("userId") || socket.id}
+        ownerId={ownerId}
+        users={users}
+             />
 
 
         <div className="relative group flex items-center justify-center cursor-pointer">
             <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
-                <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect} />
+                <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                 />
 
             </div>
             <div className="realtive w-full">
@@ -278,6 +283,8 @@ return (
                     isQueenBeeMode={isQueenBeeMode}
                     currentUserId={localStorage.getItem("userId") || socket.id}
                     ownerId={ownerId}
+                    users={users}
+                    roomId={idRoom}
                 />
             </div>
         </div>
