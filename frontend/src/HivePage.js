@@ -75,10 +75,18 @@ function HivePage() {
         socket.on("user_joined", (newUser) => {
             setUsers((prev) => {
                 if (prev.find(u => u.userId === newUser.userId)) return prev;
+
+                const newUserWithDefaults = {
+                    micControl: true,
+                    whiteBoardControl: false,
+                    ...newUser
+                };
+
                 setNotification({ message: `${newUser.pseudo} a rejoint la Ruche`, type: "info" });
-                return [...prev, newUser];
+                return [...prev, newUserWithDefaults];
             });
         });
+
 
         socket.on("user_left", (idLeft) => {
             const idStr = idLeft.toString();
@@ -117,9 +125,6 @@ function HivePage() {
                 socket.emit("leave_hive_room", { roomId, userId, pseudo });
             }
             setNotification({ message: `${pseudo} a quitté la Ruche`, type: "danger" });
-            // Nettoyage localStorage
-            localStorage.removeItem("userId");
-            localStorage.removeItem("userPseudo");
         };
 
         window.addEventListener("beforeunload", handleUnload);
@@ -176,26 +181,36 @@ function HivePage() {
             </div>
 
 
-            <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
+            <WhiteBoard
+                roomId={idRoom}
+                isModalOpen={isWhiteboardOpen}
+                setIsModalOpen={setIsWhiteboardOpen}
+                canDraw={
+                    users.find(u => u.userId === currentId)?.whiteBoardControl ?? true
+                }
+            />
+
 
 
 
 
             {/* CONTENEUR synchronisé Chat + BlocNote */}
-            <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500">
+            <div className="absolute top-[65px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500 max-h-[calc(100vh-80px)] overflow-y-auto bg-transparent">
 
-                {/* BlocNote (avec marge en bas pour séparer du Chat) */}
+                {/* BlocNote */}
                 <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[280px]" : "h-[550px]"} mb-2`}>
                     <BlocNote isChatVisible={isChatVisible} />
                 </div>
 
-                {/* ChatBox masqué / visible selon l’état */}
-                <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isChatVisible ? "h-[351px] opacity-100" : "h-0 opacity-0"}`}>
-                    <ChatBox />
+                <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[351px] opacity-100" : "h-0 opacity-0"} overflow-hidden`}>
+                    <div className="w-full h-full">
+                        <ChatBox />
+                    </div>
                 </div>
 
-                {/* Bouton séparé et fixé en bas du conteneur */}
-                <div className="mt-2">
+
+                {/* Bouton sticky toujours visible */}
+                <div className="sticky bottom-0 bg-[#1D1F27] mt-2 z-10">
                     <button
                         onClick={() => setIsChatVisible(prev => !prev)}
                         className="w-full bg-yellow-400 text-black px-2 py-1 rounded-b-md hover:bg-yellow-300 transition"
@@ -205,11 +220,13 @@ function HivePage() {
                 </div>
             </div>
 
+
             <Left_bar_Icons_members_In_Room
                 ownerPseudo={ownerPseudo}
                 isQueenBeeMode={isQueenBeeMode}
                 users={users}
                 ownerId={ownerId}
+                setNotification={setNotification}
             />
 
             <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
