@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+
+import React, {useEffect, useState} from "react";
+import {useLocation} from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 
 import useVideoPlayer from './hooks/useVideoPlayer';
 import useWebRTC from './hooks/useWebRTC';
@@ -36,10 +40,12 @@ function HivePage() {
 
     const [brbMode, setBrbMode] = useState(false);
     const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
-    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(true);
+    const [isScreenShareWindowOpen, setIsScreenShareWindowOpen] = useState(false);
 
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
+
+
     const navigate = useNavigate();
 
     const toggleBrb = () => {
@@ -63,8 +69,8 @@ function HivePage() {
             });
         }
     }, []);
-
-    useEffect(() => {
+  
+  useEffect(() => {
         const userId = localStorage.getItem("userId");
         const userPseudo = localStorage.getItem("userPseudo");
 
@@ -73,6 +79,8 @@ function HivePage() {
             navigate(`/join/${idRoom}`);
         }
     }, [idRoom, navigate]);
+
+
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         const userPseudo = localStorage.getItem("userPseudo");
@@ -91,7 +99,7 @@ function HivePage() {
                 setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
                 setIsLoading(false);
             });
-}, [idRoom]);
+    }, [idRoom]);
 
 useEffect(() => {
     const pseudo = localStorage.getItem("userPseudo");
@@ -118,48 +126,41 @@ useEffect(() => {
 }, [idRoom]);
 
 
-useEffect(() => {
-    socket.on("user_joined", (newUser) => {
-        setUsers((prev) => {
-            if (prev.find(u => u.userId === newUser.userId)) return prev;
-            setNotification({message: `${newUser.pseudo} a rejoint la Ruche`, type: "info"});
-            return [...prev, newUser];
+    useEffect(() => {
+        socket.on("user_joined", (newUser) => {
+            setUsers((prev) => {
+                if (prev.find(u => u.userId === newUser.userId)) return prev;
+                setNotification({ message: `${newUser.pseudo} a rejoint la Ruche`, type: "info" });
+                return [...prev, newUser];
+            });
         });
-    });
 
-    socket.on("user_left", (idLeft) => {
-        const idStr = idLeft.toString();
-        setUsers((prev) => {
-            const userToRemove = prev.find(user =>
-                idStr === user.userId?.toString() ||
-                idStr === user.socketId?.toString() ||
-                idStr === user._id?.toString()
-            );
+        socket.on("user_left", (idLeft) => {
+            const idStr = idLeft.toString();
+            setUsers((prev) => {
+                const userToRemove = prev.find(user =>
+                    idStr === user.userId?.toString() ||
+                    idStr === user.socketId?.toString() ||
+                    idStr === user._id?.toString()
+                );
 
-            if (userToRemove) {
-                setNotification({ message: `${userToRemove.pseudo} a quitté la Ruche`, type: "danger" });
-            }
+                if (userToRemove) {
+                    setNotification({ message: `${userToRemove.pseudo} a quitté la Ruche`, type: "danger" });
+                }
 
-            return prev.filter(user =>
-                idStr !== user.userId?.toString() &&
-                idStr !== user.socketId?.toString() &&
-                idStr !== user._id?.toString()
-            );
+                return prev.filter(user =>
+                    idStr !== user.userId?.toString() &&
+                    idStr !== user.socketId?.toString() &&
+                    idStr !== user._id?.toString()
+                );
+            });
         });
 
         return () => {
             socket.off("user_joined");
             socket.off("user_left");
         };
-
-    });
-
-    return () => {
-        socket.off("user_joined");
-        socket.off("user_left");
-    };
-}, []);
-
+    }, []);
 
 
 useEffect(() => {
@@ -174,10 +175,8 @@ useEffect(() => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
 }, []);
-
-
-
-
+  
+  
 if (isLoading) {
     return (
         <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
@@ -204,12 +203,21 @@ return (
         </div>
 
         <Big_Logo_At_Left />
-        <SearchBar onSearch={videoPlayerFeatures.handleSearch} />
+        <SearchBar onSearch={videoPlayerFeatures.handleSearch}
+                   currentUserId={localStorage.getItem("userId") || socket.id}
+                   ownerId={ownerId}
+                   users={users}
+        />
+
 
 
         <div className="relative group flex items-center justify-center cursor-pointer">
             <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
-                <Playlist onVideoSelect={videoPlayerFeatures.handleVideoSelect} />
+                <Playlist
+                    onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                    roomId={idRoom}
+                />
+
 
             </div>
             <div className="realtive w-full">
@@ -221,7 +229,10 @@ return (
                     isQueenBeeMode={isQueenBeeMode}
                     currentUserId={localStorage.getItem("userId") || socket.id}
                     ownerId={ownerId}
+                    users={users}
+                    roomId={idRoom}
                 />
+
             </div>
         </div>
 
