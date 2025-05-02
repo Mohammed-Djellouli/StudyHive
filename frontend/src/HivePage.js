@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+
+import React, {useEffect, useState} from "react";
+import {useLocation} from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 
 import useVideoPlayer from './hooks/useVideoPlayer';
 import useWebRTC from './hooks/useWebRTC';
@@ -40,6 +44,8 @@ function HivePage() {
 
     const [currentPseudo, setCurrentPseudo] = useState('');
     const [currentId, setCurrentId] = useState('');
+
+
     const navigate = useNavigate();
 
     const toggleBrb = () => {
@@ -63,8 +69,8 @@ function HivePage() {
             });
         }
     }, []);
-
-    useEffect(() => {
+  
+  useEffect(() => {
         const userId = localStorage.getItem("userId");
         const userPseudo = localStorage.getItem("userPseudo");
 
@@ -73,6 +79,8 @@ function HivePage() {
             navigate(`/join/${idRoom}`);
         }
     }, [idRoom, navigate]);
+
+
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         const userPseudo = localStorage.getItem("userPseudo");
@@ -91,7 +99,7 @@ function HivePage() {
                 setOwnerId(data.idOwner?._id || data.ownerSocketId || data.idOwner);
                 setIsLoading(false);
             });
-}, [idRoom]);
+    }, [idRoom]);
 
 useEffect(() => {
     const pseudo = localStorage.getItem("userPseudo");
@@ -150,17 +158,8 @@ useEffect(() => {
         return () => {
             socket.off("user_joined");
             socket.off("user_left");
-        };
-
-    });
-
-    return () => {
-        socket.off("user_joined");
-        socket.off("user_left");
     };
 }, []);
-
-
 
 useEffect(() => {
         const handleBeforeUnload = () => {
@@ -174,10 +173,8 @@ useEffect(() => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
 }, []);
-
-
-
-
+  
+  
 if (isLoading) {
     return (
         <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
