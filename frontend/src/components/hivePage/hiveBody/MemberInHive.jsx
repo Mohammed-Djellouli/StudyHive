@@ -5,6 +5,7 @@ import socket from "../../socket";
 function MemberInHive({
                           pseudo,
                           micControl,
+                          whiteBoardControl, // ⬅️ AJOUT ICI
                           isOwner = false,
                           isQueenBeeMode = false,
                           currentUserId,
@@ -18,6 +19,11 @@ function MemberInHive({
     const [isMuted, setIsMuted] = useState(false);
     const [isSharingAllowed, setIsSharingAllowed] = useState(true);
     const [isVideoAllowed, setIsVideoAllowed] = useState(true);
+    const [isWhiteboardAllowed, setIsWhiteboardAllowed] = useState(whiteBoardControl);
+
+    useEffect(() => {
+        setIsWhiteboardAllowed(whiteBoardControl);
+    }, [whiteBoardControl]);
 
 
     useEffect(() => {
@@ -134,6 +140,37 @@ function MemberInHive({
                             </button>
                         )}
                     </div>
+                    {/* Whiteboard Control */}
+                    <div className="flex gap-2">
+                        {isWhiteboardAllowed ? (
+                            <button
+                                className="bg-black text-xs px-2 py-1 rounded w-[80px]"
+                                onClick={() => {
+                                    setIsWhiteboardAllowed(false);
+                                    socket.emit("update_whiteboard_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowWhiteboard: false
+                                    });
+                                }}
+                            >
+                                Block Board
+                            </button>
+                        ) : (
+                            <button
+                                className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
+                                onClick={() => {
+                                    setIsWhiteboardAllowed(true);
+                                    socket.emit("update_whiteboard_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowWhiteboard: true
+                                    });
+                                }}
+                            >
+                                Allow Board
+                            </button>
+                        )}
+                    </div>
+
                 </div>
             )}
         </li>

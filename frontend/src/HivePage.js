@@ -106,6 +106,21 @@ function HivePage() {
     }, []);
 
     useEffect(() => {
+        socket.on("whiteboard_permission_updated", ({ pseudo, whiteBoardControl }) => {
+            setUsers(prev =>
+                prev.map(user =>
+                    user.pseudo === pseudo ? { ...user, whiteBoardControl } : user
+                )
+            );
+        });
+
+        return () => {
+            socket.off("whiteboard_permission_updated");
+        };
+    }, []);
+
+
+    useEffect(() => {
         const handleUnload = () => {
             const userId = localStorage.getItem("userId");
             const pseudo = localStorage.getItem("userPseudo");
@@ -173,7 +188,16 @@ function HivePage() {
                 </div>
             </div>
 
-            <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
+            <WhiteBoard
+                roomId={idRoom}
+                isModalOpen={isWhiteboardOpen}
+                setIsModalOpen={setIsWhiteboardOpen}
+                canDraw={
+                    users.find(u => u.userId === currentId)?.whiteBoardControl ?? true
+                }
+            />
+
+
             <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox /></div>
             <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
 

@@ -4,7 +4,7 @@ import socket from "../../socket";
 import { FaEraser } from "react-icons/fa";
 
 
-const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
+const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen , canDraw}) => {
     const canvasRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState("#000000");
@@ -68,6 +68,8 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
     };
 
     const handleTouchStart = (e) => {
+        if (!canDraw) return;
+
         const { offsetX, offsetY } = getTouchPos(e);
         const ctx = canvasRef.current.getContext("2d");
         ctx.strokeStyle = color;
@@ -110,6 +112,8 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
 
 
     const startDraw = (e) => {
+        if (!canDraw) return;
+
         const ctx = canvasRef.current.getContext("2d");
         ctx.strokeStyle = color;
         ctx.lineWidth = brushSize;
@@ -129,6 +133,8 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
     };
 
     const draw = (e) => {
+        if (!canDraw) return;
+
         if (!isDrawing) return;
         const ctx = canvasRef.current.getContext("2d");
         const { offsetX, offsetY } = e.nativeEvent;
@@ -146,6 +152,8 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
     };
 
     const stopDraw = () => {
+        if (!canDraw) return;
+
         setIsDrawing(false);
         canvasRef.current.getContext("2d").beginPath();
     };
@@ -243,7 +251,12 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
                 {/* outils */}
                 <div className="flex items-center gap-4 mb-2 text-white">
                     <label> Couleur:</label>
-                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+                    <input
+                        type="color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        disabled={!canDraw}
+                    />
 
                     <label> Taille:</label>
                     <input
@@ -251,19 +264,27 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
                         min="1"
                         max="20"
                         value={brushSize}
+                        disabled={!canDraw}
                         onChange={(e) => {
+                            if (!canDraw) return;
                             const newSize = parseInt(e.target.value);
                             setBrushSize(newSize);
                             socket.emit("changeBrushSize", { roomId, size: newSize });
                         }}
                     />
 
+
                     <button
-                        onClick={clearCanvas}
-                        className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center"
+                        disabled={!canDraw}
+                        onClick={() => {
+                            if (!canDraw) return;
+                            clearCanvas();
+                        }}
+                        className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         <FaEraser className="w-5 h-5" />
                     </button>
+
                     <button
                         onClick={exportToPDF}
                         className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center"
