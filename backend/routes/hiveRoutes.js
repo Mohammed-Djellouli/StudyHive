@@ -59,18 +59,18 @@ router.get("/:idRoom", async (req, res) => {
 
 // GET /api/hive/last-created/:userId
 router.get("/last-created/:userId", async (req, res) => {
-    console.log("🟡 [GET] /api/hive/last-created/:userId CALLED");
+    console.log(" [GET] /api/hive/last-created/:userId CALLED");
     const userId = req.params.userId;
     console.log("🔍 userId reçu :", userId);
 
     try {
-        const objectId = new mongoose.Types.ObjectId(userId); // ✅ conversion explicite
+        const objectId = new mongoose.Types.ObjectId(userId); //  conversion explicite
         const lastHive = await Hive.findOne({ idOwner: objectId }).sort({ createdAt: -1 });
 
-        console.log("📦 Hive trouvée :", lastHive);
+        console.log(" Hive trouvée :", lastHive);
 
         if (!lastHive) {
-            console.log("❌ Aucune ruche trouvée pour cet utilisateur.");
+            console.log(" Aucune ruche trouvée pour cet utilisateur.");
             return res.status(404).json({ message: "Aucune ruche trouvée pour cet utilisateur." });
         }
 
@@ -80,7 +80,7 @@ router.get("/last-created/:userId", async (req, res) => {
             ownerPseudo: lastHive.ownerPseudo,
         });
     } catch (err) {
-        console.error("❌ Erreur récupération dernière ruche :", err);
+        console.error(" Erreur récupération dernière ruche :", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 });
