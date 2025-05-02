@@ -22,7 +22,7 @@ function MemberInHive({
         setIsMuted(!micControl);
     }, [micControl]);
 
-    // 🔄 Mise à jour en temps réel des permissions whiteboard
+    // Mise à jour en temps réel des permissions whiteboard
     useEffect(() => {
         const myPseudo = localStorage.getItem("userPseudo");
 
