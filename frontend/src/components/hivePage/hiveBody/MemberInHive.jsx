@@ -15,8 +15,8 @@ function MemberInHive({
                           setNotification
                       }) {
     const [showModal, setShowModal] = useState(false);
-    const [isMuted, setIsMuted] = useState(false); 
-    const [whiteBoardAllowed, setWhiteBoardAllowed] = useState(whiteBoardControl);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isWhiteboardAllowed, setIsWhiteboardAllowed] = useState(whiteBoardControl);
     const [isSharingAllowed, setIsSharingAllowed] = useState(screenShareControl);
     const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
 
@@ -31,26 +31,13 @@ function MemberInHive({
     }, [micControl]);
 
 
-    // Mise à jour en temps réel des permissions whiteboard
     useEffect(() => {
-        const myPseudo = localStorage.getItem("userPseudo");
+        setIsWhiteboardAllowed(whiteBoardControl);
+    }, [whiteBoardControl]);
 
-        const handleWhiteboardPermissionUpdate = ({ pseudo, whiteBoardControl }) => {
-            if (pseudo === myPseudo) {
-                const message = whiteBoardControl
-                    ? "Tu as reçu l'accès au tableau blanc"
-                    : "Ton accès au tableau blanc a été retiré";
 
-                setNotification({ message, type: whiteBoardControl ? "info" : "danger" });
-            }
-        };
 
-        socket.on("whiteboard_permission_updated", handleWhiteboardPermissionUpdate);
 
-        return () => {
-            socket.off("whiteboard_permission_updated", handleWhiteboardPermissionUpdate);
-        };
-    }, []);
 
 
     useEffect(() => {
@@ -149,49 +136,50 @@ function MemberInHive({
                         )}
                     </div>
 
-                    {/* Whiteboard */}
+                    {/* Whiteboard Control */}
                     <div className="flex gap-2">
-                        {whiteBoardAllowed ? (
+                        {isWhiteboardAllowed ? (
                             <button
                                 className="bg-black text-xs px-2 py-1 rounded w-[80px]"
                                 onClick={() => {
+                                    setIsWhiteboardAllowed(false);
                                     socket.emit("update_whiteboard_permission", {
                                         targetUserPseudo: pseudo,
-                                        allowWhiteboard: false,
+                                        allowWhiteboard: false
                                     });
-                                    setWhiteBoardAllowed(false);
 
-                                    //  Notification
+                                    // Notification côté Owner
                                     setNotification({
-                                        message: `${pseudo} ne peut plus dessiner sur le whiteboard.`,
+                                        message: ` ${pseudo} ne peut plus utiliser le whiteboard.`,
                                         type: "danger",
                                     });
                                 }}
                             >
-                                Block Draw
+                                Block Board
                             </button>
                         ) : (
                             <button
                                 className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
                                 onClick={() => {
+                                    setIsWhiteboardAllowed(true);
                                     socket.emit("update_whiteboard_permission", {
                                         targetUserPseudo: pseudo,
-                                        allowWhiteboard: true,
+                                        allowWhiteboard: true
                                     });
-                                    setWhiteBoardAllowed(true);
 
-                                    //  Notification
+                                    // Notification côté Owner
                                     setNotification({
-                                        message: `${pseudo} peut maintenant dessiner sur le whiteboard.`,
+                                        message: ` ${pseudo} peut maintenant utiliser le whiteboard.`,
                                         type: "info",
                                     });
                                 }}
                             >
-                                Allow Draw
+                                Allow Board
                             </button>
                         )}
-
                     </div>
+
+
 
                     {/* Share Screen */}
                     <div className="flex gap-2">

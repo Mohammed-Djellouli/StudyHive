@@ -3,7 +3,7 @@ import { jsPDF } from "jspdf";
 import socket from "../../socket";
 import { FaEraser } from "react-icons/fa";
 
-const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw }) => {
+const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw , setNotification}) => {
     const canvasRef = useRef(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState("#000000");
@@ -19,10 +19,21 @@ const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw }) => {
         const myPseudo = localStorage.getItem("userPseudo");
 
         socket.on("whiteboard_permission_updated", ({ pseudo, whiteBoardControl }) => {
+            const myPseudo = localStorage.getItem("userPseudo");
+
             if (pseudo === myPseudo) {
                 setCanDrawState(whiteBoardControl);
+
+                // ✅ Notifier l’utilisateur affecté
+                setNotification?.({
+                    message: whiteBoardControl
+                        ? "Tu as reçu l'accès au tableau blanc"
+                        : "Ton accès au tableau blanc a été retiré",
+                    type: whiteBoardControl ? "info" : "danger",
+                });
             }
         });
+
 
         return () => {
             socket.off("whiteboard_permission_updated");
@@ -74,7 +85,7 @@ const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw }) => {
     };
 
     const handleTouchStart = (e) => {
-        if (!canDrawState ) return;
+        if (!canDrawState) return;
         const { offsetX, offsetY } = getTouchPos(e);
         const ctx = canvasRef.current.getContext("2d");
         ctx.strokeStyle = color;
@@ -87,7 +98,7 @@ const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw }) => {
     };
 
     const handleTouchMove = (e) => {
-        if (!isDrawing || !canDrawState ) return;
+        if (!canDrawState || !isDrawing) return;
         const { offsetX, offsetY } = getTouchPos(e);
         const ctx = canvasRef.current.getContext("2d");
         ctx.lineTo(offsetX, offsetY);
@@ -95,13 +106,14 @@ const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw }) => {
         socket.emit("draw", { x: offsetX, y: offsetY, color, brushSize, type: "draw" });
     };
 
+
     const handleTouchEnd = () => {
         setIsDrawing(false);
         canvasRef.current.getContext("2d").beginPath();
     };
 
     const startDraw = (e) => {
-        if (!canDrawState ) return;
+        if (!canDrawState) return;
         const ctx = canvasRef.current.getContext("2d");
         ctx.strokeStyle = color;
         ctx.lineWidth = brushSize;
@@ -120,7 +132,7 @@ const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw }) => {
     };
 
     const draw = (e) => {
-        if (!isDrawing || !canDrawState ) return;
+        if (!canDrawState || !isDrawing) return;
         const ctx = canvasRef.current.getContext("2d");
         const { offsetX, offsetY } = e.nativeEvent;
         ctx.lineTo(offsetX, offsetY);
@@ -229,22 +241,38 @@ const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw }) => {
             <div className="mt-10 px-4 py-2 relative">
                 <div className="flex items-center gap-4 mb-2 text-white">
                     <label> Couleur:</label>
-                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+                    <input
+                        type="color"
+                        disabled={!canDrawState} // <- ici
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                    />
                     <label> Taille:</label>
                     <input
                         type="range"
                         min="1"
                         max="20"
                         value={brushSize}
+                        disabled={!canDrawState} // <- ici
                         onChange={(e) => {
+                            if (!canDrawState) return;
                             const newSize = parseInt(e.target.value);
                             setBrushSize(newSize);
                             socket.emit("changeBrushSize", { roomId, size: newSize });
                         }}
                     />
-                    <button onClick={clearCanvas} className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center">
+
+                    <button
+                        disabled={!canDrawState} // <- ici
+                        onClick={() => {
+                            if (!canDrawState) return;
+                            clearCanvas();
+                        }}
+                        className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
                         <FaEraser className="w-5 h-5" />
                     </button>
+
                     <button onClick={exportToPDF} className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center">
                         <img src="/Assets/export.png" alt="Exporter en PDF" className="w-6 h-6" />
                     </button>

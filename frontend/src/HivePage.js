@@ -82,6 +82,19 @@ function HivePage() {
         }
     }, [idRoom, navigate]);
 
+    useEffect(() => {
+        socket.on("whiteboard_permission_updated", ({ pseudo, whiteBoardControl }) => {
+            setUsers(prev =>
+                prev.map(user =>
+                    user.pseudo === pseudo ? { ...user, whiteBoardControl } : user
+                )
+            );
+        });
+
+        return () => {
+            socket.off("whiteboard_permission_updated");
+        };
+    }, []);
 
 
     useEffect(() => {
@@ -144,6 +157,7 @@ useEffect(() => {
                 return [...prev, newUserWithDefaults];
             });
         });
+
 
 
         socket.on("user_left", (idLeft) => {
@@ -224,20 +238,20 @@ return (
 
 
 
-            <WhiteBoard
-                roomId={idRoom}
-                isModalOpen={isWhiteboardOpen}
-                setIsModalOpen={setIsWhiteboardOpen}
-                canDraw={
-                    users.find(u => u.userId === currentId)?.whiteBoardControl ?? true
-                }
-            />
+        <WhiteBoard
+            roomId={idRoom}
+            isModalOpen={isWhiteboardOpen}
+            setIsModalOpen={setIsWhiteboardOpen}
+            canDraw={users.find(u => u.userId === currentId)?.whiteBoardControl ?? true}
+            setNotification={setNotification}
+        />
 
 
 
 
 
-            {/* CONTENEUR synchronisé Chat + BlocNote */}
+
+        {/* CONTENEUR synchronisé Chat + BlocNote */}
             <div className="absolute top-[65px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500 max-h-[calc(100vh-80px)] overflow-y-auto bg-transparent">
 
                 {/* BlocNote */}
