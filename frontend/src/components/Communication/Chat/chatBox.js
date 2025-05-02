@@ -5,11 +5,27 @@ import MessageInput from "./messageInput";
 import socket from "../../socket";
 import "./chat.css";
 
-const ChatBox = () => {
+const ChatBox = ({users,ownerId}) => {
     const [messages, setMessages] = useState([]);
-    const [userId, setUserId] = useState(null);
-    const [socketId, setSocketId] = useState("");
-    const { idRoom: roomId } = useParams();
+
+
+    const[userId, setUserId] = useState(null);
+    const[socketId, setSocketId] = useState("");
+    const {idRoom:roomId} = useParams();
+    const currentId = userId || socketId;
+
+    const getCurrentUserPseudo = () => {
+        console.log("users are : ",users)
+        const me = users?.find(
+            (u)=>
+                u.userId?.toString() === currentId ||
+                u.socketId === currentId ||
+                u._id?.toString() === currentId
+        );
+        console.log("pseudo that have been found ",me?.pseudo)
+        return me?.pseudo || "error";
+    };
+
 
     const messagesEndRef = useRef(null);
 
@@ -45,19 +61,22 @@ const ChatBox = () => {
     }, [messages]);
 
     const handleSendMessage = (newMessage) => {
+        const pseudo = getCurrentUserPseudo();
         socket.emit("send_message", {
             roomId,
             message: {
                 ...newMessage,
-                user: userId || socketId
+                user: currentId,
+                pseudo
             }
         });
     };
 
     return (
+
         <div className="w-96 h-[340px] rounded-xl bg-[#1e1f21] flex flex-col overflow-hidden">
-            <MessageList messages={messages} selfId ={userId || socketId} />
-            <MessageInput onSend={handleSendMessage} />
+            <MessageList messages={messages} selfId ={userId || socketId} users={users} ownerId ={ ownerId} />
+            <MessageInput onSend={handleSendMessage } />
         </div>
     );
 };

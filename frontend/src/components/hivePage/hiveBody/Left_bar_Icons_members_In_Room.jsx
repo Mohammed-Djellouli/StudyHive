@@ -46,6 +46,8 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             pseudo={user.pseudo}
                             micControl={user.micControl}
                             whiteBoardControl={user.whiteBoardControl}
+                            screenShareControl={user.screenShareControl}
+                            videoControl={user.videoControl}
                             isOwner={user.userId === ownerId}
                             isQueenBeeMode={isQueenBeeMode}
                             currentUserId={localStorage.getItem("userId")}
