@@ -4,6 +4,7 @@ import { FiEye, FiEyeOff } from "react-icons/fi"; // eye open/close
 import axios from 'axios';
 
 import { Link, useNavigate } from "react-router-dom";
+import { FaGithub } from "react-icons/fa";
 
 const RegisterForm = () => {
     const [email, setEmail] = useState('');
@@ -90,20 +91,32 @@ const RegisterForm = () => {
                 type="submit"
                 className="w-full bg-[#FBBC04] text-black font-semibold py-2 rounded-md mb-4"
             >
-                Create account
+                Create Account
             </button>
 
-            {/* Google button */}
-            <button
-                type="button"
-                className="w-full flex items-center justify-center gap-2 bg-[#FBBC04] text-black font-semibold py-2 rounded-md mb-4 hover:bg-yellow-400"
-                onClick={() => {
-                    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/google`;
-                }}
-            >
-                <FcGoogle className="text-xl" />
-                Continue with Google
-            </button>
+            <div className="flex gap-4 mb-4">
+                <button
+                    type="button"
+                    className="w-1/2 flex items-center justify-center gap-2 bg-[#FBBC04] text-black font-semibold py-2 rounded-md hover:bg-yellow-400"
+                    onClick={() => {
+                        window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/google`;
+                    }}
+                >
+                    <FcGoogle className="text-xl" />
+                    Google
+                </button>
+
+                <button
+                    type="button"
+                    className="w-1/2 flex items-center justify-center gap-2 bg-[#FBBC04] text-black font-semibold py-2 rounded-md hover:bg-yellow-400"
+                    onClick={() => {
+                        window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/github`;
+                    }}
+                >
+                    <FaGithub className="text-xl text-black" />
+                    GitHub
+                </button>
+            </div>
 
             {/* login link */}
             <p className="text-center text-sm text-gray-300">

@@ -10,6 +10,7 @@ import GoogleAuthSuccess from "./components/auth/GoogleAuthSuccess";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import JoinHive from "./components/hivePage/hiveHandle/JoinHive";
+import GithubAuthSuccess from "./components/auth/GithubAuthSuccess";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -22,6 +23,7 @@ root.render(
                 <Route path="/LoginPage" element={<LoginPage />} />
                 <Route path="/RegisterPage" element={<RegisterPage />} />
                 <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+                <Route path="/github-auth-success" element={<GithubAuthSuccess />} />
 
             </Routes>
         </Router>

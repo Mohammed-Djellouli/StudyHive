@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import socket from "../../socket";
+import { FaEraser } from "react-icons/fa";
 
 
 const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
@@ -257,8 +258,19 @@ const WhiteBoard = ({ roomId,isModalOpen, setIsModalOpen }) => {
                         }}
                     />
 
-                    <button onClick={clearCanvas} className="bg-red-600 px-4 py-1 rounded hover:bg-red-500"> Clear</button>
-                    <button onClick={exportToPDF} className="bg-green-600 px-4 py-1 rounded hover:bg-green-500"> Export PDF</button>
+                    <button
+                        onClick={clearCanvas}
+                        className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center"
+                    >
+                        <FaEraser className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={exportToPDF}
+                        className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center"
+                    >
+                        <img src="/Assets/export.png" alt="Exporter en PDF" className="w-6 h-6" />
+                    </button>
+
                 </div>
 
                 {/* Canvas */}

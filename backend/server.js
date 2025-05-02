@@ -36,10 +36,12 @@ app.use(passport.session());
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const authGoogleRoutes = require("./routes/authGoogle");
+const authGithubRoutes = require("./routes/authGithub");
 const Room = require("./models/hive");
 
 app.use("/api/auth", authRoutes);
 app.use("/auth", authGoogleRoutes);
+app.use("/auth", authGithubRoutes);
 
 const server = http.createServer(app);
 const io = new Server(server,{
@@ -497,6 +499,8 @@ io.on("connection", (socket) => {
 app.get("/", (req, res) => {
     res.send("StudyHive Backend fonctionne !");
 });
+
+
 
 
 // Création
