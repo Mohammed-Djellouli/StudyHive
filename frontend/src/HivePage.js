@@ -42,6 +42,8 @@ function HivePage() {
     const [currentId, setCurrentId] = useState('');
     const navigate = useNavigate();
 
+    const [justExcludedIds, setJustExcludedIds] = useState(new Set());
+
     const toggleBrb = () => {
         const newValue = !brbMode;
         setBrbMode(newValue);
@@ -129,6 +131,10 @@ useEffect(() => {
 
     socket.on("user_left", (idLeft) => {
         const idStr = idLeft.toString();
+        if (justExcludedIds.has(idStr)) {
+            console.log(" Ignoré car déjà exclu :", idStr);
+            return;
+        }
         setUsers((prev) => {
             const userToRemove = prev.find(user =>
                 idStr === user.userId?.toString() ||
@@ -175,6 +181,57 @@ useEffect(() => {
         };
 }, []);
 
+    useEffect(() => {
+        const handleExclusion = (data) => {
+            const kickedId = data?.userId;
+            const myId = localStorage.getItem("userId");
+            const myPseudo = localStorage.getItem("userPseudo");
+
+            if (!kickedId || !myId) return;
+
+            const isMe = String(kickedId).trim() === String(myId).trim();
+
+
+            setJustExcludedIds(prev => new Set(prev).add(kickedId));
+
+            if (isMe) {
+
+
+                if (myPseudo?.startsWith("Bee-")) {
+                    localStorage.removeItem("userId");
+                    localStorage.removeItem("userPseudo");
+                }
+
+                setNotification({
+                    message: "Vous avez été exclu de la ruche.",
+                    type: "danger"
+                });
+
+
+                setTimeout(() => {
+                    navigate("/", {
+                        state: {
+                            notification: {
+                                message: "Vous avez été exclu de la ruche.",
+                                type: "danger"
+                            }
+                        }
+                    });
+                }, 1000);
+            } else {
+                setNotification({
+                    message: `${myPseudo} a été exclu.`,
+                    type: "danger"
+                });
+            }
+        };
+
+        socket.on("excluded_from_room", handleExclusion);
+
+        return () => {
+            socket.off("excluded_from_room", handleExclusion);
+        };
+    }, [navigate]);
 
 
 
@@ -234,6 +291,10 @@ return (
             isQueenBeeMode={isQueenBeeMode}
             users={users}
             ownerId={ownerId}
+            roomId={idRoom}
+            setNotification={setNotification}
+            setJustExcludedIds={setJustExcludedIds}
+
         />
 
         <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>

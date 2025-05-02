@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import socket from "../../socket";
-
+import { useNavigate } from "react-router-dom";
 
 function MemberInHive({
                           pseudo,
@@ -12,6 +12,9 @@ function MemberInHive({
                           currentUserId,
                           ownerId,
                           userId,
+                          roomId,
+                          setNotification,
+                          setJustExcludedIds
 
                       }) {
 
@@ -19,6 +22,8 @@ function MemberInHive({
     const [isMuted, setIsMuted] = useState(false);
     const [isSharingAllowed, setIsSharingAllowed] = useState(screenShareControl);
     const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
+
+    const navigate = useNavigate();
 
     // Mettre à jour les états de partage d'écran et vidéo quand les props changent
     useEffect(() => {
@@ -59,6 +64,14 @@ function MemberInHive({
             setShowModal(prev => !prev);
         }
     }
+
+
+    const handleExclusion = () => {
+        socket.emit("exclude_user", { roomId, userId });
+    };
+
+
+
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer ">
             {/* le div pour le cercle autour de l'icon quand l'utilisateur parle*/}
@@ -181,6 +194,14 @@ function MemberInHive({
                                 Allow Video
                             </button>
                         )}
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleExclusion}
+                            className="bg-red-600 text-xs px-4 py-1 rounded hover:bg-red-700 w-[80px]"
+                        >
+                            Exclure
+                        </button>
                     </div>
                 </div>
             )}
