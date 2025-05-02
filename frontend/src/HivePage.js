@@ -15,6 +15,8 @@ import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
 import NotificationBanner from "./components/hivePage/hiveHeader/NotificationBanner";
 import Playlist from "./components/hivePage/hiveBody/videoPlayer/Playlist";
 import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
+import InviteModal from "./components/hivePage/hiveHandle/InviteModal";
+
 import socket from "./components/socket";
 
 import "./App.css";
@@ -43,6 +45,8 @@ function HivePage() {
     const navigate = useNavigate();
 
     const [justExcludedIds, setJustExcludedIds] = useState(new Set());
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
 
     const toggleBrb = () => {
         const newValue = !brbMode;
@@ -261,6 +265,22 @@ return (
         </div>
 
         <Big_Logo_At_Left />
+        {(!isQueenBeeMode || (isQueenBeeMode && currentId === ownerId)) && (
+            <div className="absolute top-4 left-[320px] z-50">
+                <button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="bg-amber-400 text-black px-4 py-1 rounded-full text-sm shadow hover:bg-amber-300 transition"
+                >
+                    Inviter
+                </button>
+            </div>
+        )}
+
+        {isInviteModalOpen && (
+            <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />
+        )}
+
+
         <SearchBar onSearch={videoPlayerFeatures.handleSearch} />
 
 
