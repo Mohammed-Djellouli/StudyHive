@@ -45,7 +45,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             key={user._id || user.userId}
                             pseudo={user.pseudo}
                             micControl={user.micControl}
-                            whiteBoardControl={user.whiteBoardControl}
+                            whiteBoardControl={user.whiteBoardControl} // ⬅️ ici
                             screenShareControl={user.screenShareControl}
                             videoControl={user.videoControl}
                             isOwner={user.userId === ownerId}
