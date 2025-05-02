@@ -14,13 +14,15 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     const [micAllowed, setMicAllowed] = useState(true);
     const [usersState,setUsers] = useState(users);
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [brbActive, setBrbActive] = useState(false);
+
 
 
 
     //stun to help peer find the best route to connect
     //turn used when stun fails (fairewalls problems...)
 
-    console.log("current user id is : ",currentUserId)
+    //console.log("current user id is : ",currentUserId)
     const peerConfig ={
         trickle: false,
         config:{
@@ -274,15 +276,17 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         const handleBRB = (event)=>{
             const {brb} = event.detail;
             console.log("BRB MODE : ",brb);
+            setBrbActive(brb);
             if(stream){
                 stream.getAudioTracks().forEach((track)=>{
-                    track.enabled = !brb;
+                    track.enabled = !brb && micAllowed;
                 });
             }
             document.querySelectorAll('audio').forEach((audio)=>{
                 audio.muted = brb;
             });
-            setMicOn(!brb)
+            setBrbActive(brb);
+            setMicOn(!brb && micAllowed);
         }
         window.addEventListener("toggle-brb",handleBRB);
         return()=>{
@@ -304,12 +308,12 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     };
 
     const handleToggleMic =()=>{
-        if(!stream || !micAllowed){
+        if(!stream || !micAllowed || brbActive){
             return;
         }
         setMicOn(prev=>!prev);
     }
-    console.log("Button rendering: micAllowed =", micAllowed);
+    //console.log("Button rendering: micAllowed =", micAllowed);
     return (
 
         <button onClick={handleToggleMic}

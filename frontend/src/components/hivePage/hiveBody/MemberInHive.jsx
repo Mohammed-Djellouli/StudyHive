@@ -27,6 +27,10 @@ function MemberInHive({
     }, [screenShareControl, videoControl]);
 
     useEffect(() => {
+        setIsMuted(!micControl)
+    }, [micControl]);
+
+    useEffect(() => {
         const handleScreenSharePermissionUpdate = ({ userId: updatedUserId, screenShareControl: newScreenShareControl }) => {
             if (updatedUserId === userId) {
                 setIsSharingAllowed(newScreenShareControl);
