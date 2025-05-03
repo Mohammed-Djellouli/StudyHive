@@ -414,8 +414,13 @@ io.on("connection", (socket) => {
         io.to(roomId).emit('video_removed', { videoId });
         io.to(roomId).emit('playlist_updated', updated);
     });
-   
 
+    socket.on("toggle-brb", ({ roomId, userId, isBRB }) => {
+        io.to(roomId).emit("user_brb_status", {
+            userId,
+            isBRB
+        });
+    });
    
 
     socket.on("leave_room", async ({ roomId, userId }) => {

@@ -190,8 +190,8 @@ const VideoContainer = ({
     return (
         <div className="relative">
             {/* Container principal pour le lecteur vidéo - toujours visible */}
-            <div className="absolute left-[100px] top-[100px] w-[850px] h-[450px] rounded-lg items-center bg-[#1a1a1a] p-4">
-                {videoId ? (
+            <div className="relative w-full max-w-[850px] mx-auto mt-6 aspect-video rounded-lg bg-[#1a1a1a] p-4">
+            {videoId ? (
                     <div className="w-full h-full flex items-center justify-center">
                         <VideoDisplay 
                             videoId={videoId}
@@ -206,11 +206,6 @@ const VideoContainer = ({
                     </div>
                 ) : (
                     <div className="relative w-full h-full">
-                        {/* Image de fond avec faible opacité */}
-                        <div 
-                            className="absolute inset-0 bg-cover bg-center opacity-10"
-                            style={{ backgroundImage: "url('/assets/pexels-photo.jpg')" }}
-                        />
                         {/* Logo YouTube centré */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <img 
@@ -233,10 +228,12 @@ const VideoContainer = ({
 
             {/* Modal de partage d'écran */}
             <div
-                className={`fixed w-[850px] h-[480px] bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20 transition-opacity duration-300 ${
+                className={`fixed bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20 transition-opacity duration-300 ${
                     isModalOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
                 }`}
                 style={{
+                    width: 'min(90vw, 850px)',
+                    height: 'min(90vh, 480px)',
                     left: `${modalPosition.x}px`,
                     top: `${modalPosition.y}px`,
                     pointerEvents: isModalOpen ? 'auto' : 'none'

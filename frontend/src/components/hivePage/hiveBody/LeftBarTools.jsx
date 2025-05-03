@@ -100,9 +100,17 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
     console.log("ownerId", ownerId)
     console.log("MyActualId", myUserId)
 
+    const handleBRBToggle = () => {
+        socket.emit("toggle-brb", {
+            roomId: window.location.pathname.split("/").pop(),
+            userId: currentUserId,
+            isBRB: !brbMode
+        });
+        toggleBRB();
+    };
 
     return (
-        <div className="fixed top-[60px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
+        <div className="fixed top-[80px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
             {/* Share Screen */}
             <button
                 onClick={hasSharePermission && canShare ? onStartSharing : undefined}
@@ -167,8 +175,15 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
 
             {/* BRB */}
             <div className="bg-black/60 rounded-full w-[40px] h-[40px] text-white text-sm font-bold flex items-center justify-center">
-                <button onClick={toggleBRB}
-                >{brbMode ? "Back" : "BRB"}</button>
+                <button
+                    onClick={() => {
+                        toggleBRB();
+                        handleBRBToggle();
+                    }}
+                    className={"${brbMode ? 'text-yellow-400' : 'text-white'}"}
+                >
+                    {brbMode ? "Back" : "BRB"}
+                </button>
             </div>
 
             {(!isQueenBeeMode || (isQueenBeeMode && myUserId === ownerId)) && (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import socket from "../../socket";
-function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo }) {
+function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo, position = "top"  }) {
     const [timeLeft, setTimeLeft] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
@@ -96,22 +96,28 @@ function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo
     if (timeLeft <= 600000) timerColor = "text-red-500 animate-pulse";
 
     return (
-        <div className="fixed top-2 right-4 z-50 flex items-center gap-4 ">
+        <div
+            className={`${
+                position === "bottom"
+                    ? "w-full flex-col items-center bg-[#1D1F27] py-2 px-4 border-t border-gray-700"
+                    : "fixed top-2 right-4"
+            } z-50 flex gap-4`}
+        >
             <p className={`text-lg font-bold ${timerColor}`}>
                 {timeLeft !== null ? formatTime(timeLeft) : "Loading..."}
             </p>
 
-            {(currentId2 && ownerId && currentId2.toString() === ownerId.toString()) ?  (
+            {(currentId2 && ownerId && currentId2.toString() === ownerId.toString()) ? (
                 <button
                     onClick={handleEndHiveClick}
-                    className="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
                 >
                     End Room
                 </button>
             ) : (
                 <button
                     onClick={handleLeaveHiveClick}
-                    className="mt-2 bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition"
+                    className="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition"
                 >
                     Quitter la Hive
                 </button>
@@ -133,6 +139,7 @@ function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo
             )}
         </div>
     );
+
 }
 
 export default HiveTimerBanner;

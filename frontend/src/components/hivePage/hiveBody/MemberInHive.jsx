@@ -26,7 +26,7 @@ function MemberInHive({
     const [isWhiteboardAllowed, setIsWhiteboardAllowed] = useState(whiteBoardControl) ;
     const [isSharingAllowed, setIsSharingAllowed] = useState(screenShareControl);
     const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
-
+    const [isBRB, setIsBRB] = useState(false);
     const navigate = useNavigate();
 
 
@@ -92,6 +92,24 @@ function MemberInHive({
         };
     }, [userId,currentUserId,setNotification]);
 
+    useEffect(() => {
+        socket.on("user_brb_status", ({ userId: updatedUserId, isBRB: newBRBStatus }) => {
+            if (updatedUserId === userId) {
+                setIsBRB(newBRBStatus);
+                setNotification({
+                    message: newBRBStatus
+                        ? `${pseudo} est en mode Bee Right Back`
+                        : `${pseudo} est de retour!`,
+                    type: "info"
+                });
+            }
+        });
+
+        return () => {
+            socket.off("user_brb_status");
+        };
+    }, [userId, pseudo, setNotification]);
+
     const canModifyPermissions = currentUserId === ownerId;
 
     const handleClick = () => {
@@ -112,7 +130,9 @@ function MemberInHive({
             <div id={`user-${userId}`} className="relative rounded-full ring-4 ring-transparent transition-all w-[50px] h-[50px] flex items-center justify-center " onClick={handleClick}>
                 {isMuted? (
                     <span className="text-white text-xs">Muted</span>
-                ):(
+                ):isBRB ? (
+                    <span className="text-white text-xs">BRB</span>
+                    ) : (
                     <img
                         src="/assets/SoloBee2.png"
                         alt="Bee"

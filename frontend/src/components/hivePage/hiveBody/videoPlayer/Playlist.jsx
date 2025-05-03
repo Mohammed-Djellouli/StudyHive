@@ -130,8 +130,8 @@ const Playlist = ({ onVideoSelect, roomId, currentUserId, ownerId, users }) => {
     };
 
     return (
-        <div className="bg-[#1a1a1a] rounded-xl p-4 flex flex-col gap-4 shadow-lg">
-            <h3 className="text-yellow-400 text-lg font-semibold mb-2">Playlist</h3>
+        <div className="w-full max-w-[850px] mx-auto bg-[#1a1a1a] rounded-xl p-4 flex flex-col gap-4 shadow-lg">
+        <h3 className="text-yellow-400 text-lg font-semibold mb-2">Playlist</h3>
 
             {/* Barre de recherche avec état disabled basé sur les permissions */}
             <div className="flex gap-2">
@@ -149,11 +149,8 @@ const Playlist = ({ onVideoSelect, roomId, currentUserId, ownerId, users }) => {
             </div>
 
             <div
-                className="flex flex-col gap-4 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-[#2a2a2a]"
-                style={{
-                    maxHeight,
-                    minHeight: '100px'
-                }}
+                className="flex flex-col gap-4 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-[#2a2a2a]
+             max-h-[200px] min-h-[100px] sm:max-h-[350px] sm:min-h-[80px]"
             >
                 {displayedVideos.map((video) => (
                     <div
@@ -166,7 +163,7 @@ const Playlist = ({ onVideoSelect, roomId, currentUserId, ownerId, users }) => {
                         <img
                             src={getYouTubeThumbnail(video.videoId)}
                             alt={video.title}
-                            className="w-[120px] h-[90px] rounded mr-4 object-cover bg-black"
+                            className="w-[120px] h-[90px] sm:w-[100px] sm:h-[75px] rounded mr-4 object-cover bg-black"
                         />
                         <div className="flex-1 flex flex-col justify-center">
                             <div className="text-white text-base font-medium truncate mb-2">
