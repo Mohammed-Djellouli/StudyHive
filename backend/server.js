@@ -416,7 +416,10 @@ io.on("connection", (socket) => {
                     await hive.save();
 
                     io.to(roomId).emit("update_users_list", hive.users);
-                    io.to(roomId).emit("user_left", idToEmit);
+                    io.to(roomId).emit("user_left", {
+                        userId: user.userId?.toString() || user.userSocketId,
+                        pseudo: user.pseudo
+                    });
                     console.log(` Utilisateur quitté manuellement : ${idToEmit}`);
                 } else {
                     console.log(" User pas trouvé dans Hive lors du leave");
@@ -438,19 +441,23 @@ io.on("connection", (socket) => {
             const index = room.users.findIndex(u => u.userId?.toString() === userId || u.userSocketId === userId);
             if (index !== -1) {
                 console.log(" Utilisateur trouvé à supprimer :", room.users[index]);
+                const user = room.users[index];
                 room.users.splice(index, 1);
                 await room.save();
                 //console.log(" Envoi des événements : update_users_list, user_left, excluded_from_room");
                 io.to(roomId).emit("update_users_list", room.users);
-                io.to(roomId).emit("user_left", userId);
+                io.to(roomId).emit("user_left", {
+                    userId: user.userId?.toString() || user.userSocketId,
+                    pseudo: user.pseudo
+                });
                 const targetSocket = [...io.sockets.sockets.values()].find(
                     s => s.userId?.toString() === userId?.toString()
                 );
 
-                if (targetSocket) {
+                /*if (targetSocket) {
                     targetSocket.leave(roomId);
                     targetSocket.emit("excluded_from_room",{ userId });
-                }
+                }*/
                 console.log(` Utilisateur ${userId} exclu de la ruche ${roomId}`);
             }
         } catch (err) {

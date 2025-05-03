@@ -13,9 +13,10 @@ function MemberInHive({
                           isOwner = false,
                           isQueenBeeMode = false,
                           currentUserId,
+                          roomId,
                           ownerId,
                           userId,
-                          setNotification
+                          setNotification,
                       }) {
     const [showModal, setShowModal] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
@@ -74,7 +75,7 @@ function MemberInHive({
         if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
             setShowModal((prev) => !prev);
         }
-
+    }
 
 
     const handleExclusion = () => {

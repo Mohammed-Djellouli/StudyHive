@@ -151,7 +151,7 @@ useEffect(() => {
     useEffect(() => {
         socket.on("user_joined", (newUser) => {
             setUsers((prev) => {
-                if (prev.find(u => u.userId === newUser.userId)) return prev;
+                if (prev.find(u => u.userId === newUser.userId || u.pseudo === newUser.pseudo)) return prev;
 
                 const newUserWithDefaults = {
                     micControl: true,
@@ -166,24 +166,15 @@ useEffect(() => {
 
     });
 
-    socket.on("user_left", (idLeft) => {
+    socket.on("user_left", ({ userId: idLeft, pseudo }) => {
         const idStr = idLeft.toString();
+        const id = localStorage.getItem("userId");
+        const myPseudo = localStorage.getItem("userPseudo");
+
         if (justExcludedIds.has(idStr)) {
             console.log(" Ignoré car déjà exclu :", idStr);
             return;
         }
-        setUsers((prev) => {
-            const userToRemove = prev.find(user =>
-                idStr === user.userId?.toString() ||
-                idStr === user.socketId?.toString() ||
-                idStr === user._id?.toString()
-            );
-
-
-
-
-        socket.on("user_left", (idLeft) => {
-            const idStr = idLeft.toString();
             setUsers((prev) => {
                 const userToRemove = prev.find(user =>
                     idStr === user.userId?.toString() ||
@@ -191,8 +182,26 @@ useEffect(() => {
                     idStr === user._id?.toString()
                 );
 
-                if (userToRemove) {
-                    setNotification({ message: `${userToRemove.pseudo} a quitté la Ruche`, type: "danger" });
+
+
+                if(idStr === id){
+                    if (myPseudo.startsWith("Bee-")) {
+                        localStorage.removeItem("userId");
+                        localStorage.removeItem("userPseudo");
+                    }
+                    setTimeout(() => {
+                        navigate("/", {
+                            state: {
+                                notification: {
+                                    message: "Vous avez été exclu de la ruche.",
+                                    type: "danger"
+                                }
+                            }
+                        });
+                    }, 1000);
+                }
+                else {
+                    setNotification({ message: `${pseudo} a quitté la Ruche`, type: "danger" });
                 }
 
                 return prev.filter(user =>
@@ -201,7 +210,7 @@ useEffect(() => {
                     idStr !== user._id?.toString()
                 );
             });
-        });
+
 
         return () => {
             socket.off("user_joined");
@@ -405,7 +414,6 @@ return (
             users={users}
             ownerId={ownerId}
             roomId={idRoom}
-            setNotification={setNotification}
             setJustExcludedIds={setJustExcludedIds}
             setNotification={setNotification}
         />
