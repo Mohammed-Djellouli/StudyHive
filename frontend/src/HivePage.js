@@ -1,4 +1,3 @@
-
 import React, {useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -225,7 +224,7 @@ useEffect(() => {
 
 useEffect(() => {
         const handleBeforeUnload = () => {
-            console.log("########################################################################## Le navigateur est en train d’être fermé / rafraîchi");
+            console.log("########################################################################## Le navigateur est en train d'être fermé / rafraîchi");
             localStorage.setItem("isRefreshing", "true");
 
         };
@@ -388,6 +387,9 @@ return (
                 <Playlist
                     onVideoSelect={videoPlayerFeatures.handleVideoSelect}
                     roomId={idRoom}
+                    currentUserId={currentId}
+                    ownerId={ownerId}
+                    users={users}
                 />
 
 

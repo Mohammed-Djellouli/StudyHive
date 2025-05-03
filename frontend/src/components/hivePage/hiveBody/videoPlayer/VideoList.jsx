@@ -1,8 +1,18 @@
 import React from "react";
 import VideoItem from "./VideoItem";
 
-const VideoList = ({ videos, onVideoSelect, roomId }) => {
+const VideoList = ({ videos, onVideoSelect, roomId, currentUserId, ownerId, users }) => {
     console.log('VideoList received videos:', videos);
+
+    // Vérifier les permissions vidéo
+    const hasVideoPermission = () => {
+        if (currentUserId === ownerId) return true;
+        const currentUser = users.find(user => 
+            user.userId === currentUserId || 
+            user._id === currentUserId
+        );
+        return currentUser?.videoControl || false;
+    };
 
     if (!videos || videos.length === 0) {
         return (
@@ -18,8 +28,9 @@ const VideoList = ({ videos, onVideoSelect, roomId }) => {
                 <VideoItem 
                     key={video.id.videoId} 
                     video={video} 
-                    onVideoSelect={onVideoSelect}
+                    onVideoSelect={hasVideoPermission() ? onVideoSelect : null}
                     roomId={roomId}
+                    hasPermission={hasVideoPermission()}
                 />
             ))}
         </div>
