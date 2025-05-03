@@ -110,9 +110,9 @@ const VoiceChat = ({users = [],currentUserId}) =>{
             return;
         }
         stream.getAudioTracks().forEach((track)=>{
-            track.enabled = micAllowed && micOn;
+            track.enabled = micAllowed && micOn &&!brbActive;
         })
-    },[micOn,micAllowed,stream]);
+    },[micOn,micAllowed,stream,brbActive]);
 
 
     useEffect(() => {
@@ -137,7 +137,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
 
                 if (stream) {
                     stream.getAudioTracks().forEach(track => {
-                        track.enabled = micControl;
+                        track.enabled = micControl && micOn && !brbActive;
                     });
                 }
             }
@@ -329,11 +329,9 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         setMicOn(prev => {
             const newMicOn = !prev;
 
-            if (stream) {
-                stream.getAudioTracks().forEach(track => {
-                    track.enabled = newMicOn;
-                });
-            }
+            stream.getAudioTracks().forEach(track => {
+                track.enabled = newMicOn && micAllowed && !brbActive;
+            });
 
             socket.emit("manual_mute_status_update", {
                 userId: currentUserId,
