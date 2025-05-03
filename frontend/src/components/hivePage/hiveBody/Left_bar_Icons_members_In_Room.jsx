@@ -56,6 +56,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             currentUserId={localStorage.getItem("userId")}
                             ownerId={ownerId}
                             userId={user.userId}
+                            manualMuted={user.manualMuted}
                             roomId={roomId}
                             setJustExcludedIds={setJustExcludedIds}
                             setNotification={setNotification}

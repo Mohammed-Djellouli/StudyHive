@@ -3,6 +3,7 @@ import {useParams} from "react-router-dom";
 import Peer from "simple-peer/simplepeer.min.js";
 import socket from "../../socket";
 import getAudioStream from "./getAudio";
+import NotificationBanner from "../../hivePage/hiveHeader/NotificationBanner";
 
 const VoiceChat = ({users = [],currentUserId}) =>{
     const peersRef = useRef({});
@@ -15,6 +16,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
     const [usersState,setUsers] = useState(users);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [brbActive, setBrbActive] = useState(false);
+    const [notification,setNotification] = useState(null);
 
 
 
@@ -108,9 +110,9 @@ const VoiceChat = ({users = [],currentUserId}) =>{
             return;
         }
         stream.getAudioTracks().forEach((track)=>{
-            track.enabled = micAllowed && micOn;
+            track.enabled = micAllowed && micOn &&!brbActive;
         })
-    },[micOn,micAllowed,stream]);
+    },[micOn,micAllowed,stream,brbActive]);
 
 
     useEffect(() => {
@@ -120,9 +122,22 @@ const VoiceChat = ({users = [],currentUserId}) =>{
                 setMicAllowed(micControl);
                 console.log("Updated micAllowed to:", micControl);
 
+                if(micControl){
+                    setNotification({
+                        message: "🐝 Ton micro est ouvert, bourdonne à volonté! 🐝",
+                        type: "success",
+                    })
+                }
+                if(!micControl){
+                    setNotification({
+                        message: "Tu as été mis en silence par la reine. Attends son feu vert pour parler.",
+                        type: "danger",
+                    })
+                }
+
                 if (stream) {
                     stream.getAudioTracks().forEach(track => {
-                        track.enabled = micControl;
+                        track.enabled = micControl && micOn && !brbActive;
                     });
                 }
             }
@@ -311,11 +326,30 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         if(!stream || !micAllowed || brbActive){
             return;
         }
-        setMicOn(prev=>!prev);
+        setMicOn(prev => {
+            const newMicOn = !prev;
+
+            stream.getAudioTracks().forEach(track => {
+                track.enabled = newMicOn && micAllowed && !brbActive;
+            });
+
+            socket.emit("manual_mute_status_update", {
+                userId: currentUserId,
+                isMuted: !newMicOn
+            });
+
+            return newMicOn;
+        });
     }
     //console.log("Button rendering: micAllowed =", micAllowed);
     return (
-
+    <div>
+        {notification && (
+            <NotificationBanner
+                message={notification.message}
+                type={notification.type}
+                onClose={()=>setNotification(null)}/>
+        )}
         <button onClick={handleToggleMic}
                 disabled={!micAllowed}
                 className="bg-black/60 p-2 rounded-full hover:scale-105 transition">
@@ -325,6 +359,7 @@ const VoiceChat = ({users = [],currentUserId}) =>{
                 className="w-[24px] h-[24px] "
             />
         </button>
+    </div>
     );
 
 };

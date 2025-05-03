@@ -215,9 +215,33 @@ useEffect(() => {
             });
 
 
+        socket.on("manual_mute_status_update", ({ userId, isMuted }) => {
+            setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                    user.userId === userId || user._id === userId
+                        ? { ...user, manualMuted: isMuted }
+                        : user
+                )
+            );
+        });
+
+        const handleMicPermissionUpdated = ({ userId, micControl }) => {
+            setUsers(prevUsers =>
+                prevUsers.map(user =>
+                    user.userId === userId || user._id === userId
+                        ? { ...user, micControl }
+                        : user
+                )
+            );
+        };
+
+        socket.on("mic_permission_updated", handleMicPermissionUpdated);
+
         return () => {
             socket.off("user_joined");
             socket.off("user_left");
+            socket.off("manual_mute_status_update");
+            socket.off("mic_permission_updated", handleMicPermissionUpdated);
         };
     }, []);
 
