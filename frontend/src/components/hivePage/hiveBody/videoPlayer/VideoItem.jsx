@@ -1,13 +1,15 @@
 import React from "react";
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaLock } from 'react-icons/fa';
 import socket from '../../../../components/socket';
 
-const VideoItem = ({ video, onVideoSelect, roomId }) => {
+const VideoItem = ({ video, onVideoSelect, roomId, hasPermission }) => {
     const handleAddToPlaylist = (e) => {
         e.stopPropagation();
-        
-        console.log('Video object in VideoItem:', video);
-        
+
+        if (!hasPermission) {
+            return;
+        }
+
         socket.emit('add_to_playlist', {
             roomId,
             videoId: video.id.videoId,
@@ -18,26 +20,40 @@ const VideoItem = ({ video, onVideoSelect, roomId }) => {
 
     return (
         <div
-            className="flex items-center cursor-pointer bg-[#1a1a1a] p-2 rounded hover:bg-[#2a2a2a]"
-            onClick={() => onVideoSelect(video)}
+            className={`flex items-center ${hasPermission ? 'cursor-pointer' : 'cursor-not-allowed'} bg-[#1a1a1a] p-2 rounded hover:bg-[#2a2a2a] relative group`}
+            onClick={() => hasPermission && onVideoSelect && onVideoSelect(video)}
         >
             <img
                 src={video.snippet.thumbnails.medium.url}
                 alt={video.snippet.title}
-                className="w-[120px] h-[90px] rounded mr-4"
+                className={`w-[120px] h-[90px] rounded mr-4 ${!hasPermission && 'opacity-50'}`}
             />
             <div className="flex-1">
-                <div className="text-white text-sm font-medium line-clamp-2">{video.snippet.title}</div>
+                <div className={`text-white text-sm font-medium line-clamp-2 ${!hasPermission && 'opacity-50'}`}>
+                    {video.snippet.title}
+                </div>
             </div>
-            <button
-                onClick={handleAddToPlaylist}
-                className="ml-4 p-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-500 transition-colors flex items-center justify-center"
-                title="Ajouter à la playlist"
-            >
-                <FaPlus className="w-4 h-4" />
-            </button>
+            {hasPermission ? (
+                <button
+                    onClick={handleAddToPlaylist}
+                    className="ml-4 p-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-500 transition-colors flex items-center justify-center"
+                    title="Ajouter à la playlist"
+                >
+                    <FaPlus className="w-4 h-4" />
+                </button>
+            ) : (
+                <div className="ml-4 p-2 bg-gray-600 text-white rounded-full flex items-center justify-center">
+                    <FaLock className="w-4 h-4" />
+                </div>
+            )}
+
+            {!hasPermission && (
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <span className="text-white text-sm">Permissions insuffisantes</span>
+                </div>
+            )}
         </div>
     );
 };
 
-export default VideoItem; 
+export default VideoItem;

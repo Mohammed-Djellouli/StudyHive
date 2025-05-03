@@ -57,6 +57,10 @@ const RoomSchema = new mongoose.Schema({
         videoControl: {
             type: Boolean,
             default: true
+        },
+        whiteBoardControl: {
+            type: Boolean,
+            default: true
         }
     }],
 
