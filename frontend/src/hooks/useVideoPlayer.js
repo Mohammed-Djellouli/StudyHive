@@ -18,36 +18,44 @@ const useVideoPlayer = (roomId) => {
             try {
                 setVideoId(videoId);
 
-                const interval = setInterval(() => {
+                const checkAndUpdatePlayer = () => {
                     const player = playerRef.current;
-                    if (player && typeof player.getPlayerState === "function") {
+                    if (!player || typeof player.getPlayerState !== "function") {
+                        return;
+                    }
+
+                    try {
                         const now = Date.now();
                         const elapsed = (now - lastUpdate) / 1000;
                         const adjustedTime = isPlaying ? time + elapsed : time;
 
-                        const currentTime = player.getCurrentTime();
-                        const playerState = player.getPlayerState();
+                        if (typeof player.getCurrentTime === "function") {
+                            const currentTime = player.getCurrentTime();
+                            const playerState = player.getPlayerState();
 
-                        if (Math.abs(currentTime - adjustedTime) > 0.5) {
-                            player.seekTo(adjustedTime, true);
-                        }
-
-                        if (isPlaying && playerState !== 1) {
-                            try {
-                                player.playVideo();
-                            } catch (error) {
-                                console.error("Erreur lors de la lecture automatique:", error);
-                                setNeedsManualPlay(true);
+                            if (Math.abs(currentTime - adjustedTime) > 0.5) {
+                                player.seekTo(adjustedTime, true);
                             }
-                        } else if (!isPlaying && playerState === 1) {
-                            player.pauseVideo();
-                        }
 
-                        clearInterval(interval);
+                            if (isPlaying && playerState !== 1) {
+                                player.playVideo().catch(error => {
+                                    console.warn("Lecture automatique impossible:", error);
+                                    setNeedsManualPlay(true);
+                                });
+                            } else if (!isPlaying && playerState === 1) {
+                                player.pauseVideo();
+                            }
+                        }
+                    } catch (error) {
+                        console.warn("Player pas encore prêt:", error);
+                        setTimeout(checkAndUpdatePlayer, 500);
                     }
-                }, 300);
+                };
+
+                setTimeout(checkAndUpdatePlayer, 300);
+
             } catch (error) {
-                console.error("Error in handleSyncVideo:", error);
+                console.warn("Erreur de synchronisation:", error);
             }
         };
 
@@ -59,27 +67,40 @@ const useVideoPlayer = (roomId) => {
     }, [roomId]);
 
     useEffect(() => {
-        socket.on("currentVideoState", ({ videoId, time, isPlaying, lastUpdate }) => {
-            if (videoId && isPlaying && playerRef.current) {
-                const now = Date.now();
-                const elapsed = (now - lastUpdate) / 1000;
-                const adjustedTime = time + elapsed;
+        const handleCurrentVideoState = ({ videoId, time, isPlaying, lastUpdate }) => {
+            if (!videoId) return;
 
-                setVideoId(videoId);
-                
-                setTimeout(() => {
-                    try {
-                        playerRef.current.seekTo(adjustedTime, true);
-                        if (isPlaying) {
-                            playerRef.current.playVideo();
-                        }
-                    } catch (error) {
-                        console.error("Erreur lors de la synchronisation initiale:", error);
-                        setNeedsManualPlay(true);
+            setVideoId(videoId);
+
+            const initializeVideo = () => {
+                const player = playerRef.current;
+                if (!player || typeof player.seekTo !== "function") {
+                    setTimeout(initializeVideo, 500);
+                    return;
+                }
+
+                try {
+                    const now = Date.now();
+                    const elapsed = (now - lastUpdate) / 1000;
+                    const adjustedTime = time + elapsed;
+
+                    player.seekTo(adjustedTime, true);
+
+                    if (isPlaying) {
+                        player.playVideo().catch(() => {
+                            setNeedsManualPlay(true);
+                        });
                     }
-                }, 1000);
-            }
-        });
+                } catch (error) {
+                    console.warn("Erreur d'initialisation:", error);
+                    setNeedsManualPlay(true);
+                }
+            };
+
+            setTimeout(initializeVideo, 1000);
+        };
+
+        socket.on("currentVideoState", handleCurrentVideoState);
 
         return () => {
             socket.off("currentVideoState");
@@ -98,12 +119,12 @@ const useVideoPlayer = (roomId) => {
             );
             const data = await res.json();
             console.log('API Response:', data);
-            
+
             if (data.error) {
                 console.error('YouTube API Error:', data.error);
                 return;
             }
-            
+
             setVideos(data.items || []);
             setVideoId(null);
         } catch (error) {
@@ -137,15 +158,15 @@ const useVideoPlayer = (roomId) => {
 
     const onPlayerReady = (event) => {
         try {
-            if (!roomId) {
-                console.error("roomId is undefined in onPlayerReady");
-                return;
-            }
+            if (!roomId) return;
 
             playerRef.current = event.target;
-            socket.emit("requestVideoState", { roomId });
+
+            setTimeout(() => {
+                socket.emit("requestVideoState", { roomId });
+            }, 500);
         } catch (error) {
-            console.error("Error in onPlayerReady:", error);
+            console.warn("Erreur dans onPlayerReady:", error);
         }
     };
 
@@ -211,7 +232,7 @@ const useVideoPlayer = (roomId) => {
     const playerOpts = {
         width: '100%',
         height: '100%',
-        playerVars: { 
+        playerVars: {
             autoplay: 1,
             playsinline: 1,
             mute: 0,

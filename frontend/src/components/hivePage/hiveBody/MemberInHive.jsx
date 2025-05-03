@@ -1,24 +1,33 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import socket from "../../socket";
+
+import { useNavigate } from "react-router-dom";
 
 
 function MemberInHive({
                           pseudo,
                           micControl,
+                          whiteBoardControl,
                           screenShareControl,
                           videoControl,
                           isOwner = false,
                           isQueenBeeMode = false,
                           currentUserId,
+                          roomId,
                           ownerId,
                           userId,
                           manualMuted,
-                      }) {
+                          setNotification,
 
+                      }) {
     const [showModal, setShowModal] = useState(false);
+
     const [isMuted, setIsMuted] = useState(!micControl || manualMuted);
+    const [isWhiteboardAllowed, setIsWhiteboardAllowed] = useState(whiteBoardControl) ;
     const [isSharingAllowed, setIsSharingAllowed] = useState(screenShareControl);
     const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
+
+    const navigate = useNavigate();
 
 
     // Mettre à jour les états de partage d'écran et vidéo quand les props changent
@@ -28,8 +37,22 @@ function MemberInHive({
     }, [screenShareControl, videoControl]);
 
     useEffect(() => {
+
         setIsMuted(!micControl || manualMuted);
     }, [micControl, manualMuted]);
+
+    
+
+
+
+    useEffect(() => {
+        setIsWhiteboardAllowed(whiteBoardControl);
+    }, [whiteBoardControl]);
+
+
+
+
+
 
     useEffect(() => {
         const handleScreenSharePermissionUpdate = ({ userId: updatedUserId, screenShareControl: newScreenShareControl }) => {
@@ -56,10 +79,17 @@ function MemberInHive({
     const canModifyPermissions = currentUserId === ownerId;
 
     const handleClick = () => {
+        //  Seul l’owner peut ouvrir les permissions en mode QueenBee
         if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
-            setShowModal(prev => !prev);
+            setShowModal((prev) => !prev);
         }
     }
+
+
+    const handleExclusion = () => {
+        socket.emit("exclude_user", { roomId, userId });
+    };
+
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer ">
             {/* le div pour le cercle autour de l'icon quand l'utilisateur parle*/}
@@ -75,13 +105,10 @@ function MemberInHive({
                 )}
             </div>
 
-
-            {/* Hover - pseudo */}
             <span className="absolute left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-20 transition-opacity duration-200">
-                {pseudo}
-            </span>
+        {pseudo}
+      </span>
 
-            {/* Modal */}
             {showModal && (
                 <div className="absolute left-14 top-0 bg-[#1D1F27] text-white rounded-lg shadow-md p-3 space-y-2 z-50 w-max">
                     <div className="flex justify-between items-center mb-2">
@@ -103,7 +130,9 @@ function MemberInHive({
                                     setIsMuted(false);
                                     socket.emit("update_mic_permission", {
                                         targetUserPseudo: pseudo,
+
                                         allowMic: true
+
                                     });
                                 }}
                             >
@@ -116,7 +145,9 @@ function MemberInHive({
                                     setIsMuted(true);
                                     socket.emit("update_mic_permission", {
                                         targetUserPseudo: pseudo,
+
                                         allowMic: false
+
                                     });
                                 }}
                             >
@@ -125,7 +156,52 @@ function MemberInHive({
                         )}
                     </div>
 
-                    {/* Share Screen Permission */}
+                    {/* Whiteboard Control */}
+                    <div className="flex gap-2">
+                        {isWhiteboardAllowed ? (
+                            <button
+                                className="bg-black text-xs px-2 py-1 rounded w-[80px]"
+                                onClick={() => {
+                                    setIsWhiteboardAllowed(false);
+                                    socket.emit("update_whiteboard_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowWhiteboard: false
+                                    });
+
+                                    // Notification côté Owner
+                                    setNotification({
+                                        message: ` ${pseudo} ne peut plus utiliser le whiteboard.`,
+                                        type: "danger",
+                                    });
+                                }}
+                            >
+                                Block Board
+                            </button>
+                        ) : (
+                            <button
+                                className="bg-[#FFCE1C] text-xs px-2 py-1 rounded text-black w-[80px]"
+                                onClick={() => {
+                                    setIsWhiteboardAllowed(true);
+                                    socket.emit("update_whiteboard_permission", {
+                                        targetUserPseudo: pseudo,
+                                        allowWhiteboard: true
+                                    });
+
+                                    // Notification côté Owner
+                                    setNotification({
+                                        message: ` ${pseudo} peut maintenant utiliser le whiteboard.`,
+                                        type: "info",
+                                    });
+                                }}
+                            >
+                                Allow Board
+                            </button>
+                        )}
+                    </div>
+
+
+
+                    {/* Share Screen */}
                     <div className="flex gap-2">
                         {isSharingAllowed ? (
                             <button
@@ -156,7 +232,7 @@ function MemberInHive({
                         )}
                     </div>
 
-                    {/* Video Control */}
+                    {/* Video */}
                     <div className="flex gap-2">
                         {isVideoAllowed ? (
                             <button
@@ -185,6 +261,14 @@ function MemberInHive({
                                 Allow Video
                             </button>
                         )}
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleExclusion}
+                            className="bg-red-600 text-xs px-4 py-1 rounded hover:bg-red-700 w-[80px]"
+                        >
+                            Exclure
+                        </button>
                     </div>
                 </div>
             )}

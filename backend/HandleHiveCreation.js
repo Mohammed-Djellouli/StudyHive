@@ -29,7 +29,9 @@ const HandleHiveCreation = async (req, res) => {
 
         // if user is connected to his account
         if (userId) {
-            user = await User.findById( userId );
+
+            user = await User.findById(userId);
+
             if (!user) return res.status(404).json({message: "User not found."});
 
             newHive = new Hive({
