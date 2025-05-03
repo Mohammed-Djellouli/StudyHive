@@ -25,7 +25,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
     }, []);
 
     return (
-        <div className="fixed top-[410px] left-0 w-[50px] p-[2px] flex flex-col bg-[#ffffff08] rounded-[10px] z-10 ">
+        <div className="fixed top-[460px] left-0 w-[50px] p-[2px] flex flex-col bg-[#ffffff08] rounded-[10px] z-10 ">
             <ul className="flex flex-col gap-2 items-center m-0 p-0 list-none">
 
                 {ownerId && (

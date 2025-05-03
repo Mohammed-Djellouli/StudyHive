@@ -20,7 +20,7 @@ function MemberInHive({
                       }) {
     const [showModal, setShowModal] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
-    const [isWhiteboardAllowed, setIsWhiteboardAllowed] = useState(whiteBoardControl);
+    const [isWhiteboardAllowed, setIsWhiteboardAllowed] = useState(whiteBoardControl) ;
     const [isSharingAllowed, setIsSharingAllowed] = useState(screenShareControl);
     const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
 

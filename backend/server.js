@@ -190,19 +190,30 @@ io.on("connection", (socket) => {
     });
 
     socket.on("update_whiteboard_permission", async ({ targetUserPseudo, allowWhiteboard }) => {
-        const hive = await Hive.findOne({ "users.pseudo": targetUserPseudo });
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId) return;
 
-        if (!hive) return;
+        try {
+            const room = await Hive.findOne({ idRoom: roomId });
+            if (!room) return;
 
-        const user = hive.users.find(u => u.pseudo === targetUserPseudo);
-        if (user) {
-            user.whiteBoardControl = allowWhiteboard;
-            await hive.save();
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.whiteBoardControl = allowWhiteboard;
+                await room.save();
 
-            io.to(hive.idRoom.toString()).emit("whiteboard_permission_updated", {
-                pseudo: targetUserPseudo,
-                whiteBoardControl: allowWhiteboard
-            });
+
+                io.to(roomId.toString()).emit("whiteboard_permission_updated", {
+                    pseudo: targetUserPseudo,
+                    userId: user.userId,
+                    whiteBoardControl: allowWhiteboard,
+                    roomId: roomId
+                });
+
+                console.log(`Whiteboard permission updated for user ${user.userId} (${targetUserPseudo}): ${allowWhiteboard}`);
+            }
+        } catch (err) {
+            console.error("Failed to update whiteboard permission:", err);
         }
     });
 

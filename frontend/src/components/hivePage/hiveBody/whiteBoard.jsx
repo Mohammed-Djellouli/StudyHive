@@ -18,13 +18,14 @@ const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw , setNotifica
     useEffect(() => {
         const myPseudo = localStorage.getItem("userPseudo");
 
-        socket.on("whiteboard_permission_updated", ({ pseudo, whiteBoardControl }) => {
-            const myPseudo = localStorage.getItem("userPseudo");
+        socket.on("whiteboard_permission_updated", ({ pseudo,userId, whiteBoardControl,roomId }) => {
 
+            console.log("This is MyPseudo in Local Storage ",myPseudo);
+            console.log("This is Pseudo in Socket Response ",pseudo);
             if (pseudo === myPseudo) {
                 setCanDrawState(whiteBoardControl);
 
-                // ✅ Notifier l’utilisateur affecté
+                //  Notifier l’utilisateur affecté
                 setNotification?.({
                     message: whiteBoardControl
                         ? "Tu as reçu l'accès au tableau blanc"

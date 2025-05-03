@@ -54,7 +54,8 @@ function HivePage() {
 
     const [justExcludedIds, setJustExcludedIds] = useState(new Set());
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-
+    const [isSidePanelVisible, setIsSidePanelVisible] = useState(true);
+    const matchedUser = users.find(u => u.userId === currentId);
 
     const toggleBrb = () => {
         const newValue = !brbMode;
@@ -151,7 +152,9 @@ useEffect(() => {
     useEffect(() => {
         socket.on("user_joined", (newUser) => {
             setUsers((prev) => {
-                if (prev.find(u => u.userId === newUser.userId || u.pseudo === newUser.pseudo)) return prev;
+                if (!newUser?.pseudo) return prev;
+                if (prev.find(u => u.userId === newUser.userId || u.pseudo?.trim() === newUser.pseudo.trim())) return prev;
+
 
                 const newUserWithDefaults = {
                     micControl: true,
@@ -313,17 +316,6 @@ return (
 
         <Big_Logo_At_Left />
 
-        {(!isQueenBeeMode || (isQueenBeeMode && currentId === ownerId)) && (
-            <div className="absolute top-4 left-[320px] z-50">
-                <button
-                    onClick={() => setIsInviteModalOpen(true)}
-                    className="bg-amber-400 text-black px-4 py-1 rounded-full text-sm shadow hover:bg-amber-300 transition"
-                >
-                    Inviter
-                </button>
-            </div>
-        )}
-
         {isInviteModalOpen && (
             <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />
         )}
@@ -343,31 +335,37 @@ return (
             roomId={idRoom}
             isModalOpen={isWhiteboardOpen}
             setIsModalOpen={setIsWhiteboardOpen}
-            canDraw={users.find(u => u.userId === currentId)?.whiteBoardControl ?? true}
+            canDraw={matchedUser ? matchedUser.whiteBoardControl : true}
             setNotification={setNotification}
         />
 
-
-
-
-
+        {/* Bouton pour afficher/masquer le conteneur ENTIER */}
+        <div className="absolute top-[65px] right-4 z-50">
+            <button
+                onClick={() => setIsSidePanelVisible(prev => !prev)}
+                className="bg-yellow-500 text-black px-3 py-1 rounded shadow hover:bg-yellow-400 transition"
+            >
+                {isSidePanelVisible ? "Masquer BlocNote + Chat" : "Afficher BlocNote + Chat"}
+            </button>
+        </div>
 
         {/* CONTENEUR synchronisé Chat + BlocNote */}
-            <div className="absolute top-[65px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500 max-h-[calc(100vh-80px)] overflow-y-auto bg-transparent">
+        {isSidePanelVisible && (
+            <div className="absolute top-[100px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500 max-h-[calc(100vh-80px)] overflow-y-auto bg-transparent">
 
                 {/* BlocNote */}
                 <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[280px]" : "h-[550px]"} mb-2`}>
                     <BlocNote isChatVisible={isChatVisible} />
                 </div>
 
+                {/* ChatBox */}
                 <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[351px] opacity-100" : "h-0 opacity-0"} overflow-hidden`}>
                     <div className="w-full h-full">
-                        <ChatBox users={users} ownerId = {ownerId} />
+                        <ChatBox users={users} ownerId={ownerId} />
                     </div>
                 </div>
 
-
-                {/* Bouton sticky toujours visible */}
+                {/* Bouton pour toggle le chat */}
                 <div className="sticky bottom-0 bg-[#1D1F27] mt-2 z-10">
                     <button
                         onClick={() => setIsChatVisible(prev => !prev)}
@@ -377,6 +375,8 @@ return (
                     </button>
                 </div>
             </div>
+        )}
+
 
 
 
@@ -409,6 +409,7 @@ return (
         </div>
 
         <Left_bar_Icons_members_In_Room
+            key={users.map(u => u.userId).join("-")}
             ownerPseudo={ownerPseudo}
             isQueenBeeMode={isQueenBeeMode}
             users={users}
@@ -438,6 +439,8 @@ return (
                 onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
                 onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
                 isWhiteboardOpen={isWhiteboardOpen}
+                ownerId={ownerId}
+                setIsInviteModalOpen={setIsInviteModalOpen}
             />
 
         </div>

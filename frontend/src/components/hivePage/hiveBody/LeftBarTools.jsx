@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import VoiceChat from "../../Communication/MicChat/VoiceChat";
 import socket from '../../../components/socket';
 
-function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing, users = [], currentUserId, toggleBRB, brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, onToggleWhiteboard, isWhiteboardOpen, ownerId }) {
+function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator, isSharing, users = [], currentUserId, toggleBRB, brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow, onToggleWhiteboard, isWhiteboardOpen, ownerId, setIsInviteModalOpen  }) {
     const [micOn, setMicOn] = useState(true);
     const [handRaised, setHandRaised] = useState(false);
     const [currentSharingUser, setCurrentSharingUser] = useState(null);
     const [sharePermission, setSharePermission] = useState(false);
-    
+    const myUserId = localStorage.getItem("userId");
     const toggleMic = () => setMicOn(prev => !prev);
     const toggleHand = () => setHandRaised(prev => !prev);
 
@@ -93,6 +93,14 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
     // Vérifie si le partage est possible techniquement
     const canShare = !isSharing && !currentSharingUser;
 
+
+    console.log("== INVITE CHECK ==")
+    console.log("isQueenBeeMode", isQueenBeeMode)
+    console.log("currentUserId", currentUserId)
+    console.log("ownerId", ownerId)
+    console.log("MyActualId", myUserId)
+
+
     return (
         <div className="fixed top-[60px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
             {/* Share Screen */}
@@ -162,6 +170,16 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
                 <button onClick={toggleBRB}
                 >{brbMode ? "Back" : "BRB"}</button>
             </div>
+
+            {(!isQueenBeeMode || (isQueenBeeMode && myUserId === ownerId)) && (
+                <button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="bg-black/60 p-2 rounded-full hover:scale-105 transition hover:bg-yellow-400/20"
+                    title="Inviter un membre"
+                >
+                    <img src="/assets/invite.png" alt="Inviter" className="w-[24px] h-[24px]" />
+                </button>
+            )}
         </div>
     );
 }
