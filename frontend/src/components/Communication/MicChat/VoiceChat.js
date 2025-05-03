@@ -128,6 +128,12 @@ const VoiceChat = ({users = [],currentUserId}) =>{
                         type: "success",
                     })
                 }
+                if(!micControl){
+                    setNotification({
+                        message: "Tu as été mis en silence par la reine. Attends son feu vert pour parler.",
+                        type: "danger",
+                    })
+                }
 
                 if (stream) {
                     stream.getAudioTracks().forEach(track => {
