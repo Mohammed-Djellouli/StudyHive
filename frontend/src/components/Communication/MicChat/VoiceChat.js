@@ -326,7 +326,22 @@ const VoiceChat = ({users = [],currentUserId}) =>{
         if(!stream || !micAllowed || brbActive){
             return;
         }
-        setMicOn(prev=>!prev);
+        setMicOn(prev => {
+            const newMicOn = !prev;
+
+            if (stream) {
+                stream.getAudioTracks().forEach(track => {
+                    track.enabled = newMicOn;
+                });
+            }
+
+            socket.emit("manual_mute_status_update", {
+                userId: currentUserId,
+                isMuted: !newMicOn
+            });
+
+            return newMicOn;
+        });
     }
     //console.log("Button rendering: micAllowed =", micAllowed);
     return (

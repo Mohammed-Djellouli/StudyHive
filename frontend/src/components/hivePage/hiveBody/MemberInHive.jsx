@@ -12,13 +12,14 @@ function MemberInHive({
                           currentUserId,
                           ownerId,
                           userId,
-
+                          manualMuted,
                       }) {
 
     const [showModal, setShowModal] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
+    const [isMuted, setIsMuted] = useState(!micControl || manualMuted);
     const [isSharingAllowed, setIsSharingAllowed] = useState(screenShareControl);
     const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
+
 
     // Mettre à jour les états de partage d'écran et vidéo quand les props changent
     useEffect(() => {
@@ -27,8 +28,8 @@ function MemberInHive({
     }, [screenShareControl, videoControl]);
 
     useEffect(() => {
-        setIsMuted(!micControl)
-    }, [micControl]);
+        setIsMuted(!micControl || manualMuted);
+    }, [micControl, manualMuted]);
 
     useEffect(() => {
         const handleScreenSharePermissionUpdate = ({ userId: updatedUserId, screenShareControl: newScreenShareControl }) => {
@@ -62,13 +63,16 @@ function MemberInHive({
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer ">
             {/* le div pour le cercle autour de l'icon quand l'utilisateur parle*/}
-            <div id={`user-${userId}`} className="relative rounded-full ring-4 ring-transparent transition-all w-[50px] h-[50px] flex items-center justify-center">
-                <img
-                    src="/assets/SoloBee2.png"
-                    alt="Bee"
-                    className="w-[28px] h-[28px]"
-                    onClick={handleClick}
-                />
+            <div id={`user-${userId}`} className="relative rounded-full ring-4 ring-transparent transition-all w-[50px] h-[50px] flex items-center justify-center " onClick={handleClick}>
+                {isMuted? (
+                    <span className="text-white text-xs">Muted</span>
+                ):(
+                    <img
+                        src="/assets/SoloBee2.png"
+                        alt="Bee"
+                        className="w-[28px] h-[28px]"
+                    />
+                )}
             </div>
 
 

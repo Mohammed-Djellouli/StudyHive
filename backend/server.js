@@ -249,6 +249,14 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("manual_mute_status_update", ({ userId, isMuted }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId || !userId) return;
+
+        io.to(roomId).emit("manual_mute_status_update", { userId, isMuted });
+    });
+
+
     // Gestionnaire pour la mise à jour des permissions de partage d'écran
     socket.on("update_screen_share_permission", async ({ targetUserPseudo, allowScreenShare }) => {
         const roomId = socket.data.hiveRoomId;
