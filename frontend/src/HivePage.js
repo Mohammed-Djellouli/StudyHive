@@ -363,7 +363,7 @@ return (
             setNotification={setNotification}
         />
 
-        {/* Bouton pour afficher/masquer le conteneur ENTIER */}
+        {/* Bouton pour afficher/masquer le conteneur ENTIER
         <div className="absolute top-[65px] right-4 z-50">
             <button
                 onClick={() => setIsSidePanelVisible(prev => !prev)}
@@ -372,13 +372,13 @@ return (
                 {isSidePanelVisible ? "Masquer BlocNote + Chat" : "Afficher BlocNote + Chat"}
             </button>
         </div>
-
+        */}
         {/* CONTENEUR synchronisé Chat + BlocNote */}
         {isSidePanelVisible && (
-            <div className="absolute top-[100px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500 max-h-[calc(100vh-80px)] overflow-y-auto bg-transparent">
+            <div className="absolute top-[100px] right-4 w-[90vw] max-w-[385px] flex flex-col z-50 transition-all duration-500 max-h-[calc(100vh-120px)] overflow-hidden bg-transparent">
 
                 {/* BlocNote */}
-                <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[280px]" : "h-[550px]"} mb-2`}>
+                <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[280px]" : "h-[900px]"} mb-2`}>
                     <BlocNote isChatVisible={isChatVisible} />
                 </div>
 
@@ -390,11 +390,11 @@ return (
                 </div>
 
                 {/* Bouton pour toggle le chat */}
-                <div className="sticky bottom-0 bg-[#1D1F27] mt-2 z-10">
-                    <button
+                <div className="sticky bottom-0 bg-[#1D1F27] mt-2 z-10  ">
+                <button
                         onClick={() => setIsChatVisible(prev => !prev)}
-                        className="w-full bg-yellow-400 text-black px-2 py-1 rounded-b-md hover:bg-yellow-300 transition"
-                    >
+                        className="w-full max-w-full bg-yellow-400 text-black  rounded-b-md text-center hover:bg-yellow-300 transition"
+                >
                         {isChatVisible ? "▼ Masquer le Chat" : "▲ Afficher le Chat"}
                     </button>
                 </div>

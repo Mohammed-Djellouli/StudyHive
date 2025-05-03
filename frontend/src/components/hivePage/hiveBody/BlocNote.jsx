@@ -33,8 +33,8 @@ const TiptapBlocNote = ({ isChatVisible }) => {
     };
 
     return (
-        <div className="bg-[#1e1f21] text-white p-4 rounded-lg relative shadow-md h-full w-full flex flex-col transition-all duration-500">
-            {/* Barre outils */}
+        <div className="bg-[#1e1f21] text-white p-4 rounded-lg relative shadow-md flex flex-col transition-all duration-500 h-full max-h-[900px] overflow-y-auto">
+        {/* Barre outils */}
             <div className="flex gap-2 mb-2 text-white shrink-0">
                 <button onClick={() => toggleFormat("toggleBold")} className="p-2 bg-black text-white rounded hover:bg-yellow-300 hover:text-black transition font-bold w-8 h-8 flex items-center justify-center">B</button>
                 <button onClick={() => toggleFormat("toggleItalic")} className="p-2 bg-black text-white rounded hover:bg-yellow-300 hover:text-black transition italic w-8 h-8 flex items-center justify-center">I</button>
@@ -42,7 +42,7 @@ const TiptapBlocNote = ({ isChatVisible }) => {
             </div>
 
             {/* Zone scrollable */}
-            <div className="bloc-Note flex-1 overflow-y-auto pr-1">
+            <div className="bloc-Note flex-1 overflow-y-auto pr-1 min-h-[100px] max-h-[30vh]">
                 <EditorContent editor={editor} />
             </div>
 

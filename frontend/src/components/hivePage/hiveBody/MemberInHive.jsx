@@ -58,12 +58,28 @@ function MemberInHive({
         const handleScreenSharePermissionUpdate = ({ userId: updatedUserId, screenShareControl: newScreenShareControl }) => {
             if (updatedUserId === userId) {
                 setIsSharingAllowed(newScreenShareControl);
+                if (currentUserId === userId) {
+                    setNotification({
+                        message: newScreenShareControl
+                            ? "Tu peux maintenant partager ton écran!"
+                            : "Le partage d'écran a été désactivé par la reine.",
+                        type: newScreenShareControl ? "info" : "danger"
+                    });
+                }
             }
         };
 
         const handleVideoPermissionUpdate = ({ userId: updatedUserId, videoControl: newVideoControl }) => {
             if (updatedUserId === userId) {
                 setIsVideoAllowed(newVideoControl);
+                if (currentUserId === userId) {
+                    setNotification({
+                        message: newVideoControl
+                            ? "Tu peux maintenant contrôler la vidéo!"
+                            : "Le contrôle de la vidéo a été désactivé par la reine.",
+                        type: newVideoControl ? "info" : "danger"
+                    });
+                }
             }
         };
 
@@ -74,7 +90,7 @@ function MemberInHive({
             socket.off("screen_share_permission_updated", handleScreenSharePermissionUpdate);
             socket.off("video_permission_updated", handleVideoPermissionUpdate);
         };
-    }, [userId]);
+    }, [userId,currentUserId,setNotification]);
 
     const canModifyPermissions = currentUserId === ownerId;
 
@@ -210,7 +226,11 @@ function MemberInHive({
                                     setIsSharingAllowed(false);
                                     socket.emit("update_screen_share_permission", {
                                         targetUserPseudo: pseudo,
-                                        allowScreenShare: false
+                                        allowScreenShare: false,
+                                    });
+                                    setNotification({
+                                        message: `${pseudo} ne peut plus partager son écran.`,
+                                        type: "danger"
                                     });
                                 }}
                             >
@@ -224,6 +244,10 @@ function MemberInHive({
                                     socket.emit("update_screen_share_permission", {
                                         targetUserPseudo: pseudo,
                                         allowScreenShare: true
+                                    });
+                                    setNotification({
+                                        message: `${pseudo} peut maintenant partager son écran.`,
+                                        type: "info"
                                     });
                                 }}
                             >
@@ -243,6 +267,10 @@ function MemberInHive({
                                         targetUserPseudo: pseudo,
                                         allowVideo: false
                                     });
+                                    setNotification({
+                                        message: `${pseudo} ne peut plus contrôler la vidéo.`,
+                                        type: "danger"
+                                    });
                                 }}
                             >
                                 Block Video
@@ -255,6 +283,10 @@ function MemberInHive({
                                     socket.emit("update_video_permission", {
                                         targetUserPseudo: pseudo,
                                         allowVideo: true
+                                    });
+                                    setNotification({
+                                        message: `${pseudo} peut maintenant contrôler la vidéo.`,
+                                        type: "info"
                                     });
                                 }}
                             >
