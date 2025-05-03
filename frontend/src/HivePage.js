@@ -412,6 +412,9 @@ return (
                 <Playlist
                     onVideoSelect={videoPlayerFeatures.handleVideoSelect}
                     roomId={idRoom}
+                    currentUserId={currentId}
+                    ownerId={ownerId}
+                    users={users}
                 />
 
 
