@@ -190,9 +190,9 @@ const VideoContainer = ({
     return (
         <div className="relative">
             {/* Container principal pour le lecteur vidéo - toujours visible */}
-            <div className="relative w-full max-w-[850px] mx-auto mt-6 aspect-video rounded-lg bg-[#1a1a1a] p-4">
+            <div className="relative w-full max-h-[1200px] min-h-[600px] mx-auto mt-6 aspect-video rounded-lg bg-[#1a1a1a] p-4">
             {videoId ? (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-full h-full flex items-center max-h-[1200px] min-h-[600px] justify-center">
                         <VideoDisplay 
                             videoId={videoId}
                             playerOpts={modifiedPlayerOpts}
@@ -215,7 +215,7 @@ const VideoContainer = ({
                             />
                         </div>
                         {/* Liste des vidéos */}
-                        <div className="relative z-10 h-full overflow-y-auto px-4 py-2">
+                        <div className="relative z-10 h-full max-h-[1200px] min-h-[600px] overflow-y-auto px-4 py-2">
                             <VideoList 
                                 videos={videos} 
                                 onVideoSelect={hasVideoPermission() ? handleVideoSelect : null}
@@ -312,7 +312,7 @@ const VideoDisplay = ({
                     opts={playerOpts}
                     onReady={onPlayerReady}
                     onStateChange={onPlayerStateChange}
-                    className="w-full h-full"
+                    className="w-full h-full max-h-[1200px] min-h-[600px]"
                     iframeClassName="w-full h-full"
                 />
             </div>
