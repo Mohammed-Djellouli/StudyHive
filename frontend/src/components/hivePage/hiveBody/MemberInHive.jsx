@@ -38,9 +38,12 @@ function MemberInHive({
     }, [screenShareControl, videoControl]);
 
     useEffect(() => {
-
-        setIsMuted(!micControl || manualMuted);
-    }, [micControl, manualMuted]);
+        if(micControl === false) {
+            setIsMuted(true);
+        }else{
+            setIsMuted(false);
+        }
+    }, [micControl]);
 
 
 
@@ -167,7 +170,10 @@ function MemberInHive({
             {isMuted? (
                     <span className="text-white text-xs">Muted</span>
                 ):isBRB ? (
+
                     <span className="text-white text-xs">BRB</span>
+                ):isMuted ? (
+                    <span className="text-white text-xs">Muted</span>
                     ) : (
                     <img
                         src="/assets/SoloBee2.png"

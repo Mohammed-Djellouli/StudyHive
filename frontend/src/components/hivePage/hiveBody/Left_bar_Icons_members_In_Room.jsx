@@ -60,7 +60,6 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             roomId={roomId}
                             setJustExcludedIds={setJustExcludedIds}
                             setNotification={setNotification}
-
                         />
                     ))}
             </ul>
