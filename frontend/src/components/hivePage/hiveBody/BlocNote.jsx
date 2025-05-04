@@ -7,7 +7,7 @@ import "./TiptapDark.css";
 const TiptapBlocNote = ({ isChatVisible }) => {
     const editor = useEditor({
         extensions: [StarterKit],
-        content: "<p>Les notes sont &eacute;crites ici...</p>",
+        content: "",
     });
 
     const exporterPDF = () => {

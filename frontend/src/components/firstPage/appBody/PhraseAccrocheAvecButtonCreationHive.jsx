@@ -75,7 +75,7 @@ function PhraseAccrocheAvecButtonCreationHive() {
 
         if (id) {
             const url = `${process.env.REACT_APP_BACKEND_URL}/api/hive/last-created/${id}`;
-            //console.log("🌐 Envoi de requête vers :", url);
+            //console.log(" Envoi de requête vers :", url);
 
             fetch(url)
                 .then(async res => {

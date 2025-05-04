@@ -383,19 +383,9 @@ function HivePage() {
                 </div>
             </div>
 
-
-
-
-
             {isInviteModalOpen && (
                 <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />
             )}
-
-
-
-
-
-
 
             <WhiteBoard
                 roomId={idRoom}

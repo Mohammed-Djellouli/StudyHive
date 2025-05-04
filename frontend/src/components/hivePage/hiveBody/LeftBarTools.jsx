@@ -9,7 +9,6 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
     const [sharePermission, setSharePermission] = useState(false);
     const myUserId = localStorage.getItem("userId");
     const toggleMic = () => setMicOn(prev => !prev);
-    const toggleHand = () => setHandRaised(prev => !prev);
 
     // Vérifier la permission de partage d'écran basée sur users
     useEffect(() => {
@@ -108,6 +107,19 @@ function LeftBarTools({ ownerPseudo, isQueenBeeMode, onStartSharing, isInitiator
         });
         toggleBRB();
     };
+
+    const toggleHand = () => {
+        const newState = !handRaised;
+        setHandRaised(newState);
+
+        // EMETTRE L'ÉTAT AU SERVEUR
+        socket.emit("user_raise_hand", {
+            roomId: window.location.pathname.split("/").pop(),
+            userId: currentUserId,
+            raised: newState
+        });
+    };
+
 
     return (
         <div className="fixed top-[80px] left-0 w-[50px] p-[5px] bg-[#1D1F27] rounded-[10px] flex flex-col items-center gap-4 z-20">
