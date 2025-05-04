@@ -41,8 +41,19 @@ function MemberInHive({
         setIsMuted(!micControl || manualMuted);
     }, [micControl, manualMuted]);
 
-    
 
+
+    useEffect(() => {
+        const handleMicStatus = ({ detail }) => {
+            if (detail.userId === userId) {
+                const muted = !detail.micOn || !detail.micAllowed;
+                setIsMuted(muted);
+            }
+        };
+
+        window.addEventListener("mic-status-updated", handleMicStatus);
+        return () => window.removeEventListener("mic-status-updated", handleMicStatus);
+    }, [userId]);
 
 
     useEffect(() => {

@@ -7,6 +7,7 @@ import NotificationBanner from "../../hivePage/hiveHeader/NotificationBanner";
 
 const VoiceChat = ({users = [],currentUserId}) =>{
     const peersRef = useRef({});
+
     const [stream,setStream] = useState(null);
     const {idRoom} = useParams();
     const [roomId] = useState(idRoom);
@@ -121,6 +122,15 @@ const VoiceChat = ({users = [],currentUserId}) =>{
             if (userId === currentUserId) {
                 setMicAllowed(micControl);
                 console.log("Updated micAllowed to:", micControl);
+
+                window.dispatchEvent(new CustomEvent("mic-status-updated",{
+                    detail:{
+                        userId: currentUserId,
+                        micOn,
+                        micAllowed: micControl
+                    }
+                }));
+
 
                 if(micControl){
                     setNotification({
@@ -337,6 +347,14 @@ const VoiceChat = ({users = [],currentUserId}) =>{
                 userId: currentUserId,
                 isMuted: !newMicOn
             });
+
+            window.dispatchEvent(new CustomEvent("mic-status-updated", {
+                detail: {
+                    userId: currentUserId,
+                    micOn: newMicOn,
+                    micAllowed
+                }
+            }))
 
             return newMicOn;
         });
