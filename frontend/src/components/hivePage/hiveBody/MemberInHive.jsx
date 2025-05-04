@@ -167,14 +167,11 @@ function MemberInHive({
                 onClick={handleClick}
             >
 
-            {isMuted? (
-                    <span className="text-white text-xs">Muted</span>
-                ):isBRB ? (
-
+                {isBRB ? (
                     <span className="text-white text-xs">BRB</span>
-                ):isMuted ? (
+                ) : isMuted ? (
                     <span className="text-white text-xs">Muted</span>
-                    ) : (
+                ) : (
                     <img
                         src="/assets/SoloBee2.png"
                         alt="Bee"
