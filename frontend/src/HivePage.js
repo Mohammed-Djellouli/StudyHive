@@ -232,7 +232,7 @@ function HivePage() {
                             }
                         }
                     });
-                }, 1000);
+                }, 10);
             }
             else {
                 setNotification({ message: `${pseudo} a quitté la Ruche`, type: "danger" });
@@ -278,19 +278,30 @@ function HivePage() {
 
 
 
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-            console.log("########################################################################## Le navigateur est en train d’être fermé / rafraîchi");
-            localStorage.setItem("isRefreshing", "true");
+    const handleManualLeave = () => {
+        const userId = localStorage.getItem("userId");
+        const roomId = idRoom; // depuis useParams
 
-        };
+        if (userId && roomId) {
+            socket.emit("manual_disconnect", { userId, roomId });
+        }
 
-        window.addEventListener("beforeunload", handleBeforeUnload);
+        socket.disconnect();
 
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, []);
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userPseudo");
+        localStorage.removeItem("token");
+
+        navigate("/", {
+            state: {
+                notification: {
+                    message: "Vous avez quitté la ruche.",
+                    type: "info"
+                }
+            }
+        });
+    };
+
 
     useEffect(() => {
         const handleExclusion = (data) => {
@@ -343,6 +354,37 @@ function HivePage() {
             socket.off("excluded_from_room", handleExclusion);
         };
     }, [navigate]);
+
+    useEffect(() => {
+        const handleRoomClosed = ({ message }) => {
+            const pseudo = localStorage.getItem("userPseudo");
+
+            if (pseudo?.startsWith("Bee-")) {
+                localStorage.removeItem("userId");
+                localStorage.removeItem("userPseudo");
+                localStorage.removeItem("token");
+            }
+
+            navigate("/", {
+                state: {
+                    notification: {
+                        message: message || "La ruche a été fermée.",
+                        type: "danger"
+                    }
+                }
+            });
+        };
+
+        socket.on("room_closed", handleRoomClosed);
+
+        return () => {
+            socket.off("room_closed", handleRoomClosed);
+        };
+    }, [navigate]);
+
+
+
+
 
     if (isLoading) {
         return (

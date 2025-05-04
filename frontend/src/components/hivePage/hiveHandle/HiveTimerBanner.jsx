@@ -34,16 +34,15 @@ function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo
 
     const deleteHive = async () => {
         try {
-            await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hive/delete/${roomId}`, {
+            await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/close-hive/${roomId}`, {
                 method: "DELETE",
             });
-            console.log("Hive deleted successfully.");
-            navigate("/");
-            window.location.reload();
+            console.log("Hive closed and users notified.");
         } catch (error) {
-            console.error("Error deleting hive:", error);
+            console.error("Error closing hive:", error);
         }
     };
+
 
     const handleEndHiveClick = async () => {
         const pseudo = localStorage.getItem("userPseudo");
