@@ -178,6 +178,7 @@ function MemberInHive({
                         className="w-[28px] h-[28px]"
                     />
                 )}
+
             </div>
 
             <span className="absolute left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-20 transition-opacity duration-200">
