@@ -23,23 +23,32 @@ function App(){
     }, [location]);
 
     return (
-        <body className="min-h-screen w-full bg-[#1D1F27]  bg-center bg-cover bg-no-repeat"
-              style={{ backgroundImage: "url('/assets/bg.png')",
-                  backgroundSize: "270%",
-              }}>
-        {notification && (
-            <NotificationBanner
-                message={notification.message}
-                type={notification.type}
-                onClose={() => setNotification(null)}
-            />
-        )}
-        <LogoAtLeftCreationHive />
-        <ButtonConnexInscForCreationHivePage />
-        <PhraseAccrocheAvecButtonCreationHive />
-        <TwoTextExplain/>
-        <TwoTextExplain/>
-        </body>
+        <div
+            className="min-h-screen w-full overflow-y-auto md:overflow-y-visible bg-[#1D1F27] bg-center bg-cover bg-no-repeat pb-32"
+            style={{
+                backgroundImage: "url('/assets/bg.png')",
+                backgroundSize: "270%",
+            }}
+        >
+            {notification && (
+                <NotificationBanner
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
+
+            {/* Contenu centré max-width */}
+            <div className="max-w-screen-xl mx-auto px-4">
+                <LogoAtLeftCreationHive />
+                <ButtonConnexInscForCreationHivePage />
+                <PhraseAccrocheAvecButtonCreationHive />
+            </div>
+
+            {/* Footer bar (fixe ou scrollable selon taille écran) */}
+            <TwoTextExplain />
+        </div>
     );
 }
+
 export default App;
