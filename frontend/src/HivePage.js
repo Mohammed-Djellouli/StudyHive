@@ -142,6 +142,26 @@ function HivePage() {
         if (id) setCurrentId(id);
     }, []);
 
+
+    useEffect(() => {
+        const handleManualMuteUpdate = ({ userId, isMuted }) => {
+            window.dispatchEvent(new CustomEvent("mic-status-updated", {
+                detail: {
+                    userId,
+                    micOn: !isMuted,
+                    micAllowed: true
+                }
+            }));
+        };
+
+        socket.on("manual_mute_status_update", handleManualMuteUpdate);
+
+        return () => {
+            socket.off("manual_mute_status_update", handleManualMuteUpdate);
+        };
+    }, []);
+
+
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         const isRefreshing = localStorage.getItem("isRefreshing");

@@ -37,9 +37,12 @@ function MemberInHive({
     }, [screenShareControl, videoControl]);
 
     useEffect(() => {
-
-        setIsMuted(!micControl || manualMuted);
-    }, [micControl, manualMuted]);
+        if(micControl === false) {
+            setIsMuted(true);
+        }else{
+            setIsMuted(false);
+        }
+    }, [micControl]);
 
 
 
@@ -139,10 +142,10 @@ function MemberInHive({
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer ">
             {/* le div pour le cercle autour de l'icon quand l'utilisateur parle*/}
             <div id={`user-${userId}`} className="relative rounded-full ring-4 ring-transparent transition-all w-[50px] h-[50px] flex items-center justify-center " onClick={handleClick}>
-                {isMuted? (
-                    <span className="text-white text-xs">Muted</span>
-                ):isBRB ? (
+                {isBRB? (
                     <span className="text-white text-xs">BRB</span>
+                ):isMuted ? (
+                    <span className="text-white text-xs">Muted</span>
                     ) : (
                     <img
                         src="/assets/SoloBee2.png"
