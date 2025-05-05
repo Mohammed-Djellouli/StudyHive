@@ -28,6 +28,7 @@ function MemberInHive({
     const [isVideoAllowed, setIsVideoAllowed] = useState(videoControl);
     const [isBRB, setIsBRB] = useState(false);
     const navigate = useNavigate();
+    const [handIsRaised, setHandIsRaised] = useState(false);
 
 
     // Mettre à jour les états de partage d'écran et vidéo quand les props changent
@@ -127,7 +128,7 @@ function MemberInHive({
     const canModifyPermissions = currentUserId === ownerId;
 
     const handleClick = () => {
-        //  Seul l’owner peut ouvrir les permissions en mode QueenBee
+        //  Seul l'owner peut ouvrir les permissions en mode QueenBee
         if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
             setShowModal((prev) => !prev);
         }
@@ -138,21 +139,46 @@ function MemberInHive({
         socket.emit("exclude_user", { roomId, userId });
     };
 
+
+    useEffect(() => {
+        const handleRaiseHand = ({ userId: raisedUserId, raised }) => {
+            if (raisedUserId === userId) {
+                setHandIsRaised(raised);
+            }
+        };
+
+        socket.on("user_raise_hand_status", handleRaiseHand);
+
+        return () => {
+            socket.off("user_raise_hand_status", handleRaiseHand);
+        };
+    }, [userId]);
+
+
+
     return (
         <li className="relative group bg-black/60 rounded-full w-[40px] h-[40px] flex items-center justify-center cursor-pointer ">
             {/* le div pour le cercle autour de l'icon quand l'utilisateur parle*/}
-            <div id={`user-${userId}`} className="relative rounded-full ring-4 ring-transparent transition-all w-[50px] h-[50px] flex items-center justify-center " onClick={handleClick}>
-                {isBRB? (
+            <div
+                id={`user-${userId}`}
+                className={`relative rounded-full transition-all w-[50px] h-[50px] flex items-center justify-center cursor-pointer
+                ${handIsRaised && isMuted ? 'ring-4 ring-red-500' : 'ring-4 ring-transparent'}
+              `}
+                onClick={handleClick}
+            >
+
+                {isBRB ? (
                     <span className="text-white text-xs">BRB</span>
-                ):isMuted ? (
+                ) : isMuted ? (
                     <span className="text-white text-xs">Muted</span>
-                    ) : (
+                ) : (
                     <img
                         src="/assets/SoloBee2.png"
                         alt="Bee"
                         className="w-[28px] h-[28px]"
                     />
                 )}
+
             </div>
 
             <span className="absolute left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-20 transition-opacity duration-200">

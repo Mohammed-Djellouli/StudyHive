@@ -95,28 +95,27 @@ function HiveTimerBanner({ ownerId, timerEndsAt, roomId, currentId , ownerPseudo
     if (timeLeft <= 600000) timerColor = "text-red-500 animate-pulse";
 
     return (
-        <div
-            className={`${
-                position === "bottom"
-                    ? "w-full flex-col items-center bg-[#1D1F27] py-2 px-4 border-t border-gray-700"
-                    : "fixed top-2 right-4"
-            } z-50 flex gap-4`}
-        >
-            <p className={`text-lg font-bold ${timerColor}`}>
+        <div className={`${
+            position === "bottom"
+                ? "w-full flex-col items-center bg-[#1D1F27] py-2 px-4 border-t border-gray-700"
+                : "flex items-center gap-4 px-4"
+        } z-50`}>
+            <p className={`text-lg font-bold ${timerColor} mr-4`}>
                 {timeLeft !== null ? formatTime(timeLeft) : "Loading..."}
             </p>
 
             {(currentId2 && ownerId && currentId2.toString() === ownerId.toString()) ? (
                 <button
                     onClick={handleEndHiveClick}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+                    className="bg-red-500 text-white px-6 py-2.5 rounded-lg hover:bg-red-600 transition-all duration-300 font-semibold shadow-lg hover:shadow-red-500/30 flex items-center gap-2"
                 >
+                  
                     End Room
                 </button>
             ) : (
                 <button
                     onClick={handleLeaveHiveClick}
-                    className="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition"
+                    className="bg-yellow-400 text-black px-6 py-2.5 rounded-lg hover:bg-yellow-300 transition-all duration-300 font-semibold shadow-lg hover:shadow-yellow-400/30 flex items-center gap-2"
                 >
                     Quitter la Hive
                 </button>

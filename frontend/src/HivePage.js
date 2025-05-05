@@ -1,4 +1,3 @@
-
 import React, {useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -397,8 +396,11 @@ function HivePage() {
 
 
     return (
-        <div className="min-h-screen w-full bg-[#1D1F27] bg-center bg-cover bg-no-repeat overflow-y-auto"
-             style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
+        <div
+            className="h-screen flex flex-col bg-[#1D1F27]"
+            style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}
+        >
+            {/* Notification */}
             {notification && (
                 <NotificationBanner
                     message={notification.message}
@@ -407,82 +409,70 @@ function HivePage() {
                 />
             )}
 
-            {/* HEADER FIXE RESPONSIVE */}
-            <div className="w-full lg:fixed lg:top-0 lg:left-0 z-50 px-4 pt-2 pb-1">
-            <div className="grid grid-cols-3 items-center gap-2 w-full">
-                    {/* Logo = 1/3 */}
-                    <div className="col-span-1">
-                        <Big_Logo_At_Left />
-                    </div>
+            {/* Header */}
+            <div className="w-full px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-start">
+                    <Big_Logo_At_Left />
+                </div>
 
-                    {/* SearchBar = 2/3 */}
-                    <div className="col-span-2">
-                        <SearchBar
-                            onSearch={videoPlayerFeatures.handleSearch}
-                            currentUserId={localStorage.getItem("userId") || socket.id}
-                            ownerId={ownerId}
-                            users={users}
-                        />
-                    </div>
+                <div className="flex-1 w-full md:w-auto max-w-[800px]">
+                    <SearchBar
+                        onSearch={videoPlayerFeatures.handleSearch}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
+                        users={users}
+                    />
+                </div>
 
-
-
-                    {/* HiveTimerBanner + Connected (visible seulement sur PC) */}
-                    <div className="hidden lg:flex flex-col items-end gap-[4px]">
-                        <HiveTimerBanner
-                            ownerId={ownerId}
-                            timerEndsAt={timerEndsAt}
-                            roomId={idRoom}
-                            currentId={currentId}
-                            ownerPseudo={ownerPseudo}
-                        />
-                    </div>
-
-                    {/* Connected label PC (à droite en haut) */}
-                    <div className="hidden lg:block fixed top-3 right-[110px] transform -translate-x-1/2 bg-[#1D1F19] text-white px-4 py-2 rounded-full text-sm shadow-lg z-50">
-                        <span>Connected as {currentPseudo || ownerPseudo}</span>
-                    </div>
+                <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end">
+                    <HiveTimerBanner
+                        ownerId={ownerId}
+                        timerEndsAt={timerEndsAt}
+                        roomId={idRoom}
+                        currentId={currentId}
+                        ownerPseudo={ownerPseudo}
+                    />
                 </div>
             </div>
 
+            {/* Main Content */}
+            <div className="flex-1 flex flex-row overflow-hidden px-4 pb-4 gap-4">
 
+                {/* Left Tools */}
+                <div className="w-[80px] flex flex-col items-center gap-4">
+                    <LeftBarTools
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        onStartSharing={webRTCFeatures.startSharing}
+                        isInitiator={webRTCFeatures.isInitiator}
+                        isSharing={webRTCFeatures.isSharing}
+                        users={users}
+                        currentUserId={currentId}
+                        toggleBRB={toggleBrb}
+                        brbMode={brbMode}
+                        isScreenShareWindowOpen={isScreenShareWindowOpen}
+                        onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
+                        onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
+                        isWhiteboardOpen={isWhiteboardOpen}
+                        ownerId={ownerId}
+                        setIsInviteModalOpen={setIsInviteModalOpen}
+                    />
 
+                    <Left_bar_Icons_members_In_Room
+                        key={users.map(u => u.userId).join("-")}
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        users={users}
+                        ownerId={ownerId}
+                        roomId={idRoom}
+                        setJustExcludedIds={setJustExcludedIds}
+                        setNotification={setNotification}
+                    />
+                </div>
 
-
-            {isInviteModalOpen && (
-                <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />
-            )}
-
-
-
-
-
-
-
-            <WhiteBoard
-                roomId={idRoom}
-                isModalOpen={isWhiteboardOpen}
-                setIsModalOpen={setIsWhiteboardOpen}
-                canDraw={matchedUser ? matchedUser.whiteBoardControl : true}
-                setNotification={setNotification}
-            />
-
-            {/* Bouton pour afficher/masquer le conteneur ENTIER
-        <div className="absolute top-[65px] right-4 z-50">
-            <button
-                onClick={() => setIsSidePanelVisible(prev => !prev)}
-                className="bg-yellow-500 text-black px-3 py-1 rounded shadow hover:bg-yellow-400 transition"
-            >
-                {isSidePanelVisible ? "Masquer BlocNote + Chat" : "Afficher BlocNote + Chat"}
-            </button>
-        </div>
-        */}
-
-
-            <div className="w-full flex flex-col lg:flex-row items-start justify-start gap-4 pl-[120px] pr-[420px] mt-10 min-w-[900px]">
-            {/* Partie principale : Vidéo + Playlist en colonne */}
-                <div className="flex flex-col items-center w-full max-w-[1000px] mt-[-50px] lg:mt-[160px]">
-                <div className="w-full mb-4">
+                {/* === CENTER COLUMN === */}
+                <div className="flex-1 flex flex-col gap-2 h-full overflow-hidden">
+                    <div className="flex-[2]">
                         <VideoContainer
                             webRTCFeatures={webRTCFeatures}
                             videoPlayerFeatures={videoPlayerFeatures}
@@ -496,7 +486,7 @@ function HivePage() {
                         />
                     </div>
 
-                    <div className="w-full">
+                    <div className="flex-1">
                         <Playlist
                             onVideoSelect={videoPlayerFeatures.handleVideoSelect}
                             roomId={idRoom}
@@ -506,125 +496,53 @@ function HivePage() {
                         />
                     </div>
                 </div>
-                    {isSidePanelVisible && (
-                        <div
-                            className="w-full max-w-[1000px] px-[1px] sm:px-[40px] md:px-[60px] mt-0
-    lg:fixed lg:top-[100px] lg:right-0 lg:w-[385px] lg:max-w-[385px] lg:px-0 z-50"
+
+                {/* Right Side (Notes + Chat) */}
+                <div className="w-full lg:max-w-[500px] flex flex-col justify-between h-full gap-2">
+                    <div className={`transition-all duration-300 ${
+                        isChatVisible 
+                            ? "h-[40%]" 
+                            : "h-[calc(100%-40px)]"  // Prend toute la hauteur moins la hauteur du bouton
+                    }`}>
+                        <BlocNote isChatVisible={isChatVisible} />
+                    </div>
+
+                    <div className={`transition-all duration-300 ${
+                        isChatVisible 
+                            ? "flex-1 opacity-100" 
+                            : "h-0 opacity-0 overflow-hidden"
+                    }`}>
+                        <ChatBox users={users} ownerId={ownerId} />
+                    </div>
+
+                    <div className="h-[40px]"> {/* Hauteur fixe pour le bouton */}
+                        <button
+                            onClick={() => setIsChatVisible(prev => !prev)}
+                            className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded w-full h-full"
                         >
-                            {isMobile ? (
-                                <div className="relative w-full h-[370px] mb-2">
-                                    {/* Switch mobile en haut à droite */}
-                                    <div className="absolute top-2 right-2 z-10">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${!isChatVisible ? "bg-white" : "bg-gray-500"}`} />
-                                            <button
-                                                onClick={() => setIsChatVisible(prev => !prev)}
-                                                className="w-8 h-8 rounded-full bg-yellow-400 text-black font-bold shadow hover:bg-yellow-300 transition"
-                                                title="Switcher BlocNote / Chat"
-                                            >
-                                                ⇄
-                                            </button>
-                                            <div className={`w-2 h-2 rounded-full ${isChatVisible ? "bg-white" : "bg-gray-500"}`} />
-                                        </div>
-                                    </div>
-
-                                    {/* Contenu dynamique */}
-                                    <div className="w-full h-full">
-                                        {isChatVisible ? (
-                                            <ChatBox users={users} ownerId={ownerId} />
-                                        ) : (
-                                            <BlocNote isChatVisible={isChatVisible} />
-                                        )}
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    {/* BlocNote PC */}
-                                    <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[280px]" : "h-[700px]"} mb-2`}>
-                                        <BlocNote isChatVisible={isChatVisible} />
-                                    </div>
-
-                                    {/* ChatBox PC */}
-                                    <div className={`transition-all duration-500 ease-in-out ${isChatVisible ? "h-[370px] opacity-100" : "h-0 opacity-0"}`}>
-                                        <div className="w-full h-full">
-                                            <ChatBox users={users} ownerId={ownerId} />
-                                        </div>
-                                    </div>
-
-                                    {/* Toggle button PC */}
-                                    <div className="bg-[#1D1F27] mt-2 z-10 relative">
-                                        <button
-                                            onClick={() => setIsChatVisible((prev) => !prev)}
-                                            className="w-full bg-yellow-400 text-black rounded-b-md text-center py-2 hover:bg-yellow-300 transition"
-                                        >
-                                            {isChatVisible ? "▼ Masquer le Chat" : "▲ Afficher le Chat"}
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-            </div>
-
-
-
-
-
-            <Left_bar_Icons_members_In_Room
-                key={users.map(u => u.userId).join("-")}
-                ownerPseudo={ownerPseudo}
-                isQueenBeeMode={isQueenBeeMode}
-                users={users}
-                ownerId={ownerId}
-                roomId={idRoom}
-                setJustExcludedIds={setJustExcludedIds}
-                setNotification={setNotification}
-            />
-
-            <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
-
-
-
-
-            <div className="fixed left-2 top-[320px] z-50">
-                <LeftBarTools
-                    ownerPseudo={ownerPseudo}
-                    isQueenBeeMode={isQueenBeeMode}
-                    onStartSharing={webRTCFeatures.startSharing}
-                    isInitiator={webRTCFeatures.isInitiator}
-                    isSharing={webRTCFeatures.isSharing}
-                    users={users}
-                    currentUserId={currentId}
-                    toggleBRB={toggleBrb}
-                    brbMode={brbMode}
-                    isScreenShareWindowOpen={isScreenShareWindowOpen}
-                    onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
-                    onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
-                    isWhiteboardOpen={isWhiteboardOpen}
-                    ownerId={ownerId}
-                    setIsInviteModalOpen={setIsInviteModalOpen}
-                />
-
-            </div>
-
-            {/* === Footer mobile EN BAS === */}
-            <div className="lg:hidden w-full bg-[#1D1F27] px-4 py-2 flex flex-col items-center justify-center gap-1 border-t border-gray-700 mt-10">
-                <HiveTimerBanner
-                    ownerId={ownerId}
-                    timerEndsAt={timerEndsAt}
-                    roomId={idRoom}
-                    currentId={currentId}
-                    ownerPseudo={ownerPseudo}
-                    position="bottom"
-                />
-                <div className="text-white text-xs bg-[#1D1F19] px-3 py-1 rounded-full shadow">
-                    Connected as {currentPseudo || ownerPseudo}
+                            {isChatVisible ? "▼ Masquer le chat" : "▲ Afficher le chat"}
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            {/* Modals */}
+            {isInviteModalOpen && (
+                <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />
+            )}
 
+            <WhiteBoard
+                roomId={idRoom}
+                isModalOpen={isWhiteboardOpen}
+                setIsModalOpen={setIsWhiteboardOpen}
+                canDraw={matchedUser ? matchedUser.whiteBoardControl : true}
+                setNotification={setNotification}
+            />
         </div>
     );
+
+
+
 }
 
 export default HivePage;

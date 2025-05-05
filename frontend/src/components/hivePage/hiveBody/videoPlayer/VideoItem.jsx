@@ -26,9 +26,9 @@ const VideoItem = ({ video, onVideoSelect, roomId, hasPermission }) => {
             <img
                 src={video.snippet.thumbnails.medium.url}
                 alt={video.snippet.title}
-                className={`w-[120px] h-[90px] rounded mr-4 ${!hasPermission && 'opacity-50'}`}
+                className={`w-[100px] h-[75px] rounded mr-3 object-cover ${!hasPermission && 'opacity-50'}`}
             />
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
                 <div className={`text-white text-sm font-medium line-clamp-2 ${!hasPermission && 'opacity-50'}`}>
                     {video.snippet.title}
                 </div>

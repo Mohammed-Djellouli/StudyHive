@@ -17,7 +17,7 @@ const MessageList = ({ messages,selfId,users,ownerId }) => {
         bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
     return (
-        <div className="message-list-container flex flex-col gap-3 p-5 overflow-y-scroll h-[calc(100%-56px)]">
+        <div className="message-list-container flex flex-col gap-3 p-5 overflow-y-auto max-h-[400px] h-[400px]">
             {messages.map((msg, index) => {
                 const isMe = msg.user === selfId;
                 const pseudo = getPseudo(msg.user);
@@ -40,6 +40,26 @@ const MessageList = ({ messages,selfId,users,ownerId }) => {
                             </div>
                             <div className={`px-3 py-2 rounded-2xl break-words ${isMe ? "bg-[#ffeaa7] text-black ml-auto rounded-br-none" : "bg-black text-white rounded-bl-none"}`}>
                                 {msg.text}
+                                {msg.file && (
+                                    <div className="mt-2">
+                                        {msg.file.type.startsWith('image/') ? (
+                                            <img
+                                                src={msg.file.data}
+                                                alt="Shared file"
+                                                className="max-w-[200px] rounded-lg"
+                                            />
+                                        ) : (
+                                            <a
+                                                href={msg.file.data}
+                                                download={msg.file.name}
+                                                className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                                            >
+                                                <img src="/assets/file-icon.png" alt="File" className="w-8 h-8" />
+                                                {msg.file.name}
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         {isMe && (
