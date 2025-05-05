@@ -62,7 +62,7 @@ const MessageInput = ({ onSend }) => {
             {file && (
                 <div className="flex items-center gap-2 text-white text-sm mt-2 bg-[#f1c40f]/20 p-2 rounded-lg border border-[#f1c40f]/30">
                     <div className="flex items-center gap-2 flex-1">
-                        <span className="text-[#f1c40f]">🐝</span>
+                        <span className="text-[#f1c40f]"></span>
                         <span className="truncate max-w-[200px]">{file.name}</span>
                     </div>
                     <button 
