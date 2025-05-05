@@ -41,13 +41,13 @@ const MessageInput = ({ onSend }) => {
                 />
                 <button 
                     type="button" 
-                    className="bg-[#ffeaa7] hover:bg-[#f1c40f] text-black px-3 py-1 rounded-md flex items-center gap-1"
+                    className="bg-[#ffeaa7] hover:bg-[#f1c40f] text-black px-2 py-1.5 rounded-full flex items-center gap-1.5 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg border border-[#f1c40f]"
                     onClick={() => document.getElementById('fileInput').click()}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.293 3.293a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L13 5.414V17a1 1 0 11-2 0V5.414L7.707 8.707a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd"/>
                     </svg>
-                    Upload
+                    <span className="font-bold text-sm">🐝</span>
                 </button>
                 <input
                     id="fileInput"
@@ -60,12 +60,15 @@ const MessageInput = ({ onSend }) => {
                 </button>
             </div>
             {file && (
-                <div className="flex items-center gap-2 text-white text-sm mt-1 bg-gray-700 p-2 rounded">
-                    <span className="truncate max-w-[200px]">{file.name}</span>
+                <div className="flex items-center gap-2 text-white text-sm mt-2 bg-[#f1c40f]/20 p-2 rounded-lg border border-[#f1c40f]/30">
+                    <div className="flex items-center gap-2 flex-1">
+                        <span className="text-[#f1c40f]">🐝</span>
+                        <span className="truncate max-w-[200px]">{file.name}</span>
+                    </div>
                     <button 
                         type="button" 
                         onClick={() => setFile(null)}
-                        className="text-red-500 hover:text-red-400 font-bold"
+                        className="text-[#f1c40f] hover:text-[#ffeaa7] font-bold w-5 h-5 flex items-center justify-center rounded-full hover:bg-[#f1c40f]/20 transition-all duration-300"
                     >
                         ×
                     </button>
