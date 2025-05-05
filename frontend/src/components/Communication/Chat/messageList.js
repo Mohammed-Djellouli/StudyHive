@@ -17,7 +17,7 @@ const MessageList = ({ messages,selfId,users,ownerId }) => {
         bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
     return (
-        <div className="message-list-container flex flex-col gap-3 p-5 overflow-y-scroll h-[calc(100%-56px)]">
+        <div className="message-list-container flex flex-col gap-3 p-5 overflow-y-auto max-h-[400px] h-[400px]">
             {messages.map((msg, index) => {
                 const isMe = msg.user === selfId;
                 const pseudo = getPseudo(msg.user);

@@ -73,9 +73,10 @@ const ChatBox = ({users,ownerId}) => {
     };
 
     return (
-
-        <div className="w-full sm:w-90 h-full rounded-xl bg-[#1e1f21] flex flex-col overflow-hidden">
-            <MessageList messages={messages} selfId={userId || socketId} users={users} ownerId={ownerId} />
+        <div className="w-full sm:w-90 h-full rounded-xl bg-[#1e1f21] flex flex-col">
+            <div className="flex-1 overflow-hidden">
+                <MessageList messages={messages} selfId={userId || socketId} users={users} ownerId={ownerId} />
+            </div>
             <MessageInput onSend={handleSendMessage} />
         </div>
     );
