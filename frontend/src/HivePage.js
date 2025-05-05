@@ -1,4 +1,3 @@
-
 import React, {useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -19,6 +18,8 @@ import WhiteBoard from "./components/hivePage/hiveBody/whiteBoard";
 import NotificationBanner from "./components/hivePage/hiveHeader/NotificationBanner";
 import Playlist from "./components/hivePage/hiveBody/videoPlayer/Playlist";
 import VideoContainer from "./components/hivePage/hiveHandle/VideoContainer";
+import InviteModal from "./components/hivePage/hiveHandle/InviteModal";
+
 import socket from "./components/socket";
 
 import "./App.css";
@@ -46,7 +47,25 @@ function HivePage() {
     const [currentId, setCurrentId] = useState('');
 
 
+    const [isChatVisible, setIsChatVisible] = useState(true);
+
     const navigate = useNavigate();
+
+    const [justExcludedIds, setJustExcludedIds] = useState(new Set());
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+    const [isSidePanelVisible, setIsSidePanelVisible] = useState(true);
+    const matchedUser = users.find(u => u.userId === currentId);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 1024); // lg = 1024
+        };
+
+        handleResize(); // appel initial
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     const toggleBrb = () => {
         const newValue = !brbMode;
@@ -69,8 +88,8 @@ function HivePage() {
             });
         }
     }, []);
-  
-  useEffect(() => {
+
+    useEffect(() => {
         const userId = localStorage.getItem("userId");
         const userPseudo = localStorage.getItem("userPseudo");
 
@@ -79,6 +98,20 @@ function HivePage() {
             navigate(`/join/${idRoom}`);
         }
     }, [idRoom, navigate]);
+
+    useEffect(() => {
+        socket.on("whiteboard_permission_updated", ({ pseudo, whiteBoardControl }) => {
+            setUsers(prev =>
+                prev.map(user =>
+                    user.pseudo === pseudo ? { ...user, whiteBoardControl } : user
+                )
+            );
+        });
+
+        return () => {
+            socket.off("whiteboard_permission_updated");
+        };
+    }, []);
 
 
     useEffect(() => {
@@ -101,14 +134,34 @@ function HivePage() {
             });
     }, [idRoom]);
 
-useEffect(() => {
-    const pseudo = localStorage.getItem("userPseudo");
-    const id = localStorage.getItem("userId") || socket.id;
-    if (pseudo) setCurrentPseudo(pseudo);
-    if (id) setCurrentId(id);
-}, []);
+    useEffect(() => {
+        const pseudo = localStorage.getItem("userPseudo");
+        const id = localStorage.getItem("userId") || socket.id;
+        if (pseudo) setCurrentPseudo(pseudo);
+        if (id) setCurrentId(id);
+    }, []);
 
-useEffect(() => {
+
+    useEffect(() => {
+        const handleManualMuteUpdate = ({ userId, isMuted }) => {
+            window.dispatchEvent(new CustomEvent("mic-status-updated", {
+                detail: {
+                    userId,
+                    micOn: !isMuted,
+                    micAllowed: true
+                }
+            }));
+        };
+
+        socket.on("manual_mute_status_update", handleManualMuteUpdate);
+
+        return () => {
+            socket.off("manual_mute_status_update", handleManualMuteUpdate);
+        };
+    }, []);
+
+
+    useEffect(() => {
         const userId = localStorage.getItem("userId");
         const isRefreshing = localStorage.getItem("isRefreshing");
 
@@ -123,50 +176,112 @@ useEffect(() => {
                 localStorage.removeItem("isRefreshing");
             }, 3000);
         }
-}, [idRoom]);
+    }, [idRoom]);
 
 
     useEffect(() => {
         socket.on("user_joined", (newUser) => {
             setUsers((prev) => {
-                if (prev.find(u => u.userId === newUser.userId)) return prev;
+                if (!newUser?.pseudo) return prev;
+                if (prev.find(u => u.userId === newUser.userId || u.pseudo?.trim() === newUser.pseudo.trim())) return prev;
+
+
+                const newUserWithDefaults = {
+                    micControl: true,
+                    whiteBoardControl: false,
+                    ...newUser
+                };
+
                 setNotification({ message: `${newUser.pseudo} a rejoint la Ruche`, type: "info" });
-                return [...prev, newUser];
+                return [...prev, newUserWithDefaults];
             });
         });
 
-        socket.on("user_left", (idLeft) => {
-            const idStr = idLeft.toString();
-            setUsers((prev) => {
-                const userToRemove = prev.find(user =>
-                    idStr === user.userId?.toString() ||
-                    idStr === user.socketId?.toString() ||
-                    idStr === user._id?.toString()
-                );
+    });
 
-                if (userToRemove) {
-                    setNotification({ message: `${userToRemove.pseudo} a quitté la Ruche`, type: "danger" });
+    socket.on("user_left", ({ userId: idLeft, pseudo }) => {
+        const idStr = idLeft.toString();
+        const id = localStorage.getItem("userId");
+        const myPseudo = localStorage.getItem("userPseudo");
+
+        if (justExcludedIds.has(idStr)) {
+            console.log(" Ignoré car déjà exclu :", idStr);
+            return;
+        }
+        setUsers((prev) => {
+            const userToRemove = prev.find(user =>
+                idStr === user.userId?.toString() ||
+                idStr === user.socketId?.toString() ||
+                idStr === user._id?.toString()
+            );
+
+
+
+            if(idStr === id){
+                if (myPseudo.startsWith("Bee-")) {
+                    localStorage.removeItem("userId");
+                    localStorage.removeItem("userPseudo");
                 }
+                setTimeout(() => {
+                    navigate("/", {
+                        state: {
+                            notification: {
+                                message: "Vous avez été exclu de la ruche.",
+                                type: "danger"
+                            }
+                        }
+                    });
+                }, 1000);
+            }
+            else {
+                setNotification({ message: `${pseudo} a quitté la Ruche`, type: "danger" });
+            }
 
-                return prev.filter(user =>
-                    idStr !== user.userId?.toString() &&
-                    idStr !== user.socketId?.toString() &&
-                    idStr !== user._id?.toString()
-                );
-            });
+            return prev.filter(user =>
+                idStr !== user.userId?.toString() &&
+                idStr !== user.socketId?.toString() &&
+                idStr !== user._id?.toString()
+            );
         });
+
+
+        socket.on("manual_mute_status_update", ({ userId, isMuted }) => {
+            setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                    user.userId === userId || user._id === userId
+                        ? { ...user, manualMuted: isMuted }
+                        : user
+                )
+            );
+        });
+
+        const handleMicPermissionUpdated = ({ userId, micControl }) => {
+            setUsers(prevUsers =>
+                prevUsers.map(user =>
+                    user.userId === userId || user._id === userId
+                        ? { ...user, micControl }
+                        : user
+                )
+            );
+        };
+
+        socket.on("mic_permission_updated", handleMicPermissionUpdated);
 
         return () => {
             socket.off("user_joined");
             socket.off("user_left");
+            socket.off("manual_mute_status_update");
+            socket.off("mic_permission_updated", handleMicPermissionUpdated);
         };
     }, []);
 
 
-useEffect(() => {
+
+    useEffect(() => {
         const handleBeforeUnload = () => {
-            console.log("########################################################################## Le navigateur est en train d’être fermé / rafraîchi");
+            console.log("########################################################################## Le navigateur est en train d'être fermé / rafraîchi");
             localStorage.setItem("isRefreshing", "true");
+
         };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
@@ -174,102 +289,218 @@ useEffect(() => {
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
-}, []);
-  
-  
-if (isLoading) {
+    }, []);
+
+    useEffect(() => {
+        const handleExclusion = (data) => {
+            const kickedId = data?.userId;
+            const myId = localStorage.getItem("userId");
+            const myPseudo = localStorage.getItem("userPseudo");
+
+            if (!kickedId || !myId) return;
+
+            const isMe = String(kickedId).trim() === String(myId).trim();
+
+
+            setJustExcludedIds(prev => new Set(prev).add(kickedId));
+
+            if (isMe) {
+
+
+                if (myPseudo?.startsWith("Bee-")) {
+                    localStorage.removeItem("userId");
+                    localStorage.removeItem("userPseudo");
+                }
+
+                setNotification({
+                    message: "Vous avez été exclu de la ruche.",
+                    type: "danger"
+                });
+
+
+                setTimeout(() => {
+                    navigate("/", {
+                        state: {
+                            notification: {
+                                message: "Vous avez été exclu de la ruche.",
+                                type: "danger"
+                            }
+                        }
+                    });
+                }, 1000);
+            } else {
+                setNotification({
+                    message: `${myPseudo} a été exclu.`,
+                    type: "danger"
+                });
+            }
+        };
+
+        socket.on("excluded_from_room", handleExclusion);
+
+        return () => {
+            socket.off("excluded_from_room", handleExclusion);
+        };
+    }, [navigate]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
+                Chargement...
+            </div>
+
+        );
+    }
+
+
     return (
-        <div className="flex items-center justify-center min-h-screen text-black bg-amber-500 animate-pulse">
-            Chargement...
-        </div>
+        <div
+            className="h-screen flex flex-col bg-[#1D1F27]"
+            style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}
+        >
+            {/* Notification */}
+            {notification && (
+                <NotificationBanner
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
 
+            {/* Header */}
+            <div className="w-full px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-start">
+                    <Big_Logo_At_Left />
+                </div>
+
+                <div className="flex-1 w-full md:w-auto max-w-[800px]">
+                    <SearchBar
+                        onSearch={videoPlayerFeatures.handleSearch}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
+                        users={users}
+                    />
+                </div>
+
+                <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end">
+                    <HiveTimerBanner
+                        ownerId={ownerId}
+                        timerEndsAt={timerEndsAt}
+                        roomId={idRoom}
+                        currentId={currentId}
+                        ownerPseudo={ownerPseudo}
+                    />
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-row overflow-hidden px-4 pb-4 gap-4">
+
+                {/* Left Tools */}
+                <div className="w-[80px] flex flex-col items-center gap-4">
+                    <LeftBarTools
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        onStartSharing={webRTCFeatures.startSharing}
+                        isInitiator={webRTCFeatures.isInitiator}
+                        isSharing={webRTCFeatures.isSharing}
+                        users={users}
+                        currentUserId={currentId}
+                        toggleBRB={toggleBrb}
+                        brbMode={brbMode}
+                        isScreenShareWindowOpen={isScreenShareWindowOpen}
+                        onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
+                        onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
+                        isWhiteboardOpen={isWhiteboardOpen}
+                        ownerId={ownerId}
+                        setIsInviteModalOpen={setIsInviteModalOpen}
+                    />
+
+                    <Left_bar_Icons_members_In_Room
+                        key={users.map(u => u.userId).join("-")}
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        users={users}
+                        ownerId={ownerId}
+                        roomId={idRoom}
+                        setJustExcludedIds={setJustExcludedIds}
+                        setNotification={setNotification}
+                    />
+                </div>
+
+                {/* === CENTER COLUMN === */}
+                <div className="flex-1 flex flex-col gap-2 h-full overflow-hidden">
+                    <div className="flex-[2]">
+                        <VideoContainer
+                            webRTCFeatures={webRTCFeatures}
+                            videoPlayerFeatures={videoPlayerFeatures}
+                            isModalOpen={isScreenShareWindowOpen}
+                            setIsModalOpen={setIsScreenShareWindowOpen}
+                            isQueenBeeMode={isQueenBeeMode}
+                            currentUserId={currentId}
+                            ownerId={ownerId}
+                            users={users}
+                            roomId={idRoom}
+                        />
+                    </div>
+
+                    <div className="flex-1">
+                        <Playlist
+                            onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                            roomId={idRoom}
+                            currentUserId={currentId}
+                            ownerId={ownerId}
+                            users={users}
+                        />
+                    </div>
+                </div>
+
+                {/* Right Side (Notes + Chat) */}
+                <div className="w-full lg:max-w-[500px] flex flex-col justify-between h-full gap-2">
+                    <div className={`transition-all duration-300 ${
+                        isChatVisible 
+                            ? "h-[40%]" 
+                            : "h-[calc(100%-40px)]"  // Prend toute la hauteur moins la hauteur du bouton
+                    }`}>
+                        <BlocNote isChatVisible={isChatVisible} />
+                    </div>
+
+                    <div className={`transition-all duration-300 ${
+                        isChatVisible 
+                            ? "flex-1 opacity-100" 
+                            : "h-0 opacity-0 overflow-hidden"
+                    }`}>
+                        <ChatBox users={users} ownerId={ownerId} />
+                    </div>
+
+                    <div className="h-[40px]"> {/* Hauteur fixe pour le bouton */}
+                        <button
+                            onClick={() => setIsChatVisible(prev => !prev)}
+                            className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded w-full h-full"
+                        >
+                            {isChatVisible ? "▼ Masquer le chat" : "▲ Afficher le chat"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modals */}
+            {isInviteModalOpen && (
+                <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />
+            )}
+
+            <WhiteBoard
+                roomId={idRoom}
+                isModalOpen={isWhiteboardOpen}
+                setIsModalOpen={setIsWhiteboardOpen}
+                canDraw={matchedUser ? matchedUser.whiteBoardControl : true}
+                setNotification={setNotification}
+            />
+        </div>
     );
-}
-
-
-return (
-    <div className="min-h-screen w-full bg-[#1D1F27] bg-center bg-cover bg-no-repeat overflow-y-auto"
-         style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
-        {notification && (
-            <NotificationBanner
-                message={notification.message}
-                type={notification.type}
-                onClose={() => setNotification(null)}
-            />
-        )}
-
-        <div className="fixed top-2 right-[200px] transform -translate-x-1/2 bg-[#1D1F19] text-white px-4 py-2 rounded-full text-sm shadow-lg z-50">
-            <span>Connected as {currentPseudo || ownerPseudo}</span>
-        </div>
-
-        <Big_Logo_At_Left />
-        <SearchBar onSearch={videoPlayerFeatures.handleSearch}
-                   currentUserId={localStorage.getItem("userId") || socket.id}
-                   ownerId={ownerId}
-                   users={users}
-        />
 
 
 
-        <div className="relative group flex items-center justify-center cursor-pointer">
-            <div className="w-[850px] mt-4 absolute top-[550px]  left-[100px] ">
-                <Playlist
-                    onVideoSelect={videoPlayerFeatures.handleVideoSelect}
-                    roomId={idRoom}
-                />
-
-
-            </div>
-            <div className="realtive w-full">
-                <VideoContainer
-                    webRTCFeatures={webRTCFeatures}
-                    videoPlayerFeatures={videoPlayerFeatures}
-                    isModalOpen={isScreenShareWindowOpen}
-                    setIsModalOpen={setIsScreenShareWindowOpen}
-                    isQueenBeeMode={isQueenBeeMode}
-                    currentUserId={localStorage.getItem("userId") || socket.id}
-                    ownerId={ownerId}
-                    users={users}
-                    roomId={idRoom}
-                />
-
-            </div>
-        </div>
-
-        <WhiteBoard roomId={idRoom} isModalOpen={isWhiteboardOpen} setIsModalOpen={setIsWhiteboardOpen}/>
-        <div className="fixed bottom-[10px] right-4 w-[90vw] max-w-[385px]"><ChatBox users={users} ownerId = {ownerId} /></div>
-        <div className="fixed top-[65px] right-4 w-[90vw] max-w-[385px]"><BlocNote /></div>
-
-        <Left_bar_Icons_members_In_Room
-            ownerPseudo={ownerPseudo}
-            isQueenBeeMode={isQueenBeeMode}
-            users={users}
-            ownerId={ownerId}
-        />
-
-        <div className="fixed left-2 top-[300px] z-50 h-[2px] w-12 bg-gray-700 rounded"></div>
-
-        <div className="fixed left-2 top-[320px] z-50">
-            <LeftBarTools
-                ownerPseudo={ownerPseudo}
-                isQueenBeeMode={isQueenBeeMode}
-                onStartSharing={webRTCFeatures.startSharing}
-                isInitiator={webRTCFeatures.isInitiator}
-                isSharing={webRTCFeatures.isSharing}
-                users={users}
-                currentUserId={currentId}
-                toggleBRB={toggleBrb}
-                brbMode={brbMode}
-                isScreenShareWindowOpen={isScreenShareWindowOpen}
-                onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
-                onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
-                isWhiteboardOpen={isWhiteboardOpen}
-            />
-        </div>
-
-        <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId} ownerPseudo={ownerPseudo} />
-    </div>
-);
 }
 
 export default HivePage;

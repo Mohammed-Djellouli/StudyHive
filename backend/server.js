@@ -189,6 +189,35 @@ io.on("connection", (socket) => {
         socket.emit("all_users", otherUsers);// sending the list of users already connected in the hive
     });
 
+    socket.on("update_whiteboard_permission", async ({ targetUserPseudo, allowWhiteboard }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId) return;
+
+        try {
+            const room = await Hive.findOne({ idRoom: roomId });
+            if (!room) return;
+
+            const user = room.users.find(u => u.pseudo === targetUserPseudo);
+            if (user) {
+                user.whiteBoardControl = allowWhiteboard;
+                await room.save();
+
+
+                io.to(roomId.toString()).emit("whiteboard_permission_updated", {
+                    pseudo: targetUserPseudo,
+                    userId: user.userId,
+                    whiteBoardControl: allowWhiteboard,
+                    roomId: roomId
+                });
+
+                console.log(`Whiteboard permission updated for user ${user.userId} (${targetUserPseudo}): ${allowWhiteboard}`);
+            }
+        } catch (err) {
+            console.error("Failed to update whiteboard permission:", err);
+        }
+    });
+
+
     socket.on("videoChanged", ({ roomId, videoId, time }) => {
         const lastUpdate = Date.now();
         const isPlaying = true;
@@ -248,6 +277,14 @@ io.on("connection", (socket) => {
             console.error("Failed to update mic permission:", err);
         }
     });
+
+    socket.on("manual_mute_status_update", ({ userId, isMuted }) => {
+        const roomId = socket.data.hiveRoomId;
+        if (!roomId || !userId) return;
+
+        io.to(roomId).emit("manual_mute_status_update", { userId, isMuted });
+    });
+
 
     // Gestionnaire pour la mise à jour des permissions de partage d'écran
     socket.on("update_screen_share_permission", async ({ targetUserPseudo, allowScreenShare }) => {
@@ -377,8 +414,13 @@ io.on("connection", (socket) => {
         io.to(roomId).emit('video_removed', { videoId });
         io.to(roomId).emit('playlist_updated', updated);
     });
-   
 
+    socket.on("toggle-brb", ({ roomId, userId, isBRB }) => {
+        io.to(roomId).emit("user_brb_status", {
+            userId,
+            isBRB
+        });
+    });
    
 
     socket.on("leave_room", async ({ roomId, userId }) => {
@@ -398,7 +440,10 @@ io.on("connection", (socket) => {
                     await hive.save();
 
                     io.to(roomId).emit("update_users_list", hive.users);
-                    io.to(roomId).emit("user_left", idToEmit);
+                    io.to(roomId).emit("user_left", {
+                        userId: user.userId?.toString() || user.userSocketId,
+                        pseudo: user.pseudo
+                    });
                     console.log(` Utilisateur quitté manuellement : ${idToEmit}`);
                 } else {
                     console.log(" User pas trouvé dans Hive lors du leave");
@@ -409,6 +454,41 @@ io.on("connection", (socket) => {
             console.error("Erreur leave_room:", error);
         }
     });
+
+    socket.on("exclude_user", async ({ roomId, userId }) => {
+        console.log(" Event 'exclude_user' reçu avec : ", { roomId, userId });
+        try {
+            const room = await Hive.findOne({ idRoom: roomId });
+            console.log("Room trouvée :", room ? "OUI" : "NON");
+            if (!room) return;
+
+            const index = room.users.findIndex(u => u.userId?.toString() === userId || u.userSocketId === userId);
+            if (index !== -1) {
+                console.log(" Utilisateur trouvé à supprimer :", room.users[index]);
+                const user = room.users[index];
+                room.users.splice(index, 1);
+                await room.save();
+                //console.log(" Envoi des événements : update_users_list, user_left, excluded_from_room");
+                io.to(roomId).emit("update_users_list", room.users);
+                io.to(roomId).emit("user_left", {
+                    userId: user.userId?.toString() || user.userSocketId,
+                    pseudo: user.pseudo
+                });
+                const targetSocket = [...io.sockets.sockets.values()].find(
+                    s => s.userId?.toString() === userId?.toString()
+                );
+
+                /*if (targetSocket) {
+                    targetSocket.leave(roomId);
+                    targetSocket.emit("excluded_from_room",{ userId });
+                }*/
+                console.log(` Utilisateur ${userId} exclu de la ruche ${roomId}`);
+            }
+        } catch (err) {
+            console.error("Erreur exclusion utilisateur :", err);
+        }
+    });
+
 
 
 

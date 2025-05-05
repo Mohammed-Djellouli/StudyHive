@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const Hive = require("../models/hive");
 const User = require("../models/User");
-
+const mongoose = require("mongoose");
 const HandleHiveCreation = require("../HandleHiveCreation");
 
 // Créer une Hive
@@ -56,6 +56,36 @@ router.get("/:idRoom", async (req, res) => {
             res.status(500).json({ message: "Erreur serveur" });
         }
     });
+
+// GET /api/hive/last-created/:userId
+router.get("/last-created/:userId", async (req, res) => {
+    console.log(" [GET] /api/hive/last-created/:userId CALLED");
+    const userId = req.params.userId;
+    console.log("🔍 userId reçu :", userId);
+
+    try {
+        const objectId = new mongoose.Types.ObjectId(userId); //  conversion explicite
+        const lastHive = await Hive.findOne({ idOwner: objectId }).sort({ createdAt: -1 });
+
+        console.log(" Hive trouvée :", lastHive);
+
+        if (!lastHive) {
+            console.log(" Aucune ruche trouvée pour cet utilisateur.");
+            return res.status(404).json({ message: "Aucune ruche trouvée pour cet utilisateur." });
+        }
+
+        res.status(200).json({
+            idRoom: lastHive.idRoom,
+            timerEndsAt: lastHive.timerEndsAt,
+            ownerPseudo: lastHive.ownerPseudo,
+        });
+    } catch (err) {
+        console.error(" Erreur récupération dernière ruche :", err);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+});
+
+
 
 
 

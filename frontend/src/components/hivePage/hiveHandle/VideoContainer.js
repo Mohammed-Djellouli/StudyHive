@@ -190,9 +190,9 @@ const VideoContainer = ({
     return (
         <div className="relative">
             {/* Container principal pour le lecteur vidéo - toujours visible */}
-            <div className="absolute left-[100px] top-[100px] w-[850px] h-[450px] rounded-lg items-center bg-[#1a1a1a] p-4">
-                {videoId ? (
-                    <div className="w-full h-full flex items-center justify-center">
+            <div className="relative w-full max-h-[550px] min-h-[400px] mx-auto aspect-video rounded-lg bg-[#1a1a1a] p-4">
+            {videoId ? (
+                    <div className="w-full h-full flex items-center max-h-[500px] min-h-[400px] justify-center">
                         <VideoDisplay 
                             videoId={videoId}
                             playerOpts={modifiedPlayerOpts}
@@ -206,26 +206,26 @@ const VideoContainer = ({
                     </div>
                 ) : (
                     <div className="relative w-full h-full">
-                        {/* Image de fond avec faible opacité */}
-                        <div 
-                            className="absolute inset-0 bg-cover bg-center opacity-10"
-                            style={{ backgroundImage: "url('/assets/pexels-photo.jpg')" }}
-                        />
                         {/* Logo YouTube centré */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <img 
                                 src="/assets/youtube-icon.png" 
                                 alt="YouTube" 
-                                className="w-24 h-24 opacity-50"
+                                className="w-24 h-24 opacity-50 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                             />
                         </div>
                         {/* Liste des vidéos */}
-                        <div className="relative z-10 h-full overflow-y-auto px-4 py-2">
-                            <VideoList 
-                                videos={videos} 
-                                onVideoSelect={hasVideoPermission() ? handleVideoSelect : null}
-                                roomId={roomId}
-                            />
+                        <div className="relative z-10 h-full overflow-hidden">
+                            <div className="h-full overflow-y-auto px-4 py-2 scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-[#2a2a2a]">
+                                <VideoList 
+                                    videos={videos} 
+                                    onVideoSelect={hasVideoPermission() ? handleVideoSelect : null}
+                                    roomId={roomId}
+                                    currentUserId={currentUserId}
+                                    ownerId={ownerId}
+                                    users={users}
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -233,10 +233,12 @@ const VideoContainer = ({
 
             {/* Modal de partage d'écran */}
             <div
-                className={`fixed w-[850px] h-[480px] bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20 transition-opacity duration-300 ${
+                className={`fixed bg-[#1a1a1a] rounded-lg overflow-hidden shadow-2xl z-20 transition-opacity duration-300 ${
                     isModalOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
                 }`}
                 style={{
+                    width: 'min(90vw, 850px)',
+                    height: 'min(90vh, 480px)',
                     left: `${modalPosition.x}px`,
                     top: `${modalPosition.y}px`,
                     pointerEvents: isModalOpen ? 'auto' : 'none'
@@ -315,8 +317,8 @@ const VideoDisplay = ({
                     opts={playerOpts}
                     onReady={onPlayerReady}
                     onStateChange={onPlayerStateChange}
-                    className="w-full h-full"
-                    iframeClassName="w-full h-full"
+                    className="w-full h-full max-h-[500px] min-h-[400px]"
+                    iframeClassName="w-full h-full aspect-video"
                 />
             </div>
             {!hasPermission && (

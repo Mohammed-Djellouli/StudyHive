@@ -2,7 +2,11 @@ import React, { useEffect } from 'react';
 import MemberInHive from "./MemberInHive";
 import socket from "../../socket";
 
-function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ownerId }) {
+
+function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ownerId,roomId,setNotification,  setJustExcludedIds
+                                        }) {
+
+
     useEffect(() => {
         const userId = localStorage.getItem("userId") || socket.id;
         const userPseudo = localStorage.getItem("userPseudo");
@@ -21,7 +25,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
     }, []);
 
     return (
-        <div className="fixed top-[410px] left-0 w-[50px] p-[2px] flex flex-col bg-[#ffffff08] rounded-[10px] z-10 ">
+        <div className="fixed top-[480px] left-0 w-[50px] p-[2px] flex flex-col bg-[#ffffff08] rounded-[10px] z-10 ">
             <ul className="flex flex-col gap-2 items-center m-0 p-0 list-none">
 
                 {ownerId && (
@@ -44,6 +48,7 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             key={user._id || user.userId}
                             pseudo={user.pseudo}
                             micControl={user.micControl}
+                            whiteBoardControl={user.whiteBoardControl}
                             screenShareControl={user.screenShareControl}
                             videoControl={user.videoControl}
                             isOwner={user.userId === ownerId}
@@ -51,6 +56,10 @@ function Left_bar_Icons_members_In_Room({ ownerPseudo, isQueenBeeMode, users, ow
                             currentUserId={localStorage.getItem("userId")}
                             ownerId={ownerId}
                             userId={user.userId}
+                            manualMuted={user.manualMuted}
+                            roomId={roomId}
+                            setJustExcludedIds={setJustExcludedIds}
+                            setNotification={setNotification}
                         />
                     ))}
             </ul>

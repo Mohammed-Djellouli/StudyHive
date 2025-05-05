@@ -38,24 +38,43 @@ function SearchBar({ onSearch, currentUserId, ownerId, users }) {
     const canSearch = currentUserId === ownerId || hasVideoPermission;
 
     return (
-        <div className="w-full flex justify-center fixed top-0 left-0 pt-4 z-20">
-            <form onSubmit={handleSubmit} className="w-[520px] h-[50px] rounded-[10px] flex items-center justify-center p-[2px]">
-                <div className={`flex items-center w-full bg-[#1a1a1a] rounded-[8px] p-[6px] gap-2 ${!canSearch ? 'opacity-50' : ''}`}>
-                    <img src="/assets/youtube-icon.png" alt="Youtube" className="w-[40px] h-[40px]" />
+        <div className="w-full">
+            <form
+                onSubmit={handleSubmit}
+                className="w-full h-[50px] flex items-center justify-center gap-4"
+            >
+                <div className={`flex items-center w-full max-w-[700px] bg-[#1a1a1a] rounded-[8px] p-[6px] gap-2 ${
+                    !canSearch ? 'opacity-50' : ''
+                }`}>
+                    <img
+                        src="/assets/youtube-icon.png"
+                        alt="Youtube"
+                        className="w-[35px] h-[35px] md:w-[40px] md:h-[40px]"
+                    />
                     <input
                         type="text"
-                        placeholder={canSearch ? "Bee lecture" : "Seul le créateur peut rechercher en mode Queen Bee"}
+                        placeholder={
+                            canSearch
+                                ? 'Bee lecture'
+                                : 'Seul le créateur peut rechercher en mode Queen Bee'
+                        }
                         value={term}
                         onChange={(e) => setTerm(e.target.value)}
-                        className="bg-[#0f0f0f] text-white px-3 py-2 rounded-[4px] flex-1 outline-none"
+                        className="bg-[#0f0f0f] text-white px-4 py-2 rounded-[4px] flex-1 outline-none text-sm md:text-base"
                         disabled={!canSearch}
                     />
                     <button
                         type="submit"
-                        className={`bg-[#0f0f0f] p-2 rounded-[8px] ${!canSearch ? 'cursor-not-allowed' : 'hover:bg-[#2a2a2a]'}`}
+                        className={`bg-[#0f0f0f] p-2 rounded-[8px] ${
+                            !canSearch ? 'cursor-not-allowed' : 'hover:bg-[#2a2a2a]'
+                        }`}
                         disabled={!canSearch}
                     >
-                        <img src="/assets/Search-icon.png" alt="Search" className="w-[24px] h-[24px]" />
+                        <img
+                            src="/assets/Search-icon.png"
+                            alt="Search"
+                            className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]"
+                        />
                     </button>
                 </div>
             </form>
