@@ -98,26 +98,42 @@ function PhraseAccrocheAvecButtonCreationHive() {
 
     return (
         <div className="flex flex-col items-center space-y-4 mt-20">
-            <p className="text-2xl text-white text-center">Transforme Le Travail</p>
-            <p className="text-2xl text-white text-center">En Equipe En Miel De</p>
-            <p className="text-2xl text-white text-center">Connaisance</p>
-
+            <p className="text-xl md:text-2xl text-white">Transforme Le Travail   </p>
+            <p className="text-xl md:text-2xl text-white">En Equipe En Miel </p>
+                <p className="text-xl md:text-2xl text-white">De Connaisance</p>
             {/* Container du bouton + HoneyStane */}
-            <div className="relative inline-block">
-                    <button className="relative w-[300px] z-20 bg-[#FFCE1C] text-black font-bold text-[20px] px-6 py-2 rounded-[6px] "
-                    onClick={() => setShowModal(true)}>
-                        Créer une Ruche
-                    </button>
+            <div className="relative flex justify-center items-center w-full mt-6">
+                <button
+                    className="relative z-20 w-[260px] md:w-[300px] bg-[#FFCE1C] text-black font-bold text-[18px] md:text-[20px] px-6 py-2 rounded-[6px]"
+                    onClick={() => setShowModal(true)}
+                >
+                    Créer une Ruche
+                </button>
 
-                {/* Image tache miel */}
+                {/* HoneyStane positionné en bas à droite du bouton */}
                 <img
                     src="/assets/HoneyStane.png"
                     alt="Honey stain"
-                    className="absolute -bottom-20 -right-16 w-[200px] z-10"
+                    className="absolute z-10 w-[260px] md:w-[280px] bottom-[-95px] right-[calc(50%-212px)] md:bottom-[-110px] md:right-[calc(50%-240px)]"
                 />
-                <img src="/assets/SoloBee2.png" className="absolute -left-72 w-[100px] transfomr rotate-[-290deg]" />
-                <img src="/assets/SoloBee2.png" className="absolute -right-72 -top-48 w-[100px] transform rotate-[-120deg]"/>
+
+                {/* Bees visibles seulement sur desktop */}
+                {/* Bees proches du bouton, visibles partout */}
+                {/* Bees - Responsive position */}
+                <img
+                    src="/assets/SoloBee2.png"
+                    className="absolute w-[60px] md:w-[100px] bottom-[-80px] md:bottom-[-140px] left-[calc(50%-220px)] md:left-[calc(50%-450px)] transform rotate-[-290deg]"
+                    alt="Bee left"
+                />
+                <img
+                    src="/assets/SoloBee2.png"
+                    className="absolute w-[60px] md:w-[100px] top-[-100px] md:top-[-140px] right-[calc(50%-160px)] md:right-[calc(50%-480px)] transform rotate-[-120deg]"
+                    alt="Bee right"
+                />
+
+
             </div>
+
 
             {/* Block du Modal */}
             {showModal && (

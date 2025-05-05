@@ -71,12 +71,33 @@ const roomPlaylists = new Map();
 
 
 io.on("connection", (socket) => {
+    socket.on("register_identity", ({ userId }) => {
+        socket.userId = userId;
+        socket.ready = true;
+        console.log(" userId bien enregistré dans socket :", userId);
+    });
+
+
     socket.on("join_whiteboard", (roomId) => {
         socket.join(roomId);
     });
     socket.data.hiveRoomId = null;
     // Quand un utilisateur rejoint une Hive
-    socket.on("join_hive_room", async ({ roomId, userId }) => { 
+    socket.on("join_hive_room", async ({ roomId, userId }) => {
+        let retries = 0;
+        while (!socket.ready && retries < 10) {
+            await new Promise(res => setTimeout(res, 100));
+            retries++;
+        }
+
+
+        if (!socket.ready) {
+            console.warn(" join_hive_room appelé trop tôt, socket pas prêt");
+            return;
+        }
+
+
+        socket.userId = userId;
         socket.join(roomId);
 
         socket.data.hiveRoomId = roomId;
@@ -88,7 +109,7 @@ io.on("connection", (socket) => {
         }
 
 
-        socket.userId = userId;
+
 
         // Ajouter dans roomUsers
         if (!roomUsers[roomId]) roomUsers[roomId] = [];
@@ -493,14 +514,22 @@ io.on("connection", (socket) => {
 
 
     socket.on("disconnecting", async () => {
+        console.log(" Socket disconnecting triggered :", socket.id, socket.userId);
         const joinedRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
         const userId = socket.userId;
+        if (!socket.userId) {
+            console.log(` Socket ${socket.id} disconnected without userId (probable early disconnect)`);
+            return;
+        }
 
 
         for (const roomId of joinedRooms) {
             const hive = await Hive.findOne({ idRoom: roomId });
             if (!hive || !userId) return;
 
+            if (roomUsers[roomId]) {
+                roomUsers[roomId] = roomUsers[roomId].filter(u => u.userId !== userId);
+            }
             setTimeout(async () => {
                 const stillPresent = roomUsers[roomId]?.some(u => u.userId === userId);
                 if (stillPresent) {
@@ -514,24 +543,78 @@ io.on("connection", (socket) => {
                 const index = refreshedHive.users.findIndex(u =>
                     u.userId?.toString() === userId.toString()
                 );
-
+                console.log(` Il rentre Ici Pour Tester , OnSupprime----------------------------------> : ${userId}`);
                 if (index !== -1) {
+                    const removedUser = refreshedHive.users[index];
                     refreshedHive.users.splice(index, 1);
                     await refreshedHive.save();
+                    console.log(` Il Rentre dans le If  , OnSupprime:::::::::::::::::> : ${removedUser.pseudo}`);
                     io.to(roomId).emit("update_users_list", refreshedHive.users);
-                    io.to(roomId).emit("user_left", userId);
+                    io.to(roomId).emit("user_left", {
+                        userId: removedUser.userId,
+                        pseudo: removedUser.pseudo
+                    });
                     console.log(` Utilisateur supprimé après déco réelle : ${userId}`);
                 }
             }, 3000);
 
         }
     });
+    socket.on("manual_disconnect", async ({ userId, roomId }) => {
+        console.log("️ Déconnexion manuelle déclenchée pour :", userId, roomId);
+
+        const hive = await Hive.findOne({ idRoom: roomId });
+        if (!hive || !userId) return;
+
+        const index = hive.users.findIndex(u => u.userId?.toString() === userId.toString());
+        if (index !== -1) {
+            const removedUser = hive.users[index];
+            hive.users.splice(index, 1);
+            await hive.save();
+            io.to(roomId).emit("update_users_list", hive.users);
+            io.to(roomId).emit("user_left", {
+                userId: removedUser.userId,
+                pseudo: removedUser.pseudo
+            });
+            console.log(` Utilisateur supprimé manuellement : ${removedUser.pseudo}`);
+        }
+    });
+
+
+
+
+
+
     socket.on("user_speaking", ({roomId,userId,speaking}) => {
         io.to(roomId).emit("user_speaking_status", {userId,speaking});
     });
 
 
 })
+
+app.delete("/api/close-hive/:idRoom", async (req, res) => {
+    const roomId = req.params.idRoom;
+
+    try {
+        const hive = await Hive.findOne({ idRoom: roomId });
+        if (!hive) {
+            return res.status(404).json({ message: "Hive introuvable" });
+        }
+
+        // Notifie tous les clients de la fermeture
+        io.to(roomId).emit("room_closed", { message: "Ruche Fermée" });
+
+        // Supprime la ruche de MongoDB
+        await Hive.deleteOne({ idRoom: roomId });
+
+        console.log(` Ruche ${roomId} supprimée et utilisateurs notifiés`);
+        res.status(200).json({ message: "Ruche supprimée et utilisateurs notifiés" });
+    } catch (err) {
+        console.error(" Erreur fermeture ruche :", err);
+        res.status(500).json({ message: "Erreur lors de la suppression de la ruche" });
+    }
+});
+
 
 // Route test
 app.get("/", (req, res) => {
