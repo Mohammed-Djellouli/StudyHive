@@ -215,12 +215,17 @@ const VideoContainer = ({
                             />
                         </div>
                         {/* Liste des vidéos */}
-                        <div className="relative z-10 h-full max-h-[500px] min-h-[400px] overflow-y-auto px-4 py-2">
-                            <VideoList 
-                                videos={videos} 
-                                onVideoSelect={hasVideoPermission() ? handleVideoSelect : null}
-                                roomId={roomId}
-                            />
+                        <div className="relative z-10 h-full overflow-hidden">
+                            <div className="h-full overflow-y-auto px-4 py-2 scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-[#2a2a2a]">
+                                <VideoList 
+                                    videos={videos} 
+                                    onVideoSelect={hasVideoPermission() ? handleVideoSelect : null}
+                                    roomId={roomId}
+                                    currentUserId={currentUserId}
+                                    ownerId={ownerId}
+                                    users={users}
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
