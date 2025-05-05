@@ -6,6 +6,7 @@ const MessageInput = ({ onSend }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
         if (!input.trim() && !file) return;
 
         const message = { text: input };
@@ -36,17 +37,14 @@ const MessageInput = ({ onSend }) => {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="message"
+                    placeholder="Message"
                     className="flex-grow bg-transparent text-white px-2 outline-none"
                 />
                 <button 
                     type="button" 
-                    className="bg-[#ffeaa7] hover:bg-[#f1c40f] text-black px-3 py-1 rounded-md flex items-center gap-1"
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1 rounded-md"
                     onClick={() => document.getElementById('fileInput').click()}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
                     Upload
                 </button>
                 <input
@@ -75,4 +73,4 @@ const MessageInput = ({ onSend }) => {
     );
 };
 
-export default MessageInput;
+export default MessageInput; 

@@ -40,6 +40,26 @@ const MessageList = ({ messages,selfId,users,ownerId }) => {
                             </div>
                             <div className={`px-3 py-2 rounded-2xl break-words ${isMe ? "bg-[#ffeaa7] text-black ml-auto rounded-br-none" : "bg-black text-white rounded-bl-none"}`}>
                                 {msg.text}
+                                {msg.file && (
+                                    <div className="mt-2">
+                                        {msg.file.type.startsWith('image/') ? (
+                                            <img 
+                                                src={msg.file.data} 
+                                                alt="Shared file" 
+                                                className="max-w-[200px] rounded-lg"
+                                            />
+                                        ) : (
+                                            <a 
+                                                href={msg.file.data}
+                                                download={msg.file.name}
+                                                className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                                            >
+                                                <img src="/assets/file-icon.png" alt="File" className="w-4 h-4" />
+                                                {msg.file.name}
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         {isMe && (
