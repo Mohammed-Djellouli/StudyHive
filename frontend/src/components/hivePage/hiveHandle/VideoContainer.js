@@ -190,9 +190,9 @@ const VideoContainer = ({
     return (
         <div className="relative">
             {/* Container principal pour le lecteur vidéo - toujours visible */}
-            <div className="relative w-full max-h-[1200px] min-h-[600px] mx-auto mt-6 aspect-video rounded-lg bg-[#1a1a1a] p-4">
+            <div className="relative w-full max-h-[550px] min-h-[400px] mx-auto aspect-video rounded-lg bg-[#1a1a1a] p-4">
             {videoId ? (
-                    <div className="w-full h-full flex items-center max-h-[1200px] min-h-[600px] justify-center">
+                    <div className="w-full h-full flex items-center max-h-[500px] min-h-[400px] justify-center">
                         <VideoDisplay 
                             videoId={videoId}
                             playerOpts={modifiedPlayerOpts}
@@ -211,11 +211,11 @@ const VideoContainer = ({
                             <img 
                                 src="/assets/youtube-icon.png" 
                                 alt="YouTube" 
-                                className="w-24 h-24 opacity-50"
+                                className="w-24 h-24 opacity-50 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                             />
                         </div>
                         {/* Liste des vidéos */}
-                        <div className="relative z-10 h-full max-h-[1200px] min-h-[600px] overflow-y-auto px-4 py-2">
+                        <div className="relative z-10 h-full max-h-[500px] min-h-[400px] overflow-y-auto px-4 py-2">
                             <VideoList 
                                 videos={videos} 
                                 onVideoSelect={hasVideoPermission() ? handleVideoSelect : null}
@@ -312,8 +312,8 @@ const VideoDisplay = ({
                     opts={playerOpts}
                     onReady={onPlayerReady}
                     onStateChange={onPlayerStateChange}
-                    className="w-full h-full max-h-[1200px] min-h-[600px]"
-                    iframeClassName="w-full h-full"
+                    className="w-full h-full max-h-[500px] min-h-[400px]"
+                    iframeClassName="w-full h-full aspect-video"
                 />
             </div>
             {!hasPermission && (

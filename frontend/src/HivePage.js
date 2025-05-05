@@ -1,4 +1,3 @@
-
 import React, {useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -280,7 +279,7 @@ function HivePage() {
 
     useEffect(() => {
         const handleBeforeUnload = () => {
-            console.log("########################################################################## Le navigateur est en train d’être fermé / rafraîchi");
+            console.log("########################################################################## Le navigateur est en train d'être fermé / rafraîchi");
             localStorage.setItem("isRefreshing", "true");
 
         };
@@ -433,7 +432,7 @@ function HivePage() {
 
                 {/* === CENTER COLUMN === */}
                 <div className="flex-1 flex flex-col gap-2 h-full overflow-hidden">
-                    <div className="flex-[3] max-h-[1200px] min-h-[600px] overflow-hidden">
+                    <div className="flex-[2]">
                         <VideoContainer
                             webRTCFeatures={webRTCFeatures}
                             videoPlayerFeatures={videoPlayerFeatures}
@@ -447,7 +446,7 @@ function HivePage() {
                         />
                     </div>
 
-                    <div className="flex-[2] min-h-0 overflow-hidden">
+                    <div className="flex-1">
                         <Playlist
                             onVideoSelect={videoPlayerFeatures.handleVideoSelect}
                             roomId={idRoom}
@@ -460,18 +459,26 @@ function HivePage() {
 
                 {/* Right Side (Notes + Chat) */}
                 <div className="w-full lg:max-w-[500px] flex flex-col justify-between h-full gap-2">
-                    <div className={`${isChatVisible ? "h-[40%]" : "h-[80%]"} transition-all duration-300`}>
+                    <div className={`transition-all duration-300 ${
+                        isChatVisible 
+                            ? "h-[40%]" 
+                            : "h-[calc(100%-40px)]"  // Prend toute la hauteur moins la hauteur du bouton
+                    }`}>
                         <BlocNote isChatVisible={isChatVisible} />
                     </div>
 
-                    <div className={`transition-all duration-300 ${isChatVisible ? "h-[50%] opacity-100" : "h-0 opacity-0 overflow-hidden"}`}>
+                    <div className={`transition-all duration-300 ${
+                        isChatVisible 
+                            ? "flex-1 opacity-100" 
+                            : "h-0 opacity-0 overflow-hidden"
+                    }`}>
                         <ChatBox users={users} ownerId={ownerId} />
                     </div>
 
-                    <div className="mt-2">
+                    <div className="h-[40px]"> {/* Hauteur fixe pour le bouton */}
                         <button
                             onClick={() => setIsChatVisible(prev => !prev)}
-                            className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded w-full"
+                            className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded w-full h-full"
                         >
                             {isChatVisible ? "▼ Masquer le chat" : "▲ Afficher le chat"}
                         </button>
