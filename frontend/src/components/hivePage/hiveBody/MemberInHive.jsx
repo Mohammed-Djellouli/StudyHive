@@ -128,7 +128,7 @@ function MemberInHive({
     const canModifyPermissions = currentUserId === ownerId;
 
     const handleClick = () => {
-        //  Seul l’owner peut ouvrir les permissions en mode QueenBee
+        //  Seul l'owner peut ouvrir les permissions en mode QueenBee
         if (!isOwner && isQueenBeeMode && currentUserId === ownerId) {
             setShowModal((prev) => !prev);
         }
