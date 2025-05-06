@@ -505,7 +505,12 @@ function HivePage() {
             <div className="w-full px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-start"><Big_Logo_At_Left /></div>
                 <div className="flex-1 w-full md:w-auto max-w-[800px]">
-                    <SearchBar onSearch={videoPlayerFeatures.handleSearch} currentUserId={currentId} ownerId={ownerId} users={users} />
+                    <SearchBar
+                        onSearch={videoPlayerFeatures.handleSearch}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
+                        users={users}
+                    />
                 </div>
                 <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end">
                     <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId} ownerPseudo={ownerPseudo} />
