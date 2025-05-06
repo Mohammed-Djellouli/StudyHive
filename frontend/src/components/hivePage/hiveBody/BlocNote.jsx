@@ -4,15 +4,17 @@ import StarterKit from "@tiptap/starter-kit";
 import { jsPDF } from "jspdf";
 import "./TiptapDark.css";
 
+let editor;
 const TiptapBlocNote = ({ isChatVisible }) => {
-    const editor = useEditor({
+    editor = useEditor({
         extensions: [StarterKit],
         content: "",
     });
 
     const exporterPDF = () => {
+        if (!editor) return;
         const doc = new jsPDF();
-        const temp = document.createElement("div");
+        const temp = document.createElement("div")
         temp.innerHTML = editor.getHTML();
         temp.style.fontSize = "8px";
         temp.style.lineHeight = "1.5";
