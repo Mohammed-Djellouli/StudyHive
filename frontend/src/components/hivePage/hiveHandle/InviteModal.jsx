@@ -2,7 +2,7 @@ import React from "react";
 import { QRCodeCanvas } from "qrcode.react";
 
 function InviteModal({ roomId, onClose }) {
-    const invitationLink = `${window.location.origin}/join/${roomId}`;
+    const invitationLink = `${process.env.REACT_APP_FRONTEND_URL}/join/${roomId}`;
 
     const handleCopy = async () => {
         try {

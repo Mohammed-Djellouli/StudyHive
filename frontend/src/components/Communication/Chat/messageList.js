@@ -54,7 +54,9 @@ const MessageList = ({ messages,selfId,users,ownerId }) => {
                                                 download={msg.file.name}
                                                 className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
                                             >
-                                                <img src="/assets/file-icon.png" alt="File" className="w-4 h-4" />
+
+                                                <img src="/assets/file-icon.png" alt="File" className="w-8 h-8" />
+
                                                 {msg.file.name}
                                             </a>
                                         )}
