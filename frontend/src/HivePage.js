@@ -404,22 +404,73 @@ function HivePage() {
             <div className="w-full px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-start"><Big_Logo_At_Left /></div>
                 <div className="flex-1 w-full md:w-auto max-w-[800px]">
-                    <SearchBar onSearch={videoPlayerFeatures.handleSearch} currentUserId={currentId} ownerId={ownerId} users={users} />
+                    <SearchBar
+                        onSearch={videoPlayerFeatures.handleSearch}
+                        currentUserId={localStorage.getItem("userId") || socket.id}
+                        ownerId={ownerId}
+                        users={users}
+                    />
                 </div>
                 <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end">
-                    <HiveTimerBanner ownerId={ownerId} timerEndsAt={timerEndsAt} roomId={idRoom} currentId={currentId} ownerPseudo={ownerPseudo} />
+                    <HiveTimerBanner
+                        ownerId={ownerId}
+                        timerEndsAt={timerEndsAt}
+                        roomId={idRoom}
+                        currentId={currentId}
+                        ownerPseudo={ownerPseudo}
+                    />
                 </div>
             </div>
             <div className="flex-1 flex flex-col overflow-visible px-4 pb-4 gap-4">
                 <div className="w-full flex flex-row items-center gap-4">
-                    <LeftBarTools {...{ ownerPseudo, isQueenBeeMode, ...webRTCFeatures, users, currentUserId: currentId, toggleBRB: () => setBrbMode(prev => !prev), brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow: () => setIsScreenShareWindowOpen(prev => !prev), onToggleWhiteboard: () => setIsWhiteboardOpen(prev => !prev), isWhiteboardOpen, ownerId, setIsInviteModalOpen }} />
-                    <Left_bar_Icons_members_In_Room key={users.map(u => u.userId).join("-")} {...{ ownerPseudo, isQueenBeeMode, users, ownerId, roomId: idRoom, setJustExcludedIds, setNotification }} />
-                </div>
+                    <LeftBarTools
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        onStartSharing={webRTCFeatures.startSharing}
+                        isInitiator={webRTCFeatures.isInitiator}
+                        isSharing={webRTCFeatures.isSharing}
+                        users={users}
+                        currentUserId={currentId}
+                        toggleBRB={toggleBrb}
+                        brbMode={brbMode}
+                        isScreenShareWindowOpen={isScreenShareWindowOpen}
+                        onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
+                        onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
+                        isWhiteboardOpen={isWhiteboardOpen}
+                        ownerId={ownerId}
+                        setIsInviteModalOpen={setIsInviteModalOpen}
+                    />
+                    <Left_bar_Icons_members_In_Room
+                        key={users.map(u => u.userId).join("-")}
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        users={users}
+                        ownerId={ownerId}
+                        roomId={idRoom}
+                        setJustExcludedIds={setJustExcludedIds}
+                        setNotification={setNotification}
+                    />                </div>
                 <div className="w-full min-h-[200px]">
-                    <VideoContainer {...{ webRTCFeatures, videoPlayerFeatures, isModalOpen: isScreenShareWindowOpen, setIsModalOpen: setIsScreenShareWindowOpen, isQueenBeeMode, currentUserId: currentId, ownerId, users, roomId: idRoom }} />
+                    <VideoContainer
+                        webRTCFeatures={webRTCFeatures}
+                        videoPlayerFeatures={videoPlayerFeatures}
+                        isModalOpen={isScreenShareWindowOpen}
+                        setIsModalOpen={setIsScreenShareWindowOpen}
+                        isQueenBeeMode={isQueenBeeMode}
+                        currentUserId={currentId}
+                        ownerId={ownerId}
+                        users={users}
+                        roomId={idRoom}
+                    />
                 </div>
                 <div className="w-full min-h-[180px]">
-                    <Playlist {...{ onVideoSelect: videoPlayerFeatures.handleVideoSelect, roomId: idRoom, currentUserId: currentId, ownerId, users }} />
+                    <Playlist
+                        onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                        roomId={idRoom}
+                        currentUserId={currentId}
+                        ownerId={ownerId}
+                        users={users}
+                    />
                 </div>
                 <div className="relative w-full h-[370px] mb-2">
                     <div className="absolute top-2 right-2 z-10">
@@ -439,7 +490,13 @@ function HivePage() {
                 </div>
             </div>
             {isInviteModalOpen && <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />}
-            <WhiteBoard {...{ roomId: idRoom, isModalOpen: isWhiteboardOpen, setIsModalOpen: setIsWhiteboardOpen, canDraw: matchedUser ? matchedUser.whiteBoardControl : true, setNotification }} />
+            <WhiteBoard
+                roomId={idRoom}
+                isModalOpen={isWhiteboardOpen}
+                setIsModalOpen={setIsWhiteboardOpen}
+                canDraw={matchedUser ? matchedUser.whiteBoardControl : true}
+                setNotification={setNotification}
+            />
         </div>
     ) : (
         //  DESKTOP VERSION
@@ -456,15 +513,56 @@ function HivePage() {
             </div>
             <div className="flex-1 flex flex-row overflow-hidden px-4 pb-4 gap-4">
                 <div className="w-[80px] flex flex-col items-center gap-4">
-                    <LeftBarTools {...{ ownerPseudo, isQueenBeeMode, ...webRTCFeatures, users, currentUserId: currentId, toggleBRB: () => setBrbMode(prev => !prev), brbMode, isScreenShareWindowOpen, onToggleScreenShareWindow: () => setIsScreenShareWindowOpen(prev => !prev), onToggleWhiteboard: () => setIsWhiteboardOpen(prev => !prev), isWhiteboardOpen, ownerId, setIsInviteModalOpen }} />
-                    <Left_bar_Icons_members_In_Room key={users.map(u => u.userId).join("-")} {...{ ownerPseudo, isQueenBeeMode, users, ownerId, roomId: idRoom, setJustExcludedIds, setNotification }} />
+                    <LeftBarTools
+                        ownerPseudo={ownerPseudo}
+                        isQueenBeeMode={isQueenBeeMode}
+                        onStartSharing={webRTCFeatures.startSharing}
+                        isInitiator={webRTCFeatures.isInitiator}
+                        isSharing={webRTCFeatures.isSharing}
+                        users={users}
+                        currentUserId={currentId}
+                        toggleBRB={toggleBrb}
+                        brbMode={brbMode}
+                        isScreenShareWindowOpen={isScreenShareWindowOpen}
+                        onToggleScreenShareWindow={() => setIsScreenShareWindowOpen(prev => !prev)}
+                        onToggleWhiteboard={() => setIsWhiteboardOpen(prev => !prev)}
+                        isWhiteboardOpen={isWhiteboardOpen}
+                        ownerId={ownerId}
+                        setIsInviteModalOpen={setIsInviteModalOpen}
+                    />
+                    <Left_bar_Icons_members_In_Room
+                    key={users.map(u => u.userId).join("-")}
+                    ownerPseudo={ownerPseudo}
+                    isQueenBeeMode={isQueenBeeMode}
+                    users={users}
+                    ownerId={ownerId}
+                    roomId={idRoom}
+                    setJustExcludedIds={setJustExcludedIds}
+                    setNotification={setNotification}
+                />
                 </div>
                 <div className="flex-1 flex flex-col gap-2 h-full overflow-hidden">
                     <div className="flex-[2]">
-                        <VideoContainer {...{ webRTCFeatures, videoPlayerFeatures, isModalOpen: isScreenShareWindowOpen, setIsModalOpen: setIsScreenShareWindowOpen, isQueenBeeMode, currentUserId: currentId, ownerId, users, roomId: idRoom }} />
+                        <VideoContainer
+                            webRTCFeatures={webRTCFeatures}
+                            videoPlayerFeatures={videoPlayerFeatures}
+                            isModalOpen={isScreenShareWindowOpen}
+                            setIsModalOpen={setIsScreenShareWindowOpen}
+                            isQueenBeeMode={isQueenBeeMode}
+                            currentUserId={currentId}
+                            ownerId={ownerId}
+                            users={users}
+                            roomId={idRoom}
+                        />
                     </div>
                     <div className="flex-1">
-                        <Playlist {...{ onVideoSelect: videoPlayerFeatures.handleVideoSelect, roomId: idRoom, currentUserId: currentId, ownerId, users }} />
+                        <Playlist
+                            onVideoSelect={videoPlayerFeatures.handleVideoSelect}
+                            roomId={idRoom}
+                            currentUserId={currentId}
+                            ownerId={ownerId}
+                            users={users}
+                        />
                     </div>
                 </div>
                 <div className="w-full lg:max-w-[500px] flex flex-col justify-between h-full gap-2">
@@ -482,7 +580,13 @@ function HivePage() {
                 </div>
             </div>
             {isInviteModalOpen && <InviteModal roomId={idRoom} onClose={() => setIsInviteModalOpen(false)} />}
-            <WhiteBoard {...{ roomId: idRoom, isModalOpen: isWhiteboardOpen, setIsModalOpen: setIsWhiteboardOpen, canDraw: matchedUser ? matchedUser.whiteBoardControl : true, setNotification }} />
+            <WhiteBoard
+                roomId={idRoom}
+                isModalOpen={isWhiteboardOpen}
+                setIsModalOpen={setIsWhiteboardOpen}
+                canDraw={matchedUser ? matchedUser.whiteBoardControl : true}
+                setNotification={setNotification}
+            />
         </div>
     );
 
