@@ -396,10 +396,7 @@ function HivePage() {
 
 
     return (
-        <div
-            className="h-screen flex flex-col bg-[#1D1F27]"
-            style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}
-        >
+        <div className="min-h-screen flex flex-col bg-[#1D1F27]" style={{ backgroundImage: "url('/assets/bg.png')", backgroundSize: "270%" }}>
             {/* Notification */}
             {notification && (
                 <NotificationBanner
@@ -436,10 +433,9 @@ function HivePage() {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-row overflow-hidden px-4 pb-4 gap-4">
-
+            <div className="flex-1 flex flex-col lg:flex-row overflow-visible px-4 pb-4 gap-4">
                 {/* Left Tools */}
-                <div className="w-[80px] flex flex-col items-center gap-4">
+                <div className="w-full lg:w-[80px] flex flex-row lg:flex-col items-center gap-4 justify-center">
                     <LeftBarTools
                         ownerPseudo={ownerPseudo}
                         isQueenBeeMode={isQueenBeeMode}
@@ -470,9 +466,9 @@ function HivePage() {
                     />
                 </div>
 
-                {/* === CENTER COLUMN === */}
-                <div className="flex-1 flex flex-col gap-2 h-full overflow-hidden">
-                    <div className="flex-[2]">
+                {/* CENTER COLUMN */}
+                <div className="flex-1 flex flex-col gap-4">
+                    <div className="w-full min-h-[200px]">
                         <VideoContainer
                             webRTCFeatures={webRTCFeatures}
                             videoPlayerFeatures={videoPlayerFeatures}
@@ -486,7 +482,7 @@ function HivePage() {
                         />
                     </div>
 
-                    <div className="flex-1">
+                    <div className="w-full min-h-[180px]">
                         <Playlist
                             onVideoSelect={videoPlayerFeatures.handleVideoSelect}
                             roomId={idRoom}
@@ -497,32 +493,53 @@ function HivePage() {
                     </div>
                 </div>
 
-                {/* Right Side (Notes + Chat) */}
-                <div className="w-full lg:max-w-[500px] flex flex-col justify-between h-full gap-2">
-                    <div className={`transition-all duration-300 ${
-                        isChatVisible 
-                            ? "h-[40%]" 
-                            : "h-[calc(100%-40px)]"  // Prend toute la hauteur moins la hauteur du bouton
-                    }`}>
-                        <BlocNote isChatVisible={isChatVisible} />
-                    </div>
+                {/* RIGHT SIDE */}
+                <div className="w-full lg:max-w-[500px] flex flex-col justify-between gap-2">
+                    {isMobile ? (
+                        <div className="relative w-full h-[370px] mb-2">
+                            {/* Switch button */}
+                            <div className="absolute top-2 right-2 z-10">
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${!isChatVisible ? "bg-white" : "bg-gray-500"}`} />
+                                    <button
+                                        onClick={() => setIsChatVisible(prev => !prev)}
+                                        className="w-8 h-8 rounded-full bg-yellow-400 text-black font-bold shadow hover:bg-yellow-300 transition"
+                                        title="Switcher BlocNote / Chat"
+                                    >
+                                        ⇄
+                                    </button>
+                                    <div className={`w-2 h-2 rounded-full ${isChatVisible ? "bg-white" : "bg-gray-500"}`} />
+                                </div>
+                            </div>
 
-                    <div className={`transition-all duration-300 ${
-                        isChatVisible 
-                            ? "flex-1 opacity-100" 
-                            : "h-0 opacity-0 overflow-hidden"
-                    }`}>
-                        <ChatBox users={users} ownerId={ownerId} />
-                    </div>
+                            <div className="w-full h-full mt-8">
+                                {isChatVisible ? (
+                                    <ChatBox users={users} ownerId={ownerId} />
+                                ) : (
+                                    <BlocNote isChatVisible={isChatVisible} />
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className={`transition-all duration-300 ${isChatVisible ? "h-[40%]" : "h-[calc(100%-40px)]"}`}>
+                                <BlocNote isChatVisible={isChatVisible} />
+                            </div>
 
-                    <div className="h-[40px]"> {/* Hauteur fixe pour le bouton */}
-                        <button
-                            onClick={() => setIsChatVisible(prev => !prev)}
-                            className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded w-full h-full"
-                        >
-                            {isChatVisible ? "▼ Masquer le chat" : "▲ Afficher le chat"}
-                        </button>
-                    </div>
+                            <div className={`transition-all duration-300 ${isChatVisible ? "flex-1 opacity-100" : "h-0 opacity-0 overflow-hidden"}`}>
+                                <ChatBox users={users} ownerId={ownerId} />
+                            </div>
+
+                            <div className="h-[40px]">
+                                <button
+                                    onClick={() => setIsChatVisible(prev => !prev)}
+                                    className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded w-full h-full"
+                                >
+                                    {isChatVisible ? "▼ Masquer le chat" : "▲ Afficher le chat"}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -540,6 +557,8 @@ function HivePage() {
             />
         </div>
     );
+
+
 
 
 
