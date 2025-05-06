@@ -39,8 +39,9 @@ const MessageInput = ({ onSend }) => {
                     placeholder="message"
                     className="flex-grow bg-transparent text-white px-2 outline-none"
                 />
-                <button
-                    type="button"
+                <button 
+                    type="button" 
+
                     className="bg-[#ffeaa7] hover:bg-[#f1c40f] text-black px-2 py-1.5 rounded-full flex items-center gap-1.5 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg border border-[#f1c40f]"
                     onClick={() => document.getElementById('fileInput').click()}
                 >
@@ -65,8 +66,10 @@ const MessageInput = ({ onSend }) => {
                         <span className="text-[#f1c40f]"></span>
                         <span className="truncate max-w-[200px]">{file.name}</span>
                     </div>
-                    <button
-                        type="button"
+
+                    <button 
+                        type="button" 
+
                         onClick={() => setFile(null)}
                         className="text-[#f1c40f] hover:text-[#ffeaa7] font-bold w-5 h-5 flex items-center justify-center rounded-full hover:bg-[#f1c40f]/20 transition-all duration-300"
                     >
