@@ -5,9 +5,10 @@ module.exports = {
     transform: {
         '^.+\\.(js|jsx)$': 'babel-jest',
     },
-    moduleNameMapper: {
+ 
+      moduleNameMapper: {
         '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     },
-
-
 };
+
+
