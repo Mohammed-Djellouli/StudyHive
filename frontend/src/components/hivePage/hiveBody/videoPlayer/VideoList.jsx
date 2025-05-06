@@ -1,17 +1,35 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import VideoItem from "./VideoItem";
+import socket from '../../../../components/socket';
 
 const VideoList = ({ videos, onVideoSelect, roomId, currentUserId, ownerId, users }) => {
-    console.log('VideoList received videos:', videos);
+    const [videoPermission, setVideoPermission] = useState(false);
 
-    // Vérifier les permissions vidéo
+    // Initial permission check
+    useEffect(() => {
+        if (!users || users.length === 0 || !currentUserId) return;
+        const currentUser = users.find(user => user.userId === currentUserId || user._id === currentUserId);
+        if (currentUser) {
+            setVideoPermission(currentUser.videoControl);
+        }
+    }, [users, currentUserId]);
+
+    // Listen for real-time permission updates
+    useEffect(() => {
+        const handleVideoPermissionUpdate = ({ userId, videoControl }) => {
+            if (userId === currentUserId) {
+                setVideoPermission(videoControl);
+            }
+        };
+
+        socket.on("video_permission_updated", handleVideoPermissionUpdate);
+        return () => socket.off("video_permission_updated", handleVideoPermissionUpdate);
+    }, [currentUserId]);
+
+    // Check video permissions
     const hasVideoPermission = () => {
         if (currentUserId === ownerId) return true;
-        const currentUser = users.find(user =>
-            user.userId === currentUserId ||
-            user._id === currentUserId
-        );
-        return currentUser?.videoControl || false;
+        return videoPermission;
     };
 
     if (!videos || videos.length === 0) {
