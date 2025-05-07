@@ -53,7 +53,7 @@ const TiptapBlocNote = ({ isChatVisible }) => {
                 onClick={exporterPDF}
                 className="absolute bottom-2 right-2 p-2 bg-black text-black rounded hover:bg-yellow-300 transition"
             >
-                <img src="/Assets/export.png" alt="Exporter en PDF" className="w-6 h-6" />
+                <img src="/assets/export.png" alt="Exporter en PDF" className="w-6 h-6" />
             </button>
         </div>
     );

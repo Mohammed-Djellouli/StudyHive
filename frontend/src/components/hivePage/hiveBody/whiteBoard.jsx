@@ -275,7 +275,7 @@ const WhiteBoard = ({ roomId, isModalOpen, setIsModalOpen, canDraw , setNotifica
                     </button>
 
                     <button onClick={exportToPDF} className="p-2 bg-black text-white rounded hover:bg-yellow-300 transition flex items-center justify-center">
-                        <img src="/Assets/export.png" alt="Exporter en PDF" className="w-6 h-6" />
+                        <img src="/assets/export.png" alt="Exporter en PDF" className="w-6 h-6" />
                     </button>
                 </div>
 
