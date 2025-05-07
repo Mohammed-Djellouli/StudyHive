@@ -44,7 +44,7 @@ function SearchBar({ onSearch, currentUserId, ownerId, users }) {
                 className="w-full h-[50px] flex items-center justify-center gap-4"
             >
                 <div className={`flex items-center w-full max-w-[700px] bg-[#1a1a1a] rounded-[8px] p-[6px] gap-2 ${
-                    !canSearch ? 'opacity-50' : ''
+                        !canSearch ? 'opacity-50' : ''
                 }`}>
                     <img
                         src="/assets/youtube-icon.png"
