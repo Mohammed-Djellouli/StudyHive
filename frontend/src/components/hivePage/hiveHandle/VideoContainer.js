@@ -143,12 +143,21 @@ const VideoContainer = ({
         handleSeek();  // Remove event parameter as it's not needed
     };
 
-    const handleModifiedStartSharing = () => {
-        if (!hasScreenSharePermission()) {
-            alert("Vous n'avez pas la permission de partager votre écran.");
-            return;
+    const handleModifiedStartSharing = async () => {
+        try {
+            if (!hasScreenSharePermission()) {
+                alert("Vous n'avez pas la permission de partager votre écran.");
+                return;
+            }
+            await startSharing();
+        } catch (error) {
+            // Handle specific errors
+            if (error.message?.includes('User-Initiated Abort')) {
+                console.log('Screen share cancelled by user');
+            } else if (!error.message?.includes('OperationError')) {
+                console.error('Error starting screen share:', error);
+            }
         }
-        startSharing();
     };
 
     // Gestionnaires pour le déplacement du modal
@@ -186,6 +195,51 @@ const VideoContainer = ({
 
     // Détermine si on doit afficher le contenu du partage d'écran
     const shouldShowScreenShare = isSharing || (remoteStream && isModalOpen);
+
+    useEffect(() => {
+        const handleHiveClose = () => {
+            try {
+                // Clean up any ongoing operations
+                if (videoRef.current) {
+                    videoRef.current.srcObject = null;
+                }
+                if (isSharing) {
+                    stopSharing();
+                }
+                setIsModalOpen(false);
+                
+                // Optional: Show a message to the user
+                console.log("Hive has been closed");
+            } catch (error) {
+                // Suppress OperationError and User-Initiated Abort errors
+                if (!error.message?.includes('User-Initiated Abort') && 
+                    !error.message?.includes('OperationError')) {
+                    console.error('Error during hive closure:', error);
+                }
+            }
+        };
+
+        socket.on("room_closed", handleHiveClose);
+        
+        return () => {
+            socket.off("room_closed", handleHiveClose);
+            // Clean up on component unmount
+            try {
+                if (videoRef.current) {
+                    videoRef.current.srcObject = null;
+                }
+                if (isSharing) {
+                    stopSharing();
+                }
+            } catch (error) {
+                // Suppress specific errors
+                if (!error.message?.includes('User-Initiated Abort') && 
+                    !error.message?.includes('OperationError')) {
+                    console.error('Error during cleanup:', error);
+                }
+            }
+        };
+    }, [isSharing, stopSharing]);
 
     return (
         <div className="relative">
