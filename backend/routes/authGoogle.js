@@ -19,7 +19,7 @@ router.get("/google/callback",
         console.log("PSEUDO :", req.user.pseudo);
         console.log("ID :", req.user._id);
 
-        const redirectUrl = `http://localhost:3000/google-auth-success?token=${token}&pseudo=${encodeURIComponent(req.user.pseudo)}&userId=${req.user._id}`;
+        const redirectUrl = `https://studyhive-frontend.onrender.com/google-auth-success?token=${token}&pseudo=${encodeURIComponent(req.user.pseudo)}&userId=${req.user._id}`;
 
         res.redirect(redirectUrl);
 

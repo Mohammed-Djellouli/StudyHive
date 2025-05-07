@@ -19,7 +19,7 @@ router.get("/github/callback",
         console.log("PSEUDO :", req.user.pseudo);
         console.log("ID :", req.user._id);
 
-        const redirectUrl = `http://localhost:3000/github-auth-success?token=${token}&pseudo=${encodeURIComponent(req.user.pseudo)}&userId=${req.user._id}`;
+        const redirectUrl = `https://studyhive-frontend.onrender.com/github-auth-success?token=${token}&pseudo=${encodeURIComponent(req.user.pseudo)}&userId=${req.user._id}`;
 
         res.redirect(redirectUrl);
     }
